@@ -53,7 +53,7 @@
 | `TaxService` | `src/app/core/services/tax.service.ts` | CRUD e sincronização em tempo real de tributos em `users/{userId}/tributos_e_parcelas`. |
 | `TravelService` | `src/app/core/services/travel.service.ts` | CRUD e stream em tempo real para controle de gastos de viagem e rateio (`users/{userId}/viagens`). |
 | `InstallmentService` | `src/app/core/services/installment.service.ts` | Agrupamento de parcelamentos ativos nos ciclos do usuário e quitação/cancelamento em lote via `writeBatch`. |
-| `ExportService` | `src/app/core/services/export.service.ts` | Exportação de balanço e relatórios em CSV (UTF-8 com BOM para Excel) e PDF estruturado A4 client-side para impressão. |
+| `ExportService` | `src/app/core/services/export.service.ts` | Exportação de balanço e relatórios em CSV (UTF-8 com BOM para Excel), PDF mensal e Dossiê Anual Consolidado das 24 quinzenas do exercício fiscal (`exportAnnualDossierPDF`) com demonstrativo por categoria e tributos para IRPF. |
 | `ThemeService` | `src/app/core/services/theme.service.ts` | Gerenciamento reativo de tema (Dark / Light) com persistência em localStorage e sincronização com DOM. |
 | `PwaService` | `src/app/core/services/pwa.service.ts` | Monitoramento reativo de conectividade (online/offline), captura de beforeinstallprompt, instalação de PWA e controle de Service Worker. |
 | `NotificationService` | `src/app/core/services/notification.service.ts` | Notificações reativas do tipo Toast com Signals (`success`, `error`, `warning`, `info`). |

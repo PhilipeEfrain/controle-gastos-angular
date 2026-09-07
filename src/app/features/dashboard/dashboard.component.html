@@ -357,6 +357,7 @@
   [summary]="financeStore.balanceSummary()"
   [userName]="authStore.currentUser()?.displayName ?? authStore.currentUser()?.email ?? undefined"
   (close)="isExportModalOpen.set(false)"
+  (requestUpgrade)="onExportUpgradeRequested()"
 />
 
 <!-- Modal de Limite Atingido (Janela Deslizante de Histórico) -->
