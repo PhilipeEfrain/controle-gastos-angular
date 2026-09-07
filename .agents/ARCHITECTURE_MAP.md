@@ -151,11 +151,16 @@
 
 ---
 
-## 8. Segurança e Regras de Acesso
+## 8. Segurança, Hardening e Regras de Acesso
 
 | Artefato | Arquivo | Descrição |
 | :--- | :--- | :--- |
-| `Firestore Security Rules` | `firestore.rules` | Regras com isolamento de leitura e escrita por `request.auth.uid == userId`. |
+| `Firestore Security Rules` | `firestore.rules` | Regras com isolamento estrito por `isOwner(userId)` e validação profunda de tipos, schemas, tamanhos de string e limites numéricos (`isValidExpense`, `isValidUserProfile`, `isValidMonthlyCycle`, `isValidTax`, `isValidTravel`). |
+| `CSV Formula Sanitizer` | `src/app/core/services/export.service.ts` | Sanitização preventiva contra CWE-1236 (CSV Formula Injection) neutralizando operadores (`=`, `+`, `-`, `@`, `\t`, `\r`, `%`) com apóstrofo antes da exportação. |
+| `HTTPS URL Validator` | `src/app/features/settings/settings.component.ts` | Validação estrita de URLs seguras (`https://`) para imagens de perfil (prevenção contra CWE-79 / XSS via esquemas `javascript:` ou `http:`). |
+| `Rate Limit Handler` | `src/app/features/auth/auth.component.ts` | Tratamento amigável e bloqueio preventivo para `auth/too-many-requests`. |
+| `Hosting Security Headers & CSP` | `firebase.json` | Hardening HTTP com `Content-Security-Policy`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin` e `Permissions-Policy`. |
+| `Session & State Cleanup` | `src/app/core/state/auth.store.ts` / `finance.store.ts` | Expurgamento total de dados em memória e cancelamento de streams via `FinanceStore.resetState()` no logout. |
 
 ---
 

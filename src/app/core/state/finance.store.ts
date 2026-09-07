@@ -142,4 +142,19 @@ export class FinanceStore {
   setTaxes(taxes: AnnualTax[]): void {
     this._taxes.set(taxes);
   }
+
+  /**
+   * Reseta todo o estado financeiro e cancela subscrições ativas ao realizar logout
+   */
+  resetState(): void {
+    this.cycleSub?.unsubscribe();
+    this.expensesSub?.unsubscribe();
+    this.taxesSub?.unsubscribe();
+
+    this._currentCycle.set(null);
+    this._expenses.set([]);
+    this._taxes.set([]);
+    this._isLoading.set(false);
+    this._error.set(null);
+  }
 }

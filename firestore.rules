@@ -1,32 +1,110 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Isolamento estrito de dados por usuário autenticado
+
+    // Funções Auxiliares de Segurança e Validação de Tipos
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidPositiveNumber(val) {
+      return val is number && val >= 0;
+    }
+
+    function isValidString(val, minLen, maxLen) {
+      return val is string && val.size() >= minLen && val.size() <= maxLen;
+    }
+
+    function isValidYearMonth(val) {
+      return val is string && val.matches('^[0-9]{4}-(0[1-9]|1[0-2])$');
+    }
+
+    function isValidFortnight(val) {
+      return val is number && (val == 1 || val == 2);
+    }
+
+    // Validador de Perfil do Usuário
+    function isValidUserProfile(data) {
+      return (!('displayName' in data) || isValidString(data.displayName, 1, 100))
+        && (!('photoURL' in data) || data.photoURL == null || (data.photoURL is string && data.photoURL.size() <= 1500))
+        && (!('email' in data) || data.email == null || (data.email is string && data.email.size() <= 200));
+    }
+
+    // Validador de Ciclo Mensal
+    function isValidMonthlyCycle(data) {
+      return (!('renda_quinzena_1' in data) || isValidPositiveNumber(data.renda_quinzena_1))
+        && (!('renda_quinzena_2' in data) || isValidPositiveNumber(data.renda_quinzena_2))
+        && (!('mesAno' in data) || isValidYearMonth(data.mesAno));
+    }
+
+    // Validador de Despesa / Renda Extra
+    function isValidExpense(data) {
+      return isValidPositiveNumber(data.valor)
+        && isValidString(data.descricao, 1, 100)
+        && (!('categoria' in data) || (data.categoria is string && data.categoria.size() <= 50))
+        && (!('quinzena' in data) || isValidFortnight(data.quinzena))
+        && (!('mesAno' in data) || isValidYearMonth(data.mesAno))
+        && (!('status_pagamento' in data) || data.status_pagamento is bool)
+        && (!('tipo' in data) || data.tipo in ['despesa', 'renda_extra'])
+        && (!('codigo_comprovante' in data) || data.codigo_comprovante == null || (data.codigo_comprovante is string && data.codigo_comprovante.size() <= 100));
+    }
+
+    // Validador de Tributos Anuais
+    function isValidTax(data) {
+      return (!('nome' in data) || isValidString(data.nome, 1, 100))
+        && (!('valor_orcado' in data) || isValidPositiveNumber(data.valor_orcado))
+        && (!('valor_pago' in data) || isValidPositiveNumber(data.valor_pago))
+        && (!('ano' in data) || (data.ano is number && data.ano >= 2000 && data.ano <= 2100));
+    }
+
+    // Validador de Viagens e Gastos Coletivos
+    function isValidTravel(data) {
+      return (!('nome' in data) || isValidString(data.nome, 1, 100))
+        && (!('total' in data) || isValidPositiveNumber(data.total))
+        && (!('numPessoas' in data) || (data.numPessoas is number && data.numPessoas >= 1 && data.numPessoas <= 100));
+    }
+
+    // Isolamento Estrito de Dados por Usuário
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-      
-      // Ciclos Mensais e Despesas Quinzenais
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId) && isValidUserProfile(request.resource.data);
+      allow delete: if isOwner(userId);
+
+      // Ciclos Mensais
       match /ciclos_mensais/{mesAno} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
-        
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidMonthlyCycle(request.resource.data);
+        allow delete: if isOwner(userId);
+
+        // Despesas e Rendas Extras do Ciclo
         match /despesas/{despesaId} {
-          allow read, write: if request.auth != null && request.auth.uid == userId;
+          allow read: if isOwner(userId);
+          allow create, update: if isOwner(userId) && isValidExpense(request.resource.data);
+          allow delete: if isOwner(userId);
         }
       }
-      
-      // Tributos Anuais e Compras Parceladas
+
+      // Tributos Anuais e Parcelamentos
       match /tributos_e_parcelas/{tributoId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidTax(request.resource.data);
+        allow delete: if isOwner(userId);
       }
 
       // Gastos de Viagem e Rateio
       match /viagens/{viagemId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidTravel(request.resource.data);
+        allow delete: if isOwner(userId);
       }
 
       // Qualquer subcoleção adicional isolada pelo userId
       match /{allSubcollections=**} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if isOwner(userId);
       }
     }
   }

@@ -174,7 +174,7 @@ export class AuthComponent {
       case 'auth/weak-password':
         return 'A senha deve conter no mínimo 6 caracteres.';
       case 'auth/too-many-requests':
-        return 'Muitas tentativas malsucedidas. Tente novamente mais tarde.';
+        return 'Acesso temporariamente bloqueado por excesso de tentativas. Aguarde alguns minutos ou redefina sua senha.';
       case 'auth/network-request-failed':
         return 'Falha de conexão com o servidor. Verifique sua internet.';
       default:

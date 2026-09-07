@@ -1,12 +1,14 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { UserProfile } from '../models/user.model';
 import { AuthService } from '../services/auth.service';
+import { FinanceStore } from './finance.store';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthStore {
   private authService = inject(AuthService);
+  private financeStore = inject(FinanceStore);
 
   // Estados Reativos Privados (Signals)
   private readonly _currentUser = signal<UserProfile | null>(null);
@@ -64,6 +66,7 @@ export class AuthStore {
           }
         } else {
           this._currentUser.set(null);
+          this.financeStore.resetState();
         }
         this._isLoading.set(false);
         this._isInitialized.set(true);
@@ -73,6 +76,7 @@ export class AuthStore {
       },
       error: () => {
         this._currentUser.set(null);
+        this.financeStore.resetState();
         this._isLoading.set(false);
         this._isInitialized.set(true);
         if (this.initResolve) {
@@ -85,6 +89,9 @@ export class AuthStore {
   // Métodos de Mutação de Estado
   setUser(user: UserProfile | null): void {
     this._currentUser.set(user);
+    if (!user) {
+      this.financeStore.resetState();
+    }
     this._isLoading.set(false);
     this._isInitialized.set(true);
     if (this.initResolve) {
@@ -112,6 +119,7 @@ export class AuthStore {
     try {
       await this.authService.logout();
       this._currentUser.set(null);
+      this.financeStore.resetState();
     } finally {
       this._isLoading.set(false);
     }

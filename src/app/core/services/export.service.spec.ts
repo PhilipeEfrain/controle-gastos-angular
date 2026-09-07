@@ -78,6 +78,26 @@ describe('ExportService', () => {
     expect(service).toBeTruthy();
   });
 
+  describe('sanitizeCSVField', () => {
+    it('deve prefixar apóstrofo para strings que iniciam com =, +, -, @, \\t, \\r ou %', () => {
+      expect(service.sanitizeCSVField('=SUM(1+1)')).toBe('\'=SUM(1+1)');
+      expect(service.sanitizeCSVField('@calc')).toBe('\'@calc');
+      expect(service.sanitizeCSVField('+100')).toBe('\'+100');
+      expect(service.sanitizeCSVField('-50')).toBe('\'-50');
+      expect(service.sanitizeCSVField('\tcmd')).toBe('\'\tcmd');
+      expect(service.sanitizeCSVField('\rcmd')).toBe('\'\rcmd');
+      expect(service.sanitizeCSVField('%0A')).toBe('\'%0A');
+    });
+
+    it('não deve alterar strings normais e deve tratar aspas duplas', () => {
+      expect(service.sanitizeCSVField('Supermercado')).toBe('Supermercado');
+      expect(service.sanitizeCSVField('Aluguel "Central"')).toBe('Aluguel ""Central""');
+      expect(service.sanitizeCSVField('')).toBe('');
+      expect(service.sanitizeCSVField(null)).toBe('');
+      expect(service.sanitizeCSVField(undefined)).toBe('');
+    });
+  });
+
   describe('exportToCSV', () => {
     it('deve disparar download com conteúdo CSV formatado com BOM e separador de ponto e vírgula', () => {
       let createdBlob: Blob | null = null;
@@ -93,6 +113,34 @@ describe('ExportService', () => {
       expect(createdFilename).toBe('controle-financeiro-09-2026.csv');
       expect(createdBlob).toBeTruthy();
       expect((createdBlob as any)?.type).toBe('text/csv;charset=utf-8;');
+    });
+
+    it('deve sanitizar despesas com fórmulas perigosas ao gerar o CSV', async () => {
+      const maliciousExpenses: Expense[] = [
+        {
+          id: 'exp-malicious',
+          descricao: '=SUM(1+1)',
+          valor: 50,
+          categoria: '@Financas',
+          quinzena: 1,
+          status_pagamento: true,
+          codigo_comprovante: '+COMP-001',
+          tipo: 'despesa'
+        }
+      ];
+
+      let capturedBlob: Blob | null = null;
+      vi.spyOn(service as any, 'triggerDownload').mockImplementation((...args: any[]) => {
+        capturedBlob = args[0];
+      });
+
+      service.exportToCSV('09-2026', maliciousExpenses, mockSummary);
+
+      expect(capturedBlob).toBeTruthy();
+      const text = await (capturedBlob as any).text();
+      expect(text).toContain('\'=SUM(1+1)');
+      expect(text).toContain('\'@Financas');
+      expect(text).toContain('\'+COMP-001');
     });
   });
 

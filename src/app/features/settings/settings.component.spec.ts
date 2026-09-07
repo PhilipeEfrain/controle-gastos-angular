@@ -116,6 +116,26 @@ describe('SettingsComponent', () => {
 
       expect(mockAuthService.updateProfileData).not.toHaveBeenCalled();
     });
+
+    it('deve invalidar o campo photoURL se a URL não iniciar com https:// (CWE-79 / XSS)', async () => {
+      component.profileForm.patchValue({
+        displayName: 'Carlos Eduardo',
+        photoURL: 'javascript:alert(1)'
+      });
+
+      expect(component.profileForm.valid).toBe(false);
+      expect(component.profileForm.get('photoURL')?.hasError('invalidHttpsUrl')).toBe(true);
+
+      component.profileForm.patchValue({ photoURL: 'http://inseguro.com/foto.jpg' });
+      expect(component.profileForm.valid).toBe(false);
+      expect(component.profileForm.get('photoURL')?.hasError('invalidHttpsUrl')).toBe(true);
+
+      component.profileForm.patchValue({ photoURL: 'https://seguro.com/foto.jpg' });
+      expect(component.profileForm.valid).toBe(true);
+
+      component.profileForm.patchValue({ photoURL: '' });
+      expect(component.profileForm.valid).toBe(true);
+    });
   });
 
   describe('Cenário BDD: Alternância de tema Dark/Light/Dark-Blue', () => {

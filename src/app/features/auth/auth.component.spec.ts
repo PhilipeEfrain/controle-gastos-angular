@@ -73,6 +73,15 @@ describe('AuthComponent', () => {
     expect(component.errorMessage()).toContain('E-mail ou senha incorretos');
   });
 
+  it('Cenário BDD: deve exibir mensagem de bloqueio temporário em caso de excesso de tentativas (auth/too-many-requests)', async () => {
+    mockAuthService.loginWithEmail.mockRejectedValue({ code: 'auth/too-many-requests' });
+
+    component.loginForm.setValue({ email: 'err@exemplo.com', password: 'password123' });
+    await component.handleEmailLogin();
+
+    expect(component.errorMessage()).toContain('Acesso temporariamente bloqueado por excesso de tentativas');
+  });
+
   it('Cenário BDD: deve enviar link de recuperação de senha com sucesso', async () => {
     mockAuthService.sendPasswordReset.mockResolvedValue(undefined);
 

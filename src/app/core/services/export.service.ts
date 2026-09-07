@@ -8,6 +8,20 @@ import { formatBRL } from '../utils/formatters';
 export class ExportService {
 
   /**
+   * Sanitiza campo textual contra CSV / Excel Formula Injection (CWE-1236).
+   * Se o valor iniciar com =, +, -, @, \t, \r ou %, prefixa com apóstrofo (')
+   * para forçar o software de planilhas a interpretá-lo estritamente como texto puro.
+   */
+  sanitizeCSVField(value: string | undefined | null): string {
+    if (!value) return '';
+    const str = String(value);
+    const dangerousPrefixes = ['=', '+', '-', '@', '\t', '\r', '%'];
+    const firstChar = str.charAt(0);
+    const sanitized = dangerousPrefixes.includes(firstChar) ? `'${str}` : str;
+    return sanitized.replace(/"/g, '""');
+  }
+
+  /**
    * Exporta os dados do ciclo em formato CSV (UTF-8 com BOM para Excel)
    */
   exportToCSV(mesAno: string, expenses: Expense[], summary: MonthBalanceSummary): void {
@@ -35,11 +49,11 @@ export class ExportService {
     for (const exp of sortedExpenses) {
       const quinzenaStr = exp.quinzena === 1 ? '1ª Quinzena (Dia 31)' : '2ª Quinzena (Dia 15)';
       const tipoStr = exp.tipo === 'renda_extra' ? 'Renda Extra' : 'Despesa';
-      const descStr = `"${(exp.descricao || '').replace(/"/g, '""')}"`;
-      const catStr = `"${(exp.categoria || 'Outros').replace(/"/g, '""')}"`;
+      const descStr = `"${this.sanitizeCSVField(exp.descricao)}"`;
+      const catStr = `"${this.sanitizeCSVField(exp.categoria || 'Outros')}"`;
       const valorStr = formatBRL(exp.valor).replace('R$', '').trim();
       const statusStr = exp.status_pagamento ? 'Pago / Recebido' : 'Pendente';
-      const compStr = exp.codigo_comprovante ? `"${exp.codigo_comprovante}"` : '-';
+      const compStr = exp.codigo_comprovante ? `"${this.sanitizeCSVField(exp.codigo_comprovante)}"` : '-';
       const vencStr = exp.data_vencimento || '-';
 
       lines.push(`${quinzenaStr};${tipoStr};${descStr};${catStr};${valorStr};${statusStr};${compStr};${vencStr}`);
