@@ -13,6 +13,12 @@ export class AuthStore {
   private readonly _isLoading = signal<boolean>(true);
   private readonly _isInitialized = signal<boolean>(false);
 
+  // Controle de Promessa para Espera Assíncrona na Inicialização do Firebase Auth
+  private initResolve?: (value: boolean) => void;
+  private readonly initPromise: Promise<boolean> = new Promise(resolve => {
+    this.initResolve = resolve;
+  });
+
   // Seletores Públicos (ReadOnly Signals)
   readonly currentUser = this._currentUser.asReadonly();
   readonly isLoading = this._isLoading.asReadonly();
@@ -25,6 +31,17 @@ export class AuthStore {
 
   constructor() {
     this.initAuthListener();
+  }
+
+  /**
+   * Aguarda a resolução da primeira checagem de sessão do Firebase Auth (evita perda de sessão no F5)
+   */
+  async ensureInitialized(): Promise<boolean> {
+    if (this._isInitialized()) {
+      return this.isAuthenticated();
+    }
+    await this.initPromise;
+    return this.isAuthenticated();
   }
 
   /**
@@ -50,11 +67,17 @@ export class AuthStore {
         }
         this._isLoading.set(false);
         this._isInitialized.set(true);
+        if (this.initResolve) {
+          this.initResolve(!!this._currentUser());
+        }
       },
       error: () => {
         this._currentUser.set(null);
         this._isLoading.set(false);
         this._isInitialized.set(true);
+        if (this.initResolve) {
+          this.initResolve(false);
+        }
       }
     });
   }
@@ -64,6 +87,9 @@ export class AuthStore {
     this._currentUser.set(user);
     this._isLoading.set(false);
     this._isInitialized.set(true);
+    if (this.initResolve) {
+      this.initResolve(!!user);
+    }
   }
 
   setLoading(loading: boolean): void {

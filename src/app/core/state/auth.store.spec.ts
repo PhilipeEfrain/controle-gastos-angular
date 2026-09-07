@@ -60,4 +60,17 @@ describe('AuthStore (Signals State)', () => {
     expect(store.currentUser()).toBeNull();
     expect(mockAuthService.logout).toHaveBeenCalled();
   });
+
+  it('Cenário BDD: deve resolver ensureInitialized() quando o primeiro evento de auth for emitido', async () => {
+    const promise = store.ensureInitialized();
+
+    // Emite o evento de auth
+    authStateSubject.next(null);
+
+    const isAuth = await promise;
+
+    expect(isAuth).toBe(false);
+    expect(store.isLoading()).toBe(false);
+    expect(store.isInitialized()).toBe(true);
+  });
 });

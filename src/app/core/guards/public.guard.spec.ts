@@ -15,7 +15,8 @@ describe('publicGuard (Route Guard)', () => {
     };
 
     mockAuthStore = {
-      isAuthenticated: signal(false)
+      isAuthenticated: signal(false),
+      ensureInitialized: vi.fn().mockResolvedValue(true)
     };
 
     TestBed.configureTestingModule({
@@ -26,23 +27,26 @@ describe('publicGuard (Route Guard)', () => {
     });
   });
 
-  it('Cenário BDD: deve permitir acesso à rota pública quando o usuário NÃO estiver autenticado', () => {
+  it('Cenário BDD: deve permitir acesso à rota pública quando o usuário NÃO estiver autenticado após inicialização', async () => {
     mockAuthStore.isAuthenticated.set(false);
 
-    const result = TestBed.runInInjectionContext(() =>
+    const result = await TestBed.runInInjectionContext(() =>
       publicGuard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot)
     );
 
+    expect(mockAuthStore.ensureInitialized).toHaveBeenCalled();
     expect(result).toBe(true);
   });
 
-  it('Cenário BDD: deve redirecionar para /dashboard quando o usuário já estiver autenticado', () => {
+  it('Cenário BDD: deve redirecionar para /dashboard quando o usuário já estiver autenticado', async () => {
     mockAuthStore.isAuthenticated.set(true);
 
-    TestBed.runInInjectionContext(() =>
+    const result = await TestBed.runInInjectionContext(() =>
       publicGuard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot)
     );
 
+    expect(mockAuthStore.ensureInitialized).toHaveBeenCalled();
     expect(mockRouter.createUrlTree).toHaveBeenCalledWith(['/dashboard']);
+    expect(result).toEqual({ commands: ['/dashboard'] });
   });
 });

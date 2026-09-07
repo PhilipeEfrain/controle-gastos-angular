@@ -111,8 +111,8 @@
 
 | Guard | Arquivo | Descrição |
 | :--- | :--- | :--- |
-| `authGuard` | `src/app/core/guards/auth.guard.ts` | Redireciona usuários não autenticados para `/auth`. |
-| `publicGuard` | `src/app/core/guards/public.guard.ts` | Redireciona usuários já autenticados de `/auth` para `/dashboard`. |
+| `authGuard` | `src/app/core/guards/auth.guard.ts` | Guard assíncrono que aguarda `authStore.ensureInitialized()` e redireciona usuários não autenticados para `/auth` preservando `returnUrl`. |
+| `publicGuard` | `src/app/core/guards/public.guard.ts` | Guard assíncrono que aguarda `authStore.ensureInitialized()` e redireciona usuários já autenticados de `/auth` para `/dashboard`. |
 
 ---
 
