@@ -41,6 +41,7 @@ describe('NavbarComponent', () => {
     mockAuthStore = {
       currentUser: signal<UserProfile | null>(mockUser),
       isAuthenticated: signal<boolean>(true),
+      isAdmin: signal<boolean>(false),
       logout: vi.fn().mockResolvedValue(undefined)
     };
 
@@ -130,5 +131,20 @@ describe('NavbarComponent', () => {
   it('deve chamar toggleTheme ao clicar no botão de tema', () => {
     component.toggleTheme();
     expect(mockThemeService.toggleTheme).toHaveBeenCalled();
+  });
+
+  it('Cenário BDD (RBAC UX): NÃO deve exibir link de Admin para usuários comuns', () => {
+    (mockAuthStore.isAdmin as WritableSignal<boolean>).set(false);
+    fixture.detectChanges();
+    const adminLink = fixture.nativeElement.querySelector('#nav-admin');
+    expect(adminLink).toBeNull();
+  });
+
+  it('Cenário BDD (RBAC UX): DEVE exibir link de Admin quando usuário for administrador', () => {
+    (mockAuthStore.isAdmin as WritableSignal<boolean>).set(true);
+    fixture.detectChanges();
+    const adminLink = fixture.nativeElement.querySelector('#nav-admin');
+    expect(adminLink).toBeTruthy();
+    expect(adminLink.textContent).toContain('Admin');
   });
 });

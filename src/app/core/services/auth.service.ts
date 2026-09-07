@@ -103,6 +103,9 @@ export class AuthService {
       email: user.email,
       displayName: user.displayName || fallbackName || 'Usuário',
       photoURL: user.photoURL,
+      role: 'user',
+      plan: 'free',
+      planStatus: 'active',
       preferences: { theme: 'dark', currency: 'BRL' },
       createdAt: new Date().toISOString()
     };
@@ -118,6 +121,24 @@ export class AuthService {
         }
         if (data['createdAt']) {
           userProfile.createdAt = data['createdAt'];
+        }
+        if (data['role']) {
+          userProfile.role = data['role'];
+        }
+        if (data['plan']) {
+          userProfile.plan = data['plan'];
+        }
+        if (data['planStatus']) {
+          userProfile.planStatus = data['planStatus'];
+        }
+        if (data['planExpiresAt']) {
+          userProfile.planExpiresAt = data['planExpiresAt'];
+        }
+        if (data['asaasCustomerId']) {
+          userProfile.asaasCustomerId = data['asaasCustomerId'];
+        }
+        if (data['asaasSubscriptionId']) {
+          userProfile.asaasSubscriptionId = data['asaasSubscriptionId'];
         }
       }
 

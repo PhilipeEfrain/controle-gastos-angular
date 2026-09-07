@@ -30,6 +30,15 @@ export class AuthStore {
   readonly isAuthenticated = computed(() => !!this._currentUser());
   readonly userDisplayName = computed(() => this._currentUser()?.displayName ?? 'Usuário');
   readonly userPhotoURL = computed(() => this._currentUser()?.photoURL ?? null);
+  readonly userRole = computed(() => this._currentUser()?.role ?? 'user');
+  readonly isAdmin = computed(() => this._currentUser()?.role === 'admin');
+  readonly currentPlan = computed(() => this._currentUser()?.plan ?? 'free');
+  readonly planStatus = computed(() => this._currentUser()?.planStatus ?? 'active');
+  readonly isProOrDuo = computed(() => {
+    const plan = this._currentUser()?.plan;
+    return plan === 'pro' || plan === 'duo';
+  });
+  readonly isDuo = computed(() => this._currentUser()?.plan === 'duo');
 
   constructor() {
     this.initAuthListener();

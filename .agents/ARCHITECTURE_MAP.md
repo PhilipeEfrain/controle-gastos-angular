@@ -36,7 +36,8 @@
 | `TravelExpenseItem` | `src/app/core/models/finance.model.ts` | Item de despesa de viagem com descrição, categoria, valor, pagador e rateio (`dividir`). |
 | `InstallmentGroup` | `src/app/core/models/finance.model.ts` | Agrupamento de compras parceladas com progresso (ex: 3/10), saldo restante e parcelas vinculadas. |
 | `InstallmentParcel` | `src/app/core/models/finance.model.ts` | Item individual de parcela com mês de referência, número, valor e status de quitação. |
-| `UserProfile` | `src/app/core/models/user.model.ts` | Modelo de perfil de usuário autenticado no Firebase. |
+| `UserProfile` | `src/app/core/models/user.model.ts` | Modelo de perfil de usuário com suporte a papéis RBAC (`role?: 'admin' \| 'user'`), planos SaaS (`plan?: 'free' \| 'pro' \| 'duo'`), status da assinatura e identificadores Asaas. |
+| `UserRole` / `PlanType` / `PlanStatus` | `src/app/core/models/user.model.ts` | Tipos literais estritos para controle de acesso e monetização. |
 | `ToastNotification` | `src/app/core/models/notification.model.ts` | Modelo de notificação Toast reativa (id, tipo, mensagem, duração). |
 
 ---
@@ -132,6 +133,11 @@
 | :--- | :--- | :--- |
 | `LandingComponent` | `app-landing` | Landing Page de conversão de alto impacto com Glassmorphism, proposta de valor dos 4 pilares do Quinzena, mockups interativos, FAQ e CTAs. |
 
+### J. Feature: Administração SaaS (`src/app/features/admin/`)
+| Componente | Seletor | Descrição |
+| :--- | :--- | :--- |
+| `AdminComponent` | `app-admin` | Painel administrativo para monitoramento global, gestão de usuários e controle de planos SaaS. |
+
 ---
 
 ## 6. Pipes e Diretivas Customizadas (`src/app/shared/`)
@@ -150,6 +156,7 @@
 | :--- | :--- | :--- |
 | `authGuard` | `src/app/core/guards/auth.guard.ts` | Guard assíncrono que aguarda `authStore.ensureInitialized()` e redireciona usuários não autenticados para `/auth` preservando `returnUrl`. |
 | `publicGuard` | `src/app/core/guards/public.guard.ts` | Guard assíncrono que aguarda `authStore.ensureInitialized()` e redireciona usuários já autenticados de `/auth` para `/dashboard`. |
+| `adminGuard` | `src/app/core/guards/admin.guard.ts` | Guard assíncrono RBAC que valida papel `admin` no `AuthStore`, bloqueia acesso não autorizado com toast de erro e redireciona para `/dashboard`. |
 
 ---
 
@@ -157,7 +164,7 @@
 
 | Artefato | Arquivo | Descrição |
 | :--- | :--- | :--- |
-| `Firestore Security Rules` | `firestore.rules` | Regras com isolamento estrito por `isOwner(userId)`, validação estrita de whitelisting de chaves (`keys().hasOnly([...])`), fechamento de catch-all de subcoleções e restrições de limites de dados. |
+| `Firestore Security Rules` | `firestore.rules` | Regras com isolamento estrito por `isOwner(userId)`, RBAC administrativo (`isAdmin()`), proteção anti-elevação de privilégio (bloqueio de alteração de `role` e `plan` por usuários comuns), validação estrita de whitelisting de chaves (`keys().hasOnly([...])`) e fechamento de catch-all. |
 | `CSV Formula Sanitizer` | `src/app/core/services/export.service.ts` | Sanitização preventiva contra CWE-1236 (CSV Formula Injection) neutralizando operadores (`=`, `+`, `-`, `@`, `\t`, `\r`, `%`) com apóstrofo antes da exportação. |
 | `HTML Sanitizer & XSS Escape` | `src/app/core/services/export.service.ts` | Função `escapeHTML()` para prevenção de DOM XSS (CWE-79) em relatórios gerados e impressos em PDF. |
 | `HTTPS URL Validator` | `src/app/features/settings/settings.component.ts` | Validação estrita de URLs seguras (`https://`) para imagens de perfil (prevenção contra CWE-79 / XSS via esquemas `javascript:` ou `http:`). |

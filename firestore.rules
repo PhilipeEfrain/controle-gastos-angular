@@ -11,6 +11,14 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.admin == true ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+      );
+    }
+
     function isValidPositiveNumber(val) {
       return val is number && val >= 0;
     }
@@ -31,12 +39,23 @@ service cloud.firestore {
       return val is number && (val == 1 || val == 2);
     }
 
-    // Validador de Perfil do Usuário com Restrição Estrita de Campos
+    // Validador de Perfil do Usuário com Restrição Estrita de Campos e RBAC
     function isValidUserProfile(data) {
-      return data.keys().hasOnly(['uid', 'id', 'email', 'displayName', 'photoURL', 'preferences', 'createdAt', 'updatedAt'])
+      return data.keys().hasOnly([
+        'uid', 'id', 'email', 'displayName', 'photoURL',
+        'role', 'plan', 'planStatus', 'planExpiresAt',
+        'asaasCustomerId', 'asaasSubscriptionId',
+        'preferences', 'createdAt', 'updatedAt'
+      ])
         && (!('displayName' in data) || isValidString(data.displayName, 1, 100))
         && (!('photoURL' in data) || data.photoURL == null || (data.photoURL is string && data.photoURL.size() <= 1500))
-        && (!('email' in data) || data.email == null || (data.email is string && data.email.size() <= 200));
+        && (!('email' in data) || data.email == null || (data.email is string && data.email.size() <= 200))
+        && (!('role' in data) || data.role in ['admin', 'user'])
+        && (!('plan' in data) || data.plan in ['free', 'pro', 'duo'])
+        && (!('planStatus' in data) || data.planStatus in ['active', 'canceled', 'past_due', 'trial'])
+        && (!('planExpiresAt' in data) || data.planExpiresAt == null || data.planExpiresAt is string)
+        && (!('asaasCustomerId' in data) || data.asaasCustomerId == null || data.asaasCustomerId is string)
+        && (!('asaasSubscriptionId' in data) || data.asaasSubscriptionId == null || data.asaasSubscriptionId is string);
     }
 
     // Validador de Ciclo Mensal com Suporte a Renda, Totais e Regime Salarial
@@ -112,11 +131,18 @@ service cloud.firestore {
         && (!('quantidade_participantes' in data) || (data.quantidade_participantes is number && data.quantidade_participantes >= 1 && data.quantidade_participantes <= 100));
     }
 
-    // Isolamento Estrito de Dados por Usuário
+    // Isolamento Estrito de Dados por Usuário e Governança Administrativa
     match /users/{userId} {
-      allow read: if isOwner(userId);
-      allow create, update: if isOwner(userId) && isValidUserProfile(request.resource.data);
-      allow delete: if isOwner(userId);
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if (isOwner(userId) && isValidUserProfile(request.resource.data)
+                        && (!('role' in request.resource.data) || request.resource.data.role == 'user')
+                        && (!('plan' in request.resource.data) || request.resource.data.plan == 'free'))
+                     || isAdmin();
+      allow update: if (isOwner(userId) && isValidUserProfile(request.resource.data)
+                        && (!('role' in request.resource.data) || request.resource.data.role == resource.data.role || (!('role' in resource.data) && request.resource.data.role == 'user'))
+                        && (!('plan' in request.resource.data) || request.resource.data.plan == resource.data.plan || (!('plan' in resource.data) && request.resource.data.plan == 'free')))
+                     || isAdmin();
+      allow delete: if isOwner(userId) || isAdmin();
 
       // Despesas Recorrentes (Contas Fixas Mensais)
       match /despesas_recorrentes/{recorrenteId} {
