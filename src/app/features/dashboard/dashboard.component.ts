@@ -17,7 +17,8 @@ import { NotificationService } from '../../core/services/notification.service';
 import { Expense, FortnightNumber, MonthlyCycle } from '../../core/models/finance.model';
 import { formatBRL } from '../../core/utils/formatters';
 import { addMonthsToYearMonth } from '../../core/utils/calculations';
-import { getCurrentYearMonth } from '../../core/utils/date';
+import { getCurrentYearMonth, getMonthOffset } from '../../core/utils/date';
+import { PlanLimitsService } from '../../core/services/plan-limits.service';
 import { AppCardComponent } from '../../shared/components/app-card/app-card.component';
 import { DeficitAlertBannerComponent } from '../../shared/components/deficit-alert-banner/deficit-alert-banner.component';
 import { FortnightCardComponent } from './components/fortnight-card/fortnight-card.component';
@@ -27,6 +28,7 @@ import { ReceiptModalComponent } from './components/receipt-modal/receipt-modal.
 import { CategoryDonutChartComponent } from './components/category-donut-chart/category-donut-chart.component';
 import { MonthlyEvolutionChartComponent } from './components/monthly-evolution-chart/monthly-evolution-chart.component';
 import { ExportModalComponent } from './components/export-modal/export-modal.component';
+import { LimitReachedModalComponent } from '../../shared/components/limit-reached-modal/limit-reached-modal.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -41,7 +43,8 @@ import { ExportModalComponent } from './components/export-modal/export-modal.com
     ReceiptModalComponent,
     CategoryDonutChartComponent,
     MonthlyEvolutionChartComponent,
-    ExportModalComponent
+    ExportModalComponent,
+    LimitReachedModalComponent
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
@@ -52,11 +55,13 @@ export class DashboardComponent implements OnInit {
   readonly authStore = inject(AuthStore);
   private readonly expenseService = inject(ExpenseService);
   private readonly cycleService = inject(MonthlyCycleService);
+  private readonly planLimitsService = inject(PlanLimitsService);
   private readonly notificationService = inject(NotificationService);
   private readonly router = inject(Router);
 
   // Status visual para feedback temporário
   readonly actionMessage = signal<string | null>(null);
+  readonly limitModalData = signal<{ title: string; message: string; resourceName: string } | null>(null);
 
   // Controle de Visualização de Gráficos Analíticos
   readonly showCharts = signal<boolean>(true);
@@ -134,9 +139,31 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  // Validação Reativa de Janela de Histórico Deslizante
+  readonly canGoPrevMonth = computed<boolean>(() => {
+    const targetMonth = addMonthsToYearMonth(this.financeStore.selectedMonth(), -1);
+    const offset = getMonthOffset(targetMonth, getCurrentYearMonth());
+    return this.planLimitsService.isHistoryMonthAllowed(offset);
+  });
+
   // Navegação Temporal de Meses
   prevMonth(): void {
     const newMonth = addMonthsToYearMonth(this.financeStore.selectedMonth(), -1);
+    const offset = getMonthOffset(newMonth, getCurrentYearMonth());
+
+    if (!this.planLimitsService.isHistoryMonthAllowed(offset)) {
+      if (!this.authStore.isProOrDuo()) {
+        this.limitModalData.set({
+          title: 'Histórico Completo de 13 Meses',
+          message: 'No plano Gratuito você tem acesso aos 2 meses mais recentes. Assine o Quinzena PRO para navegar por 13 meses móveis de histórico consolidado!',
+          resourceName: 'Histórico de 13 Meses'
+        });
+      } else {
+        this.notificationService.info('Você atingiu o limite da janela de 13 meses móveis do histórico.');
+      }
+      return;
+    }
+
     this.updateSelectedMonth(newMonth);
   }
 

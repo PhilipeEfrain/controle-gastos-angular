@@ -20,9 +20,11 @@
           <button
             type="button"
             class="nav-arrow-btn"
+            [class.is-limited]="!canGoPrevMonth()"
             (click)="prevMonth()"
-            title="Mês anterior"
+            [title]="canGoPrevMonth() ? 'Mês anterior' : (authStore.isProOrDuo() ? 'Limite máximo de 13 meses atingido' : 'Desbloqueie 13 meses de histórico no Plano PRO')"
             aria-label="Mês anterior"
+            id="btn-prev-month"
           >
             <svg viewBox="0 0 20 20" fill="currentColor">
               <path
@@ -356,3 +358,14 @@
   [userName]="authStore.currentUser()?.displayName ?? authStore.currentUser()?.email ?? undefined"
   (close)="isExportModalOpen.set(false)"
 />
+
+<!-- Modal de Limite Atingido (Janela Deslizante de Histórico) -->
+@if (limitModalData(); as data) {
+  <app-limit-reached-modal
+    [title]="data.title"
+    [message]="data.message"
+    [resourceName]="data.resourceName"
+    (close)="limitModalData.set(null)"
+  />
+}
+
