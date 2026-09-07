@@ -1,0 +1,97 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
+import { FinanceStore } from './finance.store';
+import { MonthlyCycleService } from '../services/monthly-cycle.service';
+import { ExpenseService } from '../services/expense.service';
+import { TaxService } from '../services/tax.service';
+import { Expense, MonthlyCycle, AnnualTax } from '../models/finance.model';
+
+describe('FinanceStore (Signals Reactive State)', () => {
+  let store: FinanceStore;
+  let mockCycleService: any;
+  let mockExpenseService: any;
+  let mockTaxService: any;
+
+  beforeEach(() => {
+    mockCycleService = {
+      getCycleStream: vi.fn(() => of(null))
+    };
+    mockExpenseService = {
+      getExpensesStream: vi.fn(() => of([]))
+    };
+    mockTaxService = {
+      getTaxesStream: vi.fn(() => of([]))
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        FinanceStore,
+        { provide: MonthlyCycleService, useValue: mockCycleService },
+        { provide: ExpenseService, useValue: mockExpenseService },
+        { provide: TaxService, useValue: mockTaxService }
+      ]
+    });
+
+    store = TestBed.inject(FinanceStore);
+  });
+
+  it('deve inicializar com o mês corrente e lista vazia', () => {
+    expect(store.selectedMonth()).toBeTruthy();
+    expect(store.expenses()).toEqual([]);
+    expect(store.currentCycle()).toBeNull();
+  });
+
+  it('Cenário BDD: deve filtrar despesas reativamente por quinzena nos computed signals', () => {
+    const expenses: Expense[] = [
+      { id: '1', descricao: 'Aluguel', valor: 1500, quinzena: 1, status_pagamento: true, categoria: 'Moradia' },
+      { id: '2', descricao: 'Cartão', valor: 800, quinzena: 2, status_pagamento: false, categoria: 'Cartão' },
+      { id: '3', descricao: 'Condomínio', valor: 400, quinzena: 1, status_pagamento: true, categoria: 'Moradia' }
+    ];
+
+    store.setExpenses(expenses);
+
+    expect(store.q1Expenses().length).toBe(2);
+    expect(store.q2Expenses().length).toBe(1);
+    expect(store.q2Expenses()[0].descricao).toBe('Cartão');
+  });
+
+  it('Cenário BDD: deve recalcular automaticamente o balanceSummary quando ciclo e despesas mudam', () => {
+    const cycle: MonthlyCycle = {
+      mesAno: '2025-03',
+      renda_quinzena_1: 2500,
+      renda_quinzena_2: 2000,
+      total_renda: 4500,
+      total_gastos: 0,
+      saldo_final: 4500
+    };
+
+    const expenses: Expense[] = [
+      { descricao: 'Casa', valor: 2000, quinzena: 1, status_pagamento: true, categoria: 'Moradia' },
+      { descricao: 'Fatura', valor: 1500, quinzena: 2, status_pagamento: false, categoria: 'Cartão' }
+    ];
+
+    store.setCycle(cycle);
+    store.setExpenses(expenses);
+
+    const balance = store.balanceSummary();
+    expect(balance.totalRenda).toBe(4500);
+    expect(balance.totalGastos).toBe(3500);
+    expect(balance.saldoFinal).toBe(1000);
+    expect(balance.q1.saldo).toBe(500);
+    expect(balance.q2.saldo).toBe(500);
+    expect(balance.temDeficitGlobal).toBe(false);
+  });
+
+  it('deve calcular totais orçado e pago de tributos nos computed signals', () => {
+    const taxes: AnnualTax[] = [
+      { titulo: 'IPTU', data_vencimento: '2025-04-10', valor_orcado: 1200, valor_pago: 1150, status: 'Pago' },
+      { titulo: 'IPVA', data_vencimento: '2025-02-15', valor_orcado: 800, valor_pago: 0, status: 'Pendente' }
+    ];
+
+    store.setTaxes(taxes);
+
+    expect(store.totalTaxesBudget()).toBe(2000);
+    expect(store.totalTaxesPaid()).toBe(1150);
+  });
+});
