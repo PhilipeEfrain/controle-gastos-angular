@@ -1,0 +1,23 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Isolamento estrito de dados por usuário autenticado
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Ciclos Mensais e Despesas Quinzenais
+      match /ciclos_mensais/{mesAno} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+        
+        match /despesas/{despesaId} {
+          allow read, write: if request.auth != null && request.auth.uid == userId;
+        }
+      }
+      
+      // Tributos Anuais e Compras Parceladas
+      match /tributos_e_parcelas/{tributoId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+  }
+}
