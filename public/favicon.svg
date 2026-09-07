@@ -1,0 +1,17 @@
+<svg width="230" height="230" viewBox="0 0 230 230" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    @media (prefers-color-scheme: dark) {
+      .outer-ring { stroke: #FFFFFF; }
+      .inner-pill { fill: #173F35; }
+      .accent-dot { fill: #D9F99D; }
+    }
+    @media (prefers-color-scheme: light) {
+      .outer-ring { stroke: #173F35; }
+      .inner-pill { fill: #F5F2E9; }
+      .accent-dot { fill: #D9F99D; }
+    }
+  </style>
+  <circle cx="170.2" cy="52.9" r="25.3" class="accent-dot" fill="#D9F99D"/>
+  <rect x="98.8999" y="23" width="32.2" height="184" rx="16.1" transform="rotate(-28 98.8999 23)" class="inner-pill" fill="#173F35"/>
+  <circle cx="115" cy="115" r="96.6" class="outer-ring" stroke="#173F35" stroke-width="36.8"/>
+</svg>
