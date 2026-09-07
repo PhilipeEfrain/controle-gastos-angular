@@ -141,14 +141,29 @@
               </div>
 
               <div class="metric-block highlight">
-                <span class="metric-label">Cota Individual</span>
+                <span class="metric-label">Cota por Pessoa</span>
                 <strong class="metric-val per-person">
                   {{ formatCurrency(trip.valor_por_pessoa) }}
                 </strong>
               </div>
+
+              <div class="metric-block to-receive">
+                <span class="metric-label">
+                  @if (trip.quantidade_participantes > 2) {
+                    A Receber ({{ getOtherParticipantsCount(trip) }} pessoas)
+                  } @else if (trip.quantidade_participantes === 2) {
+                    A Receber (Outra Pessoa)
+                  } @else {
+                    Gasto Individual
+                  }
+                </span>
+                <strong class="metric-val text-emerald">
+                  {{ formatCurrency(getAmountToReceive(trip)) }}
+                </strong>
+              </div>
             </div>
 
-            <!-- Action Bar: Adicionar Gasto & Lançar no Orçamento -->
+            <!-- Action Bar: Adicionar Gasto & Lançar no Orçamento & Cobrança -->
             <div class="trip-action-bar" (click)="$event.stopPropagation()">
               <button
                 type="button"
@@ -173,6 +188,19 @@
                 </svg>
                 <span>Lançar no Orçamento</span>
               </button>
+
+              <button
+                type="button"
+                class="btn-share-summary"
+                [disabled]="trip.valor_por_pessoa <= 0 || trip.quantidade_participantes <= 1"
+                (click)="copyTripSummaryToClipboard(trip, $event)"
+                title="Copiar texto de cobrança para WhatsApp / PIX"
+              >
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
+                </svg>
+                <span>Cobrar Rateio</span>
+              </button>
             </div>
 
             <!-- Tabela de Despesas Detalhadas da Viagem -->
@@ -186,10 +214,27 @@
                     <div class="trip-expense-row">
                       <div class="item-info">
                         <span class="item-desc">{{ item.descricao }}</span>
-                        <span class="item-category">{{ item.categoria }}</span>
+                        <div class="item-meta">
+                          <span class="item-category">{{ item.categoria }}</span>
+                          @if (item.dividir !== false) {
+                            <span class="split-badge shared" title="Item compartilhado e dividido entre todos os participantes">Dividido ({{ trip.quantidade_participantes }}x)</span>
+                          } @else {
+                            <span class="split-badge individual" title="Gasto individual (não entra no rateio por pessoa)">Individual (Não Dividir)</span>
+                          }
+                        </div>
                       </div>
                       <div class="item-right">
                         <span class="item-value">{{ formatCurrency(item.valor) }}</span>
+                        <button
+                          type="button"
+                          class="item-edit-btn"
+                          (click)="openEditExpenseModal(trip, item, $event)"
+                          title="Editar gasto"
+                        >
+                          <svg viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                          </svg>
+                        </button>
                         <button
                           type="button"
                           class="item-delete-btn"
@@ -296,12 +341,12 @@
   </div>
 }
 
-<!-- Modal: Adicionar Gasto à Viagem -->
+<!-- Modal: Adicionar / Editar Gasto da Viagem -->
 @if (isExpenseModalOpen()) {
   <div class="modal-backdrop" (click)="isExpenseModalOpen.set(false)">
     <div class="modal-container" (click)="$event.stopPropagation()" role="dialog">
       <div class="modal-header">
-        <h3 class="modal-title">Adicionar Gasto à Viagem</h3>
+        <h3 class="modal-title">{{ expenseToEdit() ? 'Editar Gasto da Viagem' : 'Adicionar Gasto à Viagem' }}</h3>
         <button type="button" class="close-btn" (click)="isExpenseModalOpen.set(false)">✕</button>
       </div>
 
@@ -341,10 +386,23 @@
           </div>
         </div>
 
+        <div class="form-checkbox-group">
+          <label class="checkbox-label" for="exp-dividir">
+            <input
+              id="exp-dividir"
+              type="checkbox"
+              formControlName="dividir"
+              class="form-checkbox"
+            />
+            <span class="checkbox-text">Dividir este gasto entre os participantes da viagem ({{ targetTripForExpense()?.quantidade_participantes || 2 }} pessoas)</span>
+          </label>
+          <span class="checkbox-hint">Se desmarcado, o valor será contabilizado como gasto individual e não entrará no cálculo da cota dividida por pessoa.</span>
+        </div>
+
         <div class="modal-footer">
           <button type="button" class="btn-cancel" (click)="isExpenseModalOpen.set(false)">Cancelar</button>
           <button type="submit" class="btn-submit" [disabled]="expenseForm.invalid">
-            Adicionar Gasto
+            {{ expenseToEdit() ? 'Salvar Alterações' : 'Adicionar Gasto' }}
           </button>
         </div>
       </form>

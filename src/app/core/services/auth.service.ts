@@ -118,4 +118,46 @@ export class AuthService {
 
     return userProfile;
   }
+
+  /**
+   * Atualiza dados de perfil (nome, foto e preferências) no Firebase Auth e Firestore
+   */
+  async updateProfileData(
+    userId: string,
+    data: { displayName?: string; photoURL?: string; preferences?: any }
+  ): Promise<UserProfile> {
+    const currentUser = this.auth.currentUser;
+
+    if (currentUser) {
+      const authUpdates: { displayName?: string; photoURL?: string } = {};
+      if (data.displayName !== undefined) authUpdates.displayName = data.displayName;
+      if (data.photoURL !== undefined) authUpdates.photoURL = data.photoURL;
+
+      if (Object.keys(authUpdates).length > 0) {
+        await updateProfile(currentUser, authUpdates);
+      }
+    }
+
+    const userDocRef = doc(this.firestore, `users/${userId}`);
+    const updatePayload: Record<string, any> = { ...data, updatedAt: new Date().toISOString() };
+
+    try {
+      await setDoc(userDocRef, updatePayload, { merge: true });
+    } catch (err) {
+      console.warn('Erro ao atualizar perfil no Firestore:', err);
+    }
+
+    const updatedSnap = await getDoc(userDocRef);
+    if (updatedSnap.exists()) {
+      return updatedSnap.data() as UserProfile;
+    }
+
+    return {
+      uid: userId,
+      email: currentUser?.email || null,
+      displayName: data.displayName ?? currentUser?.displayName ?? 'Usuário',
+      photoURL: data.photoURL ?? currentUser?.photoURL ?? null,
+      preferences: data.preferences ?? { theme: 'dark', currency: 'BRL' }
+    };
+  }
 }

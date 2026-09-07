@@ -132,6 +132,62 @@ describe('TravelComponent', () => {
     );
   });
 
+  it('Cenário BDD: deve abrir modal de edição e atualizar gasto existente da viagem', async () => {
+    mockTravelService.updateExpenseInTrip = vi.fn().mockResolvedValue(undefined);
+    const trip = mockTrips[0];
+    const expense = trip.despesas[0]; // 'Airbnb' - R$ 800
+
+    component.openEditExpenseModal(trip, expense);
+    expect(component.isExpenseModalOpen()).toBe(true);
+    expect(component.expenseToEdit()).toEqual(expense);
+    expect(component.expenseForm.value.descricao).toBe('Airbnb');
+
+    component.expenseForm.patchValue({
+      descricao: 'Airbnb Atualizado',
+      valor: 850
+    });
+
+    await component.onSaveExpense();
+
+    expect(mockTravelService.updateExpenseInTrip).toHaveBeenCalledWith(
+      'user-travel-1',
+      'trip-1',
+      expect.objectContaining({
+        id: 'd1',
+        descricao: 'Airbnb Atualizado',
+        valor: 850,
+        dividir: true
+      }),
+      trip
+    );
+    expect(mockNotificationService.success).toHaveBeenCalledWith('Gasto atualizado com sucesso!');
+  });
+
+  it('Cenário BDD: deve permitir cadastrar gasto como individual (não dividir)', async () => {
+    const trip = mockTrips[0];
+    component.openAddExpenseModal(trip);
+
+    component.expenseForm.patchValue({
+      descricao: 'Presente Pessoal',
+      valor: 150,
+      categoria: 'Compras & Lembranças',
+      dividir: false
+    });
+
+    await component.onSaveExpense();
+
+    expect(mockTravelService.addExpenseToTrip).toHaveBeenCalledWith(
+      'user-travel-1',
+      'trip-1',
+      expect.objectContaining({
+        descricao: 'Presente Pessoal',
+        valor: 150,
+        dividir: false
+      }),
+      trip
+    );
+  });
+
   it('Cenário BDD: deve importar cota da viagem para o orçamento mensal na Quinzena 2', async () => {
     const trip = mockTrips[0]; // Cota por pessoa: R$ 300,00
     component.openImportModal(trip);

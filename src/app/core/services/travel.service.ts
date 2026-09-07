@@ -27,18 +27,20 @@ export class TravelService {
   getTripsStream(userId: string): Observable<TravelTrip[]> {
     return new Observable(subscriber => {
       const tripsCol = collection(this.firestore, `users/${userId}/viagens`);
-      const q = query(tripsCol, orderBy('createdAt', 'desc'));
 
       const unsubscribe = onSnapshot(
-        q,
+        tripsCol,
         snapshot => {
           const trips: TravelTrip[] = snapshot.docs.map(d => ({
             id: d.id,
             ...(d.data() as Omit<TravelTrip, 'id'>)
-          }));
+          })).sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
           subscriber.next(trips);
         },
-        error => subscriber.error(error)
+        error => {
+          console.error('[TravelService] Erro no onSnapshot de viagens:', error);
+          subscriber.error(error);
+        }
       );
 
       return { unsubscribe };
@@ -81,8 +83,11 @@ export class TravelService {
       const despesas = trip.despesas || [];
       const count = Math.max(1, trip.quantidade_participantes || 1);
       const total = roundBRL(despesas.reduce((acc, curr) => acc + (curr.valor || 0), 0));
+      const totalDividido = roundBRL(
+        despesas.filter(d => d.dividir !== false).reduce((acc, curr) => acc + (curr.valor || 0), 0)
+      );
       updateData.total_gastos = total;
-      updateData.valor_por_pessoa = roundBRL(total / count);
+      updateData.valor_por_pessoa = roundBRL(totalDividido / count);
     }
 
     await updateDoc(tripDocRef, updateData);
@@ -109,13 +114,47 @@ export class TravelService {
       ...expense,
       id: expense.id || `exp_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       valor: roundBRL(expense.valor),
+      dividir: expense.dividir !== false,
       createdAt: new Date().toISOString()
     };
 
     const updatedDespesas = [...(currentTrip.despesas || []), newExpense];
     const count = Math.max(1, currentTrip.quantidade_participantes || 1);
     const total = roundBRL(updatedDespesas.reduce((acc, curr) => acc + (curr.valor || 0), 0));
-    const perPerson = roundBRL(total / count);
+    const totalDividido = roundBRL(
+      updatedDespesas.filter(d => d.dividir !== false).reduce((acc, curr) => acc + (curr.valor || 0), 0)
+    );
+    const perPerson = roundBRL(totalDividido / count);
+
+    const tripDocRef = doc(this.firestore, `users/${userId}/viagens/${tripId}`);
+    await updateDoc(tripDocRef, {
+      despesas: updatedDespesas,
+      total_gastos: total,
+      valor_por_pessoa: perPerson,
+      updatedAt: new Date().toISOString()
+    });
+  }
+
+  /**
+   * Atualiza um item de despesa existente na viagem e recalcula os totais
+   */
+  async updateExpenseInTrip(
+    userId: string,
+    tripId: string,
+    updatedExpense: TravelExpenseItem,
+    currentTrip: TravelTrip
+  ): Promise<void> {
+    const updatedDespesas = (currentTrip.despesas || []).map(e =>
+      e.id === updatedExpense.id
+        ? { ...e, ...updatedExpense, valor: roundBRL(updatedExpense.valor), dividir: updatedExpense.dividir !== false }
+        : e
+    );
+    const count = Math.max(1, currentTrip.quantidade_participantes || 1);
+    const total = roundBRL(updatedDespesas.reduce((acc, curr) => acc + (curr.valor || 0), 0));
+    const totalDividido = roundBRL(
+      updatedDespesas.filter(d => d.dividir !== false).reduce((acc, curr) => acc + (curr.valor || 0), 0)
+    );
+    const perPerson = roundBRL(totalDividido / count);
 
     const tripDocRef = doc(this.firestore, `users/${userId}/viagens/${tripId}`);
     await updateDoc(tripDocRef, {
@@ -138,7 +177,10 @@ export class TravelService {
     const updatedDespesas = (currentTrip.despesas || []).filter(e => e.id !== expenseId);
     const count = Math.max(1, currentTrip.quantidade_participantes || 1);
     const total = roundBRL(updatedDespesas.reduce((acc, curr) => acc + (curr.valor || 0), 0));
-    const perPerson = roundBRL(total / count);
+    const totalDividido = roundBRL(
+      updatedDespesas.filter(d => d.dividir !== false).reduce((acc, curr) => acc + (curr.valor || 0), 0)
+    );
+    const perPerson = roundBRL(totalDividido / count);
 
     const tripDocRef = doc(this.firestore, `users/${userId}/viagens/${tripId}`);
     await updateDoc(tripDocRef, {

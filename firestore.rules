@@ -18,6 +18,16 @@ service cloud.firestore {
       match /tributos_e_parcelas/{tributoId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
+
+      // Gastos de Viagem e Rateio
+      match /viagens/{viagemId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Qualquer subcoleção adicional isolada pelo userId
+      match /{allSubcollections=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
     }
   }
 }

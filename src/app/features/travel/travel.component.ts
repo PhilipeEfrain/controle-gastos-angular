@@ -4,6 +4,7 @@ import {
   inject,
   signal,
   computed,
+  effect,
   OnInit,
   OnDestroy
 } from '@angular/core';
@@ -60,6 +61,7 @@ export class TravelComponent implements OnInit, OnDestroy {
 
   readonly isExpenseModalOpen = signal<boolean>(false);
   readonly targetTripForExpense = signal<TravelTrip | null>(null);
+  readonly expenseToEdit = signal<TravelExpenseItem | null>(null);
 
   readonly isImportModalOpen = signal<boolean>(false);
   readonly tripToImport = signal<TravelTrip | null>(null);
@@ -82,7 +84,8 @@ export class TravelComponent implements OnInit, OnDestroy {
   expenseForm: FormGroup = this.fb.group({
     descricao: ['', [Validators.required, Validators.maxLength(100)]],
     valor: [null, [Validators.required, Validators.min(0.01)]],
-    categoria: ['Hospedagem', [Validators.required]]
+    categoria: ['Hospedagem', [Validators.required]],
+    dividir: [true]
   });
 
   // Formulário de Importação para o Orçamento Mensal
@@ -107,6 +110,15 @@ export class TravelComponent implements OnInit, OnDestroy {
     return formatBRL(roundBRL(sum));
   });
 
+  constructor() {
+    effect(() => {
+      const user = this.authStore.currentUser();
+      if (user) {
+        this.initTripsStream(user.uid);
+      }
+    });
+  }
+
   ngOnInit(): void {
     const user = this.authStore.currentUser();
     if (user) {
@@ -119,6 +131,7 @@ export class TravelComponent implements OnInit, OnDestroy {
   }
 
   private initTripsStream(userId: string): void {
+    this.tripsSub?.unsubscribe();
     this.isLoading.set(true);
     this.tripsSub = this.travelService.getTripsStream(userId).subscribe({
       next: data => {
@@ -207,8 +220,9 @@ export class TravelComponent implements OnInit, OnDestroy {
         this.notificationService.success('Nova viagem criada com sucesso!');
       }
       this.isTripModalOpen.set(false);
-    } catch {
-      this.notificationService.error('Erro ao salvar informações da viagem.');
+    } catch (err: any) {
+      console.error('[TravelComponent] Erro ao salvar viagem:', err);
+      this.notificationService.error('Erro ao salvar informações da viagem: ' + (err.message || 'Tente novamente.'));
     }
   }
 
@@ -216,10 +230,25 @@ export class TravelComponent implements OnInit, OnDestroy {
   openAddExpenseModal(trip: TravelTrip, event?: Event): void {
     if (event) event.stopPropagation();
     this.targetTripForExpense.set(trip);
+    this.expenseToEdit.set(null);
     this.expenseForm.reset({
       descricao: '',
       valor: null,
-      categoria: 'Hospedagem'
+      categoria: 'Hospedagem',
+      dividir: true
+    });
+    this.isExpenseModalOpen.set(true);
+  }
+
+  openEditExpenseModal(trip: TravelTrip, expense: TravelExpenseItem, event?: Event): void {
+    if (event) event.stopPropagation();
+    this.targetTripForExpense.set(trip);
+    this.expenseToEdit.set(expense);
+    this.expenseForm.patchValue({
+      descricao: expense.descricao,
+      valor: expense.valor,
+      categoria: expense.categoria,
+      dividir: expense.dividir !== false
     });
     this.isExpenseModalOpen.set(true);
   }
@@ -235,19 +264,34 @@ export class TravelComponent implements OnInit, OnDestroy {
     if (!user || !trip || !trip.id) return;
 
     const val = this.expenseForm.value;
-    const item: TravelExpenseItem = {
-      descricao: val.descricao.trim(),
-      valor: parseFloat(val.valor),
-      categoria: val.categoria,
-      dividir: true
-    };
+    const editing = this.expenseToEdit();
+    const shouldDivide = val.dividir !== false;
 
     try {
-      await this.travelService.addExpenseToTrip(user.uid, trip.id, item, trip);
-      this.notificationService.success('Gasto adicionado à viagem!');
+      if (editing && editing.id) {
+        const updatedItem: TravelExpenseItem = {
+          ...editing,
+          descricao: val.descricao.trim(),
+          valor: parseFloat(val.valor),
+          categoria: val.categoria,
+          dividir: shouldDivide
+        };
+        await this.travelService.updateExpenseInTrip(user.uid, trip.id, updatedItem, trip);
+        this.notificationService.success('Gasto atualizado com sucesso!');
+      } else {
+        const newItem: TravelExpenseItem = {
+          descricao: val.descricao.trim(),
+          valor: parseFloat(val.valor),
+          categoria: val.categoria,
+          dividir: shouldDivide
+        };
+        await this.travelService.addExpenseToTrip(user.uid, trip.id, newItem, trip);
+        this.notificationService.success('Gasto adicionado à viagem!');
+      }
       this.isExpenseModalOpen.set(false);
-    } catch {
-      this.notificationService.error('Erro ao adicionar gasto.');
+    } catch (err: any) {
+      console.error('[TravelComponent] Erro ao salvar gasto:', err);
+      this.notificationService.error('Erro ao salvar gasto: ' + (err.message || 'Tente novamente.'));
     }
   }
 
@@ -259,8 +303,9 @@ export class TravelComponent implements OnInit, OnDestroy {
     try {
       await this.travelService.removeExpenseFromTrip(user.uid, trip.id, expenseId, trip);
       this.notificationService.info('Gasto removido da viagem.');
-    } catch {
-      this.notificationService.error('Erro ao remover gasto.');
+    } catch (err: any) {
+      console.error('[TravelComponent] Erro ao remover gasto:', err);
+      this.notificationService.error('Erro ao remover gasto: ' + (err.message || 'Tente novamente.'));
     }
   }
 
@@ -338,5 +383,46 @@ export class TravelComponent implements OnInit, OnDestroy {
 
   formatCurrency(value: number): string {
     return formatBRL(value);
+  }
+
+  getAmountToReceive(trip: TravelTrip): number {
+    const others = Math.max(0, (trip.quantidade_participantes || 1) - 1);
+    return roundBRL(others * (trip.valor_por_pessoa || 0));
+  }
+
+  getOtherParticipantsCount(trip: TravelTrip): number {
+    return Math.max(0, (trip.quantidade_participantes || 1) - 1);
+  }
+
+  async copyTripSummaryToClipboard(trip: TravelTrip, event?: Event): Promise<void> {
+    if (event) event.stopPropagation();
+
+    const cota = formatBRL(trip.valor_por_pessoa || 0);
+    const totalGasto = formatBRL(trip.total_gastos || 0);
+    const totalAReceber = formatBRL(this.getAmountToReceive(trip));
+    const outros = this.getOtherParticipantsCount(trip);
+
+    const message = [
+      `🏖️ *Acerto de Contas - ${trip.titulo}*`,
+      trip.destino ? `📍 Destino: ${trip.destino}` : '',
+      `👥 Participantes: ${trip.quantidade_participantes} pessoas`,
+      `💰 Total dos Gastos: ${totalGasto}`,
+      `💳 *Valor da cota por pessoa: ${cota}*`,
+      outros > 1 ? `📥 Total a receber dos ${outros} participantes: ${totalAReceber}` : `📥 Total a receber do participante: ${cota}`,
+      ``,
+      `👉 *Favor transferir ${cota} via PIX.*`,
+      `_Gerado pelo Controle Financeiro Quinzenal_`
+    ].filter(Boolean).join('\n');
+
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(message);
+        this.notificationService.success('Resumo do rateio copiado para a área de transferência!');
+      } else {
+        this.notificationService.info('Texto gerado: ' + cota);
+      }
+    } catch {
+      this.notificationService.error('Não foi possível copiar automaticamente.');
+    }
   }
 }
