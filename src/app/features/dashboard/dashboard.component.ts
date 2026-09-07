@@ -233,6 +233,10 @@ export class DashboardComponent implements OnInit {
     this.router.navigate(['/viagens']);
   }
 
+  goToInstallments(): void {
+    this.router.navigate(['/parcelamentos']);
+  }
+
   async onLogout(): Promise<void> {
     await this.authStore.logout();
     this.router.navigate(['/auth']);
