@@ -27,18 +27,20 @@ export class TravelService {
   getTripsStream(userId: string): Observable<TravelTrip[]> {
     return new Observable(subscriber => {
       const tripsCol = collection(this.firestore, `users/${userId}/viagens`);
-      const q = query(tripsCol, orderBy('createdAt', 'desc'));
 
       const unsubscribe = onSnapshot(
-        q,
+        tripsCol,
         snapshot => {
           const trips: TravelTrip[] = snapshot.docs.map(d => ({
             id: d.id,
             ...(d.data() as Omit<TravelTrip, 'id'>)
-          }));
+          })).sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
           subscriber.next(trips);
         },
-        error => subscriber.error(error)
+        error => {
+          console.error('[TravelService] Erro no onSnapshot de viagens:', error);
+          subscriber.error(error);
+        }
       );
 
       return { unsubscribe };

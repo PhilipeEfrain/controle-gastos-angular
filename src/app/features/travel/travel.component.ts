@@ -4,6 +4,7 @@ import {
   inject,
   signal,
   computed,
+  effect,
   OnInit,
   OnDestroy
 } from '@angular/core';
@@ -107,6 +108,15 @@ export class TravelComponent implements OnInit, OnDestroy {
     return formatBRL(roundBRL(sum));
   });
 
+  constructor() {
+    effect(() => {
+      const user = this.authStore.currentUser();
+      if (user) {
+        this.initTripsStream(user.uid);
+      }
+    });
+  }
+
   ngOnInit(): void {
     const user = this.authStore.currentUser();
     if (user) {
@@ -119,6 +129,7 @@ export class TravelComponent implements OnInit, OnDestroy {
   }
 
   private initTripsStream(userId: string): void {
+    this.tripsSub?.unsubscribe();
     this.isLoading.set(true);
     this.tripsSub = this.travelService.getTripsStream(userId).subscribe({
       next: data => {
