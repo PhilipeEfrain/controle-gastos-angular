@@ -1,0 +1,88 @@
+<div class="donut-card">
+  <div class="donut-header">
+    <div class="header-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21.21 15.89A10 10 0 1 1 8 2.83" />
+        <path d="M22 12A10 10 0 0 0 12 2v10z" />
+      </svg>
+    </div>
+    <div>
+      <h4 class="card-title">Distribuição por Categoria</h4>
+      <p class="card-subtitle">Composição visual das despesas do ciclo</p>
+    </div>
+  </div>
+
+  @if (totalExpenses() === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">📊</div>
+      <p class="empty-text">Nenhuma despesa lançada para gerar o gráfico</p>
+      <span class="empty-hint">Cadastre despesas para visualizar os percentuais por categoria</span>
+    </div>
+  } @else {
+    <div class="donut-content">
+      <!-- SVG Donut Graphic -->
+      <div class="chart-wrapper">
+        <svg viewBox="0 0 200 200" class="donut-svg">
+          <!-- Background Track -->
+          <circle
+            cx="100"
+            cy="100"
+            r="70"
+            class="donut-track"
+          />
+
+          <!-- Slices -->
+          @for (cat of categoriesSpending(); track cat.category) {
+            <circle
+              cx="100"
+              cy="100"
+              r="70"
+              class="donut-slice"
+              [style.stroke]="cat.color"
+              [style.strokeDasharray]="cat.dashArray"
+              [style.strokeDashoffset]="cat.dashOffset"
+              [class.is-hovered]="hoveredCategory() === cat.category"
+              (mouseenter)="onCategoryHover(cat.category)"
+              (mouseleave)="onCategoryHover(null)"
+            />
+          }
+        </svg>
+
+        <!-- Center Summary Info -->
+        <div class="center-info">
+          @if (activeCategoryData(); as active) {
+            <span class="center-cat" [style.color]="active.color">{{ active.category }}</span>
+            <span class="center-val">{{ formatCurrency(active.total) }}</span>
+            <span class="center-perc">{{ active.percentage | number: '1.1-1' }}%</span>
+          } @else {
+            <span class="center-label">Total Gasto</span>
+            <span class="center-val">{{ formatCurrency(totalExpenses()) }}</span>
+            <span class="center-count">{{ expenses().length }} lançamentos</span>
+          }
+        </div>
+      </div>
+
+      <!-- Categories Legend List -->
+      <div class="legend-list">
+        @for (cat of categoriesSpending(); track cat.category) {
+          <div
+            class="legend-item"
+            [class.is-active]="hoveredCategory() === cat.category"
+            (mouseenter)="onCategoryHover(cat.category)"
+            (mouseleave)="onCategoryHover(null)"
+          >
+            <div class="legend-badge" [style.backgroundColor]="cat.color"></div>
+            <div class="legend-info">
+              <span class="legend-name">{{ cat.category }}</span>
+              <span class="legend-count">{{ cat.count }} {{ cat.count === 1 ? 'item' : 'itens' }}</span>
+            </div>
+            <div class="legend-values">
+              <span class="legend-amount">{{ formatCurrency(cat.total) }}</span>
+              <span class="legend-percent">{{ cat.percentage | number: '1.1-1' }}%</span>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

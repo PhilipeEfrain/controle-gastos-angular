@@ -1,0 +1,233 @@
+@use 'abstracts' as *;
+
+.donut-card {
+  @include glass-card;
+  padding: 1.5rem;
+  border-radius: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.donut-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  .header-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.75rem;
+    background: rgba(99, 102, 241, 0.15);
+    color: #818cf8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    svg {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+  }
+
+  .card-title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--color-text-primary, #f8fafc);
+  }
+
+  .card-subtitle {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--color-text-muted, #94a3b8);
+  }
+}
+
+.empty-state {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+
+  .empty-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .empty-text {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--color-text-primary, #f8fafc);
+  }
+
+  .empty-hint {
+    font-size: 0.8rem;
+    color: var(--color-text-muted, #94a3b8);
+  }
+}
+
+.donut-content {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  align-items: center;
+  gap: 1.5rem;
+
+  @include respond-to('sm') {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+}
+
+.chart-wrapper {
+  position: relative;
+  width: 200px;
+  height: 200px;
+}
+
+.donut-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.donut-track {
+  fill: transparent;
+  stroke: rgba(255, 255, 255, 0.05);
+  stroke-width: 24;
+}
+
+.donut-slice {
+  fill: transparent;
+  stroke-width: 24;
+  stroke-linecap: round;
+  cursor: pointer;
+  transition: stroke-width 0.2s ease, opacity 0.2s ease;
+
+  &:hover,
+  &.is-hovered {
+    stroke-width: 28;
+    opacity: 1;
+    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.2));
+  }
+}
+
+.center-info {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  pointer-events: none;
+  padding: 1rem;
+
+  .center-label {
+    font-size: 0.75rem;
+    color: var(--color-text-muted, #94a3b8);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .center-cat {
+    font-size: 0.85rem;
+    font-weight: 700;
+    max-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .center-val {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--color-text-primary, #f8fafc);
+    margin: 0.15rem 0;
+  }
+
+  .center-perc {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #38bdf8;
+  }
+
+  .center-count {
+    font-size: 0.75rem;
+    color: var(--color-text-muted, #94a3b8);
+  }
+}
+
+.legend-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 100%;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover,
+  &.is-active {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+    transform: translateX(3px);
+  }
+
+  .legend-badge {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .legend-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+
+    .legend-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--color-text-primary, #f8fafc);
+    }
+
+    .legend-count {
+      font-size: 0.72rem;
+      color: var(--color-text-muted, #94a3b8);
+    }
+  }
+
+  .legend-values {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+
+    .legend-amount {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--color-text-primary, #f8fafc);
+    }
+
+    .legend-percent {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #38bdf8;
+    }
+  }
+}

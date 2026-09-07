@@ -86,6 +86,8 @@
 | `ExpenseFormModalComponent` | `app-expense-form-modal` | Modal com formulário reativo para criação/edição de despesas simples ou em lote parcelado. |
 | `IncomeFormModalComponent` | `app-income-form-modal` | Modal para configuração das rendas de Q1 e Q2 com suporte a múltiplos regimes salariais (`quinzenal`, `divisao_50_50`, `mensal_q1`, `mensal_q2`) e distribuição automática. |
 | `ReceiptModalComponent` | `app-receipt-modal` | Diálogo rápido para inserção/alteração do código de comprovante da transação. |
+| `CategoryDonutChartComponent` | `app-category-donut-chart` | Gráfico Donut em SVG com cálculo proporcional por categoria, tooltips reativos e legenda com percentuais. |
+| `MonthlyEvolutionChartComponent` | `app-monthly-evolution-chart` | Gráfico de evolução histórica mensal em barras SVG comparativas (Rendas vs. Gastos vs. Saldo). |
 
 ### D. Feature: Tributos Anuais (`src/app/features/taxes/`)
 | Componente | Seletor | Descrição |
