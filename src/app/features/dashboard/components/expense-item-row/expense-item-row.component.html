@@ -1,16 +1,18 @@
 <div
   class="expense-row"
   [class.is-paid]="expense().status_pagamento"
+  [class.is-income-row]="isIncome"
   data-testid="expense-row"
 >
-  <!-- Checkbox de Quitação -->
+  <!-- Checkbox de Quitação / Recebimento -->
   <button
     type="button"
     class="pay-checkbox"
     [class.checked]="expense().status_pagamento"
+    [class.checked-income]="expense().status_pagamento && isIncome"
     (click)="onCheckboxClick($event)"
-    [attr.aria-label]="expense().status_pagamento ? 'Marcar como não pago' : 'Marcar como pago'"
-    title="Alternar quitação"
+    [attr.aria-label]="expense().status_pagamento ? (isIncome ? 'Marcar como não recebido' : 'Marcar como não pago') : (isIncome ? 'Marcar como recebido' : 'Marcar como pago')"
+    [title]="isIncome ? 'Alternar recebimento' : 'Alternar quitação'"
   >
     @if (expense().status_pagamento) {
       <svg class="check-icon" viewBox="0 0 20 20" fill="currentColor">
@@ -23,12 +25,18 @@
     }
   </button>
 
-  <!-- Informações da Despesa -->
+  <!-- Informações da Despesa / Renda Extra -->
   <div class="expense-details">
     <div class="expense-header-line">
       <span class="expense-desc" [title]="expense().descricao">
         {{ expense().descricao }}
       </span>
+
+      @if (isIncome) {
+        <span class="income-badge">
+          + Renda Extra
+        </span>
+      }
 
       @if (expense().total_parcelas && expense().total_parcelas! > 1) {
         <span class="installment-badge">
@@ -39,11 +47,11 @@
 
     <div class="expense-meta-line">
       @if (expense().categoria) {
-        <span class="category-chip">{{ expense().categoria }}</span>
+        <span class="category-chip" [class.category-chip-income]="isIncome">{{ expense().categoria }}</span>
       }
 
       @if (expense().data_vencimento) {
-        <span class="due-date">Venc: {{ expense().data_vencimento }}</span>
+        <span class="due-date">{{ isIncome ? 'Receb:' : 'Venc:' }} {{ expense().data_vencimento }}</span>
       }
 
       <!-- Comprovante Badge / Ação -->
@@ -78,7 +86,11 @@
 
   <!-- Valor e Ações -->
   <div class="expense-right-panel">
-    <span class="expense-amount" [class.is-paid-amount]="expense().status_pagamento">
+    <span
+      class="expense-amount"
+      [class.is-paid-amount]="expense().status_pagamento"
+      [class.is-income-amount]="isIncome && !expense().status_pagamento"
+    >
       {{ formattedAmount }}
     </span>
 

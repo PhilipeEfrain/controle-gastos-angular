@@ -10,10 +10,14 @@
       <div class="modal-header">
         <div class="header-titles">
           <h3 class="modal-title">
-            {{ expenseToEdit() ? 'Editar Despesa' : 'Nova Despesa' }}
+            @if (expenseToEdit()) {
+              {{ form.get('tipo')?.value === 'renda_extra' ? 'Editar Renda Extra' : 'Editar Despesa' }}
+            } @else {
+              {{ form.get('tipo')?.value === 'renda_extra' ? 'Nova Renda Extra' : 'Nova Despesa' }}
+            }
           </h3>
           <p class="modal-subtitle">
-            {{ expenseToEdit() ? 'Altere os dados da despesa' : 'Lançamento quinzenal no mês ' + mesAno() }}
+            {{ expenseToEdit() ? 'Altere as informações do lançamento' : 'Lançamento quinzenal no mês ' + mesAno() }}
           </p>
         </div>
 
@@ -42,15 +46,39 @@
 
       <!-- Form Body -->
       <form [formGroup]="form" (ngSubmit)="onSubmit()" class="modal-form">
+        <!-- Switch de Tipo (Despesa vs Renda Extra) -->
+        <div class="type-segmented-control">
+          <button
+            type="button"
+            class="segment-btn"
+            [class.active-expense]="form.get('tipo')?.value === 'despesa'"
+            (click)="setTipo('despesa')"
+          >
+            <span class="segment-icon">💸</span>
+            <span>Despesa (Saída)</span>
+          </button>
+          <button
+            type="button"
+            class="segment-btn"
+            [class.active-income]="form.get('tipo')?.value === 'renda_extra'"
+            (click)="setTipo('renda_extra')"
+          >
+            <span class="segment-icon">💰</span>
+            <span>Renda Extra (Entrada)</span>
+          </button>
+        </div>
+
         <!-- Descrição -->
         <div class="form-group">
-          <label class="form-label" for="descricao">Descrição da Despesa *</label>
+          <label class="form-label" for="descricao">
+            {{ form.get('tipo')?.value === 'renda_extra' ? 'Descrição da Renda Extra *' : 'Descrição da Despesa *' }}
+          </label>
           <input
             id="descricao"
             type="text"
             formControlName="descricao"
             class="form-input"
-            placeholder="Ex: Supermercado, Aluguel, Farmácia"
+            [placeholder]="form.get('tipo')?.value === 'renda_extra' ? 'Ex: Freelance Dev, Bônus, Venda de item' : 'Ex: Supermercado, Aluguel, Farmácia'"
             [class.is-invalid]="form.get('descricao')?.invalid && form.get('descricao')?.touched"
           />
           @if (form.get('descricao')?.hasError('required') && form.get('descricao')?.touched) {
@@ -88,19 +116,21 @@
           </div>
         </div>
 
-        <!-- Linha: Categoria e Vencimento -->
+        <!-- Linha: Categoria e Vencimento/Data -->
         <div class="form-row">
           <div class="form-group flex-1">
             <label class="form-label" for="categoria">Categoria *</label>
             <select id="categoria" formControlName="categoria" class="form-select">
-              @for (cat of categories; track cat) {
+              @for (cat of currentCategories; track cat) {
                 <option [value]="cat">{{ cat }}</option>
               }
             </select>
           </div>
 
           <div class="form-group flex-1">
-            <label class="form-label" for="data_vencimento">Vencimento (Opcional)</label>
+            <label class="form-label" for="data_vencimento">
+              {{ form.get('tipo')?.value === 'renda_extra' ? 'Data Recebimento (Opcional)' : 'Vencimento (Opcional)' }}
+            </label>
             <input
               id="data_vencimento"
               type="date"
@@ -110,8 +140,8 @@
           </div>
         </div>
 
-        <!-- Seção Parcelamento (apenas ao criar nova despesa) -->
-        @if (!expenseToEdit()) {
+        <!-- Seção Parcelamento (apenas ao criar nova despesa do tipo despesa) -->
+        @if (!expenseToEdit() && form.get('tipo')?.value !== 'renda_extra') {
           <div class="installments-toggle-container">
             <label class="checkbox-label">
               <input type="checkbox" formControlName="isParcelado" />
@@ -163,13 +193,14 @@
           <button
             type="submit"
             class="btn-submit"
+            [class.btn-submit-income]="form.get('tipo')?.value === 'renda_extra'"
             [disabled]="isLoading() || form.invalid"
           >
             @if (isLoading()) {
               <span class="spinner"></span>
               <span>Salvando...</span>
             } @else {
-              <span>{{ expenseToEdit() ? 'Salvar Alterações' : 'Confirmar Lançamento' }}</span>
+              <span>{{ expenseToEdit() ? 'Salvar Alterações' : (form.get('tipo')?.value === 'renda_extra' ? 'Confirmar Renda Extra' : 'Confirmar Lançamento') }}</span>
             }
           </button>
         </div>

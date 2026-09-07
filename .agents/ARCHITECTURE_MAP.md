@@ -11,10 +11,11 @@
 | :--- | :--- | :--- | :--- |
 | `formatBRL` | `src/app/core/utils/formatters.ts` | Formata número para moeda Real Brasileiro (`R$ 1.234,56`). | `(value: number): string` |
 | `parseBRL` | `src/app/core/utils/formatters.ts` | Converte string formatada em BRL para número decimal float. | `(formatted: string): number` |
-| `sumExpenses` | `src/app/core/utils/calculations.ts` | Soma valores de uma coleção de despesas. | `(expenses: Expense[]): number` |
-| `filterExpensesByFortnight` | `src/app/core/utils/calculations.ts` | Filtra despesas pertencentes à Quinzena 1 ou 2. | `(expenses: Expense[], quinzena: 1 \| 2): Expense[]` |
-| `calculateFortnightBalance` | `src/app/core/utils/calculations.ts` | Calcula saldo da quinzena (`Renda - Total Despesas da Quinzena`). | `(income: number, expenses: Expense[]): number` |
-| `calculateGlobalBalance` | `src/app/core/utils/calculations.ts` | Calcula totais consolidados do mês, saldos e análise de cobertura de déficit. | `(rendaQ1: number, rendaQ2: number, expenses: Expense[]): MonthBalanceSummary` |
+| `sumExpenses` | `src/app/core/utils/calculations.ts` | Soma valores de itens de despesa (exclui rendas extras). | `(items: Expense[]): number` |
+| `sumExtraIncomes` | `src/app/core/utils/calculations.ts` | Soma valores de itens marcados como renda extra (`tipo === 'renda_extra'`). | `(items: Expense[]): number` |
+| `filterExpensesByFortnight` | `src/app/core/utils/calculations.ts` | Filtra despesas/itens pertencentes à Quinzena 1 ou 2. | `(items: Expense[], quinzena: 1 \| 2): Expense[]` |
+| `calculateFortnightBalance` | `src/app/core/utils/calculations.ts` | Calcula saldo da quinzena (`Renda Base + Rendas Extras - Total Despesas`). | `(income: number, items: Expense[]): number` |
+| `calculateGlobalBalance` | `src/app/core/utils/calculations.ts` | Calcula totais consolidados do mês, saldos e análise de cobertura de déficit considerando rendas extras. | `(rendaQ1: number, rendaQ2: number, items: Expense[]): MonthBalanceSummary` |
 | `addMonthsToYearMonth` | `src/app/core/utils/calculations.ts` | Projeta N meses à frente/atrás no formato `YYYY-MM` para parcelamentos e navegação. | `(yearMonth: string, count: number): string` |
 | `getFortnightFromDay` | `src/app/core/utils/date.ts` | Retorna se um determinado dia do mês pertence à Quinzena 1 ou Quinzena 2. | `(date: Date \| string): 1 \| 2` |
 
@@ -25,7 +26,7 @@
 | Interface / Type | Arquivo | Descrição |
 | :--- | :--- | :--- |
 | `FortnightNumber` | `src/app/core/models/finance.model.ts` | Tipo literal `1 \| 2`. |
-| `Expense` | `src/app/core/models/finance.model.ts` | Modelo de despesa (valor, quinzena, status_pagamento, codigo_comprovante, categoria, parcelas). |
+| `Expense` | `src/app/core/models/finance.model.ts` | Modelo de despesa ou renda extra (`tipo?: 'despesa' \| 'renda_extra'`, valor, quinzena, status_pagamento, categoria, parcelas). |
 | `MonthlyCycle` | `src/app/core/models/finance.model.ts` | Modelo do ciclo mensal com rendas Q1/Q2, totais e saldos consolidados. |
 | `FortnightSummary` | `src/app/core/models/finance.model.ts` | Estrutura de resumo da quinzena (renda, totalGastos, saldo, isDeficit). |
 | `MonthBalanceSummary` | `src/app/core/models/finance.model.ts` | Consolidado global do mês com suporte à flag `q1CobreQ2` e `temDeficitGlobal`. |

@@ -73,4 +73,25 @@ describe('ExpenseItemRowComponent', () => {
 
     expect(receiptExpense).toEqual(mockExpense);
   });
+
+  it('Cenário BDD: deve renderizar Renda Extra com badge específico e prefixo positivo (+)', () => {
+    const mockIncome: Expense = {
+      id: 'inc-999',
+      descricao: 'Freelance Frontend',
+      valor: 800.0,
+      quinzena: 1,
+      categoria: 'Freelance / Serviços',
+      tipo: 'renda_extra',
+      status_pagamento: false
+    };
+
+    fixture.componentRef.setInput('expense', mockIncome);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('+ Renda Extra');
+    expect(compiled.textContent).toContain('+');
+    expect(compiled.textContent).toContain('800,00');
+    expect(compiled.querySelector('.is-income-row')).toBeTruthy();
+  });
 });

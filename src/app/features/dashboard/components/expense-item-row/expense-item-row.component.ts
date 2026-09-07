@@ -19,8 +19,13 @@ export class ExpenseItemRowComponent {
   readonly delete = output<Expense>();
   readonly updateReceipt = output<Expense>();
 
+  get isIncome(): boolean {
+    return this.expense().tipo === 'renda_extra';
+  }
+
   get formattedAmount(): string {
-    return formatBRL(this.expense().valor);
+    const formatted = formatBRL(this.expense().valor);
+    return this.isIncome ? `+ ${formatted}` : formatted;
   }
 
   onCheckboxClick(event: Event): void {

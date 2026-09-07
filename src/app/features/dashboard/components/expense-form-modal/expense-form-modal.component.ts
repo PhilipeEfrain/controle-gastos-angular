@@ -45,7 +45,7 @@ export class ExpenseFormModalComponent {
   readonly isLoading = signal<boolean>(false);
   readonly errorMessage = signal<string | null>(null);
 
-  readonly categories = [
+  readonly expenseCategories = [
     'Alimentação',
     'Moradia',
     'Transporte',
@@ -58,7 +58,18 @@ export class ExpenseFormModalComponent {
     'Outros'
   ];
 
+  readonly incomeCategories = [
+    'Freelance / Serviços',
+    'Bônus / PLR',
+    'Reembolso',
+    'Vendas & Desapego',
+    'Rendimentos & Dividendos',
+    'Presente / Doação',
+    'Outros'
+  ];
+
   form: FormGroup = this.fb.group({
+    tipo: ['despesa', [Validators.required]],
     descricao: ['', [Validators.required, Validators.maxLength(100)]],
     valor: [null, [Validators.required, Validators.min(0.01)]],
     quinzena: [1, [Validators.required]],
@@ -71,22 +82,31 @@ export class ExpenseFormModalComponent {
   // Preview de parcelas computado
   readonly isParcelado = computed(() => !!this.form.get('isParcelado')?.value);
 
+  get currentCategories(): string[] {
+    return this.form.get('tipo')?.value === 'renda_extra'
+      ? this.incomeCategories
+      : this.expenseCategories;
+  }
+
   constructor() {
     effect(() => {
       if (this.isOpen()) {
         const toEdit = this.expenseToEdit();
         if (toEdit) {
+          const itemTipo = toEdit.tipo || 'despesa';
           this.form.patchValue({
+            tipo: itemTipo,
             descricao: toEdit.descricao,
             valor: toEdit.valor,
             quinzena: toEdit.quinzena,
-            categoria: toEdit.categoria || 'Alimentação',
+            categoria: toEdit.categoria || (itemTipo === 'renda_extra' ? 'Freelance / Serviços' : 'Alimentação'),
             data_vencimento: toEdit.data_vencimento || '',
             isParcelado: false,
             total_parcelas: 2
           });
         } else {
           this.form.reset({
+            tipo: 'despesa',
             descricao: '',
             valor: null,
             quinzena: this.quinzena(),
@@ -98,6 +118,15 @@ export class ExpenseFormModalComponent {
         }
         this.errorMessage.set(null);
       }
+    });
+  }
+
+  setTipo(tipo: 'despesa' | 'renda_extra'): void {
+    if (this.form.get('tipo')?.value === tipo) return;
+    this.form.patchValue({
+      tipo,
+      categoria: tipo === 'renda_extra' ? 'Freelance / Serviços' : 'Alimentação',
+      isParcelado: false
     });
   }
 
@@ -149,6 +178,7 @@ export class ExpenseFormModalComponent {
       if (toEdit && toEdit.id) {
         // Atualização de despesa existente
         const updatePayload: Partial<Expense> = {
+          tipo: formVal.tipo || 'despesa',
           descricao: formVal.descricao.trim(),
           valor: parseFloat(formVal.valor),
           quinzena: Number(formVal.quinzena) as FortnightNumber,
@@ -159,10 +189,11 @@ export class ExpenseFormModalComponent {
         }
 
         await this.expenseService.updateExpense(user.uid, this.mesAno(), toEdit.id, updatePayload);
-      } else if (formVal.isParcelado && formVal.total_parcelas > 1) {
-        // Criação de compra parcelada em lote via writeBatch
+      } else if (formVal.tipo !== 'renda_extra' && formVal.isParcelado && formVal.total_parcelas > 1) {
+        // Criação de compra parcelada em lote via writeBatch (somente despesas)
         const installmentAmount = roundBRL(parseFloat(formVal.valor) / formVal.total_parcelas);
         const baseExpense: Expense = {
+          tipo: 'despesa',
           descricao: formVal.descricao.trim(),
           valor: installmentAmount,
           quinzena: Number(formVal.quinzena) as FortnightNumber,
@@ -180,8 +211,9 @@ export class ExpenseFormModalComponent {
           formVal.total_parcelas
         );
       } else {
-        // Criação de despesa simples
+        // Criação de despesa simples ou renda extra
         const newExpense: Expense = {
+          tipo: formVal.tipo || 'despesa',
           descricao: formVal.descricao.trim(),
           valor: parseFloat(formVal.valor),
           quinzena: Number(formVal.quinzena) as FortnightNumber,

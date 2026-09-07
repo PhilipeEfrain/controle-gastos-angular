@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   roundBRL,
   sumExpenses,
+  sumExtraIncomes,
   filterExpensesByFortnight,
   calculateFortnightBalance,
   calculateGlobalBalance,
@@ -29,17 +30,37 @@ describe('Calculations Utility (Motor Financeiro)', () => {
   });
 
   describe('sumExpenses', () => {
-    it('deve somar valores de despesas com exatidão', () => {
-      const expenses: Expense[] = [
-        { descricao: 'Aluguel', valor: 1500.55, quinzena: 1, status_pagamento: true, categoria: 'Moradia' },
-        { descricao: 'Internet', valor: 120.45, quinzena: 1, status_pagamento: false, categoria: 'Serviços' }
+    it('deve somar valores de despesas com exatidão ignorando rendas extras', () => {
+      const items: Expense[] = [
+        { descricao: 'Aluguel', valor: 1500.55, quinzena: 1, status_pagamento: true, categoria: 'Moradia', tipo: 'despesa' },
+        { descricao: 'Internet', valor: 120.45, quinzena: 1, status_pagamento: false, categoria: 'Serviços' },
+        { descricao: 'Freelance', valor: 800.0, quinzena: 1, status_pagamento: true, categoria: 'Freelance', tipo: 'renda_extra' }
       ];
 
-      expect(sumExpenses(expenses)).toBe(1621.0);
+      expect(sumExpenses(items)).toBe(1621.0);
     });
 
     it('deve retornar 0 para lista vazia ou nula', () => {
       expect(sumExpenses([])).toBe(0);
+    });
+  });
+
+  describe('sumExtraIncomes', () => {
+    it('Cenário BDD: deve somar apenas itens marcados como renda_extra', () => {
+      const items: Expense[] = [
+        { descricao: 'Salário Fixo', valor: 2500, quinzena: 1, status_pagamento: true, categoria: 'Salário', tipo: 'despesa' },
+        { descricao: 'Freelance Dev', valor: 800, quinzena: 1, status_pagamento: true, categoria: 'Freelance', tipo: 'renda_extra' },
+        { descricao: 'Venda de Item Usado', valor: 150.5, quinzena: 1, status_pagamento: true, categoria: 'Vendas', tipo: 'renda_extra' }
+      ];
+
+      expect(sumExtraIncomes(items)).toBe(950.5);
+    });
+
+    it('deve retornar 0 quando não houver rendas extras', () => {
+      const items: Expense[] = [
+        { descricao: 'Conta de Luz', valor: 150, quinzena: 1, status_pagamento: false, categoria: 'Serviços' }
+      ];
+      expect(sumExtraIncomes(items)).toBe(0);
     });
   });
 
@@ -128,6 +149,29 @@ describe('Calculations Utility (Motor Financeiro)', () => {
 
       expect(balance.q1.percentualGasto).toBe(50);
       expect(balance.q2.percentualGasto).toBe(75);
+    });
+
+    it('Cenário BDD: Lançamento de Renda Extra na Quinzena 1 deve aumentar a renda efetiva e o saldo global', () => {
+      const rendaQ1 = 2000;
+      const rendaQ2 = 2000;
+      const items: Expense[] = [
+        { descricao: 'Freelance Dev', valor: 800, quinzena: 1, status_pagamento: true, categoria: 'Freelance', tipo: 'renda_extra' },
+        { descricao: 'Despesa Q1', valor: 1500, quinzena: 1, status_pagamento: true, categoria: 'Moradia' },
+        { descricao: 'Despesa Q2', valor: 1800, quinzena: 2, status_pagamento: false, categoria: 'Cartão' }
+      ];
+
+      const balance = calculateGlobalBalance(rendaQ1, rendaQ2, items);
+
+      // Renda de Q1 deve ser 2000 + 800 = 2800
+      expect(balance.q1.renda).toBe(2800);
+      expect(balance.q1.totalGastos).toBe(1500);
+      expect(balance.q1.saldo).toBe(1300);
+
+      // Renda total global deve ser 4800 e saldo consolidado 4800 - 3300 = 1500
+      expect(balance.totalRenda).toBe(4800);
+      expect(balance.totalGastos).toBe(3300);
+      expect(balance.saldoFinal).toBe(1500);
+      expect(balance.temDeficitGlobal).toBe(false);
     });
   });
 

@@ -15,6 +15,16 @@
     border-color: rgba(255, 255, 255, 0.15);
   }
 
+  &.is-income-row {
+    background: linear-gradient(90deg, rgba(16, 185, 129, 0.04) 0%, rgba(16, 185, 129, 0.01) 100%);
+    border-color: rgba(16, 185, 129, 0.2);
+
+    &:hover {
+      background: linear-gradient(90deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.03) 100%);
+      border-color: rgba(16, 185, 129, 0.35);
+    }
+  }
+
   &.is-paid {
     opacity: 0.65;
     background-color: rgba(16, 185, 129, 0.03);
@@ -47,6 +57,12 @@
   &.checked {
     background-color: var(--color-success);
     border-color: var(--color-success);
+  }
+
+  &.checked-income {
+    background-color: #10b981;
+    border-color: #10b981;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.3);
   }
 
   .check-icon {
@@ -94,6 +110,17 @@
   border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
+.income-badge {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 0.125rem 0.5rem;
+  border-radius: $radius-full;
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  letter-spacing: 0.02em;
+}
+
 .expense-meta-line {
   display: flex;
   align-items: center;
@@ -109,6 +136,12 @@
   background-color: rgba(255, 255, 255, 0.05);
   color: var(--color-text-secondary);
   font-size: 0.6875rem;
+
+  &.category-chip-income {
+    background-color: rgba(16, 185, 129, 0.08);
+    color: #6ee7b7;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+  }
 }
 
 .due-date {
@@ -171,6 +204,11 @@
   font-weight: 600;
   color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
+
+  &.is-income-amount {
+    color: #34d399;
+    font-weight: 700;
+  }
 
   &.is-paid-amount {
     color: var(--color-text-muted);
