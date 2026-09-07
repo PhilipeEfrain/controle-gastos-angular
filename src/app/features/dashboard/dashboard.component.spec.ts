@@ -126,14 +126,26 @@ describe('DashboardComponent', () => {
     expect(compiled.textContent).toContain('Superavitário');
   });
 
-  it('deve navegar para o próximo mês ao clicar em nextMonth', () => {
-    component.nextMonth();
-    expect(mockFinanceStore.setSelectedMonth).toHaveBeenCalledWith('2025-04', 'user-777');
+  it('deve abrir e fechar o modal de nova despesa', () => {
+    component.openNewExpenseModal(2);
+    expect(component.isExpenseModalOpen()).toBe(true);
+    expect(component.expenseModalQuinzena()).toBe(2);
+    expect(component.expenseToEdit()).toBeNull();
   });
 
-  it('deve navegar para o mês anterior ao clicar em prevMonth', () => {
-    component.prevMonth();
-    expect(mockFinanceStore.setSelectedMonth).toHaveBeenCalledWith('2025-02', 'user-777');
+  it('deve abrir o modal de edição de despesa com os dados corretos', () => {
+    component.openEditExpenseModal(mockExpense);
+    expect(component.isExpenseModalOpen()).toBe(true);
+    expect(component.expenseToEdit()).toEqual(mockExpense);
+  });
+
+  it('deve abrir o modal de rendas e de comprovante', () => {
+    component.openIncomeModal();
+    expect(component.isIncomeModalOpen()).toBe(true);
+
+    component.openReceiptModal(mockExpense);
+    expect(component.isReceiptModalOpen()).toBe(true);
+    expect(component.selectedExpenseForReceipt()).toEqual(mockExpense);
   });
 
   it('deve chamar togglePaymentStatus ao alternar status de despesa', async () => {
