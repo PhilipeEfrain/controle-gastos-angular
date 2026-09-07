@@ -146,6 +146,14 @@ export class DashboardComponent implements OnInit {
     return this.planLimitsService.isHistoryMonthAllowed(offset);
   });
 
+  onExportUpgradeRequested(): void {
+    this.limitModalData.set({
+      title: 'Dossiê Anual das 24 Quinzenas',
+      message: 'A compilação e exportação consolidada do Dossiê Anual em PDF com demonstrativo fiscal para IRPF é uma funcionalidade exclusiva dos planos Pro e Duo.',
+      resourceName: 'Dossiê Anual Consolidado (PDF)'
+    });
+  }
+
   // Navegação Temporal de Meses
   prevMonth(): void {
     const newMonth = addMonthsToYearMonth(this.financeStore.selectedMonth(), -1);

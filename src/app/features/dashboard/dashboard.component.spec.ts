@@ -11,6 +11,8 @@ import { MonthlyCycleService } from '../../core/services/monthly-cycle.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { UserProfile } from '../../core/models/user.model';
 import { Expense } from '../../core/models/finance.model';
+import { FirebaseService } from '../../core/services/firebase.service';
+import { ExportService } from '../../core/services/export.service';
 
 describe('DashboardComponent', () => {
   let component: DashboardComponent;
@@ -120,6 +122,17 @@ describe('DashboardComponent', () => {
       isHistoryMonthAllowed: vi.fn().mockReturnValue(true)
     };
 
+    const mockExportService = {
+      exportToCSV: vi.fn(),
+      exportToPDF: vi.fn(),
+      exportAnnualDossierPDF: vi.fn()
+    };
+
+    const mockFirebaseService = {
+      firestore: {},
+      auth: {}
+    };
+
     await TestBed.configureTestingModule({
       imports: [DashboardComponent],
       providers: [
@@ -130,6 +143,8 @@ describe('DashboardComponent', () => {
         { provide: InstallmentService, useValue: mockInstallmentService },
         { provide: PlanLimitsService, useValue: mockPlanLimitsService },
         { provide: NotificationService, useValue: mockNotificationService },
+        { provide: ExportService, useValue: mockExportService },
+        { provide: FirebaseService, useValue: mockFirebaseService },
         { provide: Router, useValue: mockRouter }
       ]
     }).compileComponents();

@@ -1,9 +1,12 @@
 import { TestBed } from '@angular/core/testing';
-import { ExportService } from './export.service';
+import { ExportService, AnnualDossierData } from './export.service';
 import { Expense, MonthBalanceSummary } from '../models/finance.model';
+
+import { FirebaseService } from './firebase.service';
 
 describe('ExportService', () => {
   let service: ExportService;
+  let mockFirebaseService: any;
 
   const mockSummary: MonthBalanceSummary = {
     q1: {
@@ -68,8 +71,16 @@ describe('ExportService', () => {
   ];
 
   beforeEach(() => {
+    mockFirebaseService = {
+      firestore: {},
+      auth: {}
+    };
+
     TestBed.configureTestingModule({
-      providers: [ExportService]
+      providers: [
+        ExportService,
+        { provide: FirebaseService, useValue: mockFirebaseService }
+      ]
     });
     service = TestBed.inject(ExportService);
   });
@@ -201,6 +212,64 @@ describe('ExportService', () => {
     });
   });
 
+  describe('generateAnnualDossierHTML', () => {
+    it('deve renderizar o layout executivo A4 do Dossiê Anual com 24 quinzenas, categorias e tributos', () => {
+      const mockDossierData: AnnualDossierData = {
+        ano: 2026,
+        userName: 'Philipe Efrain',
+        meses: [
+          {
+            mesAno: '2026-01',
+            mesNome: 'Janeiro',
+            q1Renda: 3000,
+            q1Gastos: 1200,
+            q1Saldo: 1800,
+            q2Renda: 3000,
+            q2Gastos: 1500,
+            q2Saldo: 1500,
+            totalRenda: 6000,
+            totalGastos: 2700,
+            saldoFinal: 3300,
+            temDeficit: false,
+            expenses: []
+          }
+        ],
+        categorias: [
+          { categoria: 'Moradia', total: 12000, percentual: 40.0 },
+          { categoria: 'Alimentação', total: 6000, percentual: 20.0 }
+        ],
+        tributos: [
+          {
+            id: 'tax-1',
+            titulo: 'IPVA 2026',
+            data_vencimento: '2026-01-20',
+            valor_orcado: 1850,
+            valor_pago: 1850,
+            status: 'Pago',
+            ano_referencia: 2026
+          }
+        ],
+        totalRendaAnual: 72000,
+        totalGastosAnuais: 30000,
+        saldoConsolidadoAnual: 42000,
+        totalLancamentos: 85,
+        mesesComSuperavit: 12,
+        mesesComDeficit: 0
+      };
+
+      const html = service.generateAnnualDossierHTML(mockDossierData);
+
+      expect(html).toContain('Dossiê Financeiro Consolidado • Exercício Fiscal 2026');
+      expect(html).toContain('Philipe Efrain');
+      expect(html).toContain('Janeiro');
+      expect(html).toContain('Moradia');
+      expect(html).toContain('IPVA 2026');
+      expect(html).toContain('12 de 12 meses positivos');
+      expect(html).toContain('72.000,00');
+      expect(html).toContain('42.000,00');
+    });
+  });
+
   describe('exportToPDF', () => {
     it('deve abrir uma janela popup e invocar print()', () => {
       const mockDoc = {
@@ -244,3 +313,4 @@ describe('ExportService', () => {
     });
   });
 });
+

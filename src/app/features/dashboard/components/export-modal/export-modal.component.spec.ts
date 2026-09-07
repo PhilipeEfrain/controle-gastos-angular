@@ -1,6 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
 import { ExportModalComponent } from './export-modal.component';
 import { ExportService } from '../../../../core/services/export.service';
+import { PlanLimitsService } from '../../../../core/services/plan-limits.service';
+import { AuthStore } from '../../../../core/state/auth.store';
 import { MonthBalanceSummary, Expense } from '../../../../core/models/finance.model';
 
 describe('ExportModalComponent', () => {
@@ -9,7 +12,11 @@ describe('ExportModalComponent', () => {
   let mockExportService: {
     exportToCSV: any;
     exportToPDF: any;
+    exportAnnualDossierPDF: any;
   };
+  let canExportPdfSignal = signal<boolean>(true);
+  let mockPlanLimitsService: any;
+  let mockAuthStore: any;
 
   const mockSummary: MonthBalanceSummary = {
     q1: {
@@ -51,15 +58,29 @@ describe('ExportModalComponent', () => {
   ];
 
   beforeEach(async () => {
+    canExportPdfSignal = signal<boolean>(true);
+
     mockExportService = {
       exportToCSV: vi.fn(),
-      exportToPDF: vi.fn()
+      exportToPDF: vi.fn(),
+      exportAnnualDossierPDF: vi.fn().mockResolvedValue(undefined)
+    };
+
+    mockPlanLimitsService = {
+      canExportPdf: vi.fn(() => canExportPdfSignal())
+    };
+
+    mockAuthStore = {
+      currentUser: signal({ uid: 'user-123', displayName: 'Philipe', email: 'philipe@test.com' }),
+      isProOrDuo: signal(true)
     };
 
     await TestBed.configureTestingModule({
       imports: [ExportModalComponent],
       providers: [
-        { provide: ExportService, useValue: mockExportService }
+        { provide: ExportService, useValue: mockExportService },
+        { provide: PlanLimitsService, useValue: mockPlanLimitsService },
+        { provide: AuthStore, useValue: mockAuthStore }
       ]
     }).compileComponents();
 
@@ -93,6 +114,30 @@ describe('ExportModalComponent', () => {
     expect(closeSpy).toHaveBeenCalled();
   });
 
+  it('Cenário BDD 1: deve compilar e exportar Dossiê Anual no Plano PRO', async () => {
+    canExportPdfSignal.set(true);
+    component.selectedYear.set(2026);
+
+    const closeSpy = vi.spyOn(component.close, 'emit');
+    await component.onExportAnnualDossier();
+
+    expect(mockExportService.exportAnnualDossierPDF).toHaveBeenCalledWith(2026, 'user-123', 'Philipe');
+    expect(closeSpy).toHaveBeenCalled();
+  });
+
+  it('Cenário BDD 2: deve bloquear Dossiê Anual no Plano Free e emitir requestUpgrade', async () => {
+    mockPlanLimitsService.canExportPdf.mockReturnValue(false);
+
+    const closeSpy = vi.spyOn(component.close, 'emit');
+    const upgradeSpy = vi.spyOn(component.requestUpgrade, 'emit');
+
+    await component.onExportAnnualDossier();
+
+    expect(mockExportService.exportAnnualDossierPDF).not.toHaveBeenCalled();
+    expect(closeSpy).toHaveBeenCalled();
+    expect(upgradeSpy).toHaveBeenCalled();
+  });
+
   it('deve fechar modal ao clicar no backdrop', () => {
     const closeSpy = vi.spyOn(component.close, 'emit');
     const mockBackdropEvent = {
@@ -107,3 +152,4 @@ describe('ExportModalComponent', () => {
     expect(closeSpy).toHaveBeenCalled();
   });
 });
+
