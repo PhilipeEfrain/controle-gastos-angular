@@ -61,6 +61,7 @@ export class TravelComponent implements OnInit, OnDestroy {
 
   readonly isExpenseModalOpen = signal<boolean>(false);
   readonly targetTripForExpense = signal<TravelTrip | null>(null);
+  readonly expenseToEdit = signal<TravelExpenseItem | null>(null);
 
   readonly isImportModalOpen = signal<boolean>(false);
   readonly tripToImport = signal<TravelTrip | null>(null);
@@ -228,10 +229,23 @@ export class TravelComponent implements OnInit, OnDestroy {
   openAddExpenseModal(trip: TravelTrip, event?: Event): void {
     if (event) event.stopPropagation();
     this.targetTripForExpense.set(trip);
+    this.expenseToEdit.set(null);
     this.expenseForm.reset({
       descricao: '',
       valor: null,
       categoria: 'Hospedagem'
+    });
+    this.isExpenseModalOpen.set(true);
+  }
+
+  openEditExpenseModal(trip: TravelTrip, expense: TravelExpenseItem, event?: Event): void {
+    if (event) event.stopPropagation();
+    this.targetTripForExpense.set(trip);
+    this.expenseToEdit.set(expense);
+    this.expenseForm.patchValue({
+      descricao: expense.descricao,
+      valor: expense.valor,
+      categoria: expense.categoria
     });
     this.isExpenseModalOpen.set(true);
   }
@@ -247,20 +261,32 @@ export class TravelComponent implements OnInit, OnDestroy {
     if (!user || !trip || !trip.id) return;
 
     const val = this.expenseForm.value;
-    const item: TravelExpenseItem = {
-      descricao: val.descricao.trim(),
-      valor: parseFloat(val.valor),
-      categoria: val.categoria,
-      dividir: true
-    };
+    const editing = this.expenseToEdit();
 
     try {
-      await this.travelService.addExpenseToTrip(user.uid, trip.id, item, trip);
-      this.notificationService.success('Gasto adicionado à viagem!');
+      if (editing && editing.id) {
+        const updatedItem: TravelExpenseItem = {
+          ...editing,
+          descricao: val.descricao.trim(),
+          valor: parseFloat(val.valor),
+          categoria: val.categoria
+        };
+        await this.travelService.updateExpenseInTrip(user.uid, trip.id, updatedItem, trip);
+        this.notificationService.success('Gasto atualizado com sucesso!');
+      } else {
+        const newItem: TravelExpenseItem = {
+          descricao: val.descricao.trim(),
+          valor: parseFloat(val.valor),
+          categoria: val.categoria,
+          dividir: true
+        };
+        await this.travelService.addExpenseToTrip(user.uid, trip.id, newItem, trip);
+        this.notificationService.success('Gasto adicionado à viagem!');
+      }
       this.isExpenseModalOpen.set(false);
     } catch (err: any) {
-      console.error('[TravelComponent] Erro ao adicionar gasto:', err);
-      this.notificationService.error('Erro ao adicionar gasto: ' + (err.message || 'Tente novamente.'));
+      console.error('[TravelComponent] Erro ao salvar gasto:', err);
+      this.notificationService.error('Erro ao salvar gasto: ' + (err.message || 'Tente novamente.'));
     }
   }
 

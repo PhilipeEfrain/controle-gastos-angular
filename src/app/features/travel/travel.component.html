@@ -192,6 +192,16 @@
                         <span class="item-value">{{ formatCurrency(item.valor) }}</span>
                         <button
                           type="button"
+                          class="item-edit-btn"
+                          (click)="openEditExpenseModal(trip, item, $event)"
+                          title="Editar gasto"
+                        >
+                          <svg viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
                           class="item-delete-btn"
                           (click)="onDeleteExpense(trip, item.id!, $event)"
                           title="Remover gasto"
@@ -296,12 +306,12 @@
   </div>
 }
 
-<!-- Modal: Adicionar Gasto à Viagem -->
+<!-- Modal: Adicionar / Editar Gasto da Viagem -->
 @if (isExpenseModalOpen()) {
   <div class="modal-backdrop" (click)="isExpenseModalOpen.set(false)">
     <div class="modal-container" (click)="$event.stopPropagation()" role="dialog">
       <div class="modal-header">
-        <h3 class="modal-title">Adicionar Gasto à Viagem</h3>
+        <h3 class="modal-title">{{ expenseToEdit() ? 'Editar Gasto da Viagem' : 'Adicionar Gasto à Viagem' }}</h3>
         <button type="button" class="close-btn" (click)="isExpenseModalOpen.set(false)">✕</button>
       </div>
 
@@ -344,7 +354,7 @@
         <div class="modal-footer">
           <button type="button" class="btn-cancel" (click)="isExpenseModalOpen.set(false)">Cancelar</button>
           <button type="submit" class="btn-submit" [disabled]="expenseForm.invalid">
-            Adicionar Gasto
+            {{ expenseToEdit() ? 'Salvar Alterações' : 'Adicionar Gasto' }}
           </button>
         </div>
       </form>

@@ -403,21 +403,30 @@
       font-variant-numeric: tabular-nums;
     }
 
+    .item-edit-btn,
     .item-delete-btn {
       background: transparent;
       border: none;
       color: var(--color-text-muted);
       cursor: pointer;
       padding: 0.125rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color $transition-fast;
 
       svg {
         width: 0.875rem;
         height: 0.875rem;
       }
+    }
 
-      &:hover {
-        color: var(--color-danger-light);
-      }
+    .item-edit-btn:hover {
+      color: var(--color-primary);
+    }
+
+    .item-delete-btn:hover {
+      color: var(--color-danger-light);
     }
   }
 }

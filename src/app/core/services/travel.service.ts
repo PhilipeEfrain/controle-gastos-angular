@@ -129,6 +129,33 @@ export class TravelService {
   }
 
   /**
+   * Atualiza um item de despesa existente na viagem e recalcula os totais
+   */
+  async updateExpenseInTrip(
+    userId: string,
+    tripId: string,
+    updatedExpense: TravelExpenseItem,
+    currentTrip: TravelTrip
+  ): Promise<void> {
+    const updatedDespesas = (currentTrip.despesas || []).map(e =>
+      e.id === updatedExpense.id
+        ? { ...e, ...updatedExpense, valor: roundBRL(updatedExpense.valor) }
+        : e
+    );
+    const count = Math.max(1, currentTrip.quantidade_participantes || 1);
+    const total = roundBRL(updatedDespesas.reduce((acc, curr) => acc + (curr.valor || 0), 0));
+    const perPerson = roundBRL(total / count);
+
+    const tripDocRef = doc(this.firestore, `users/${userId}/viagens/${tripId}`);
+    await updateDoc(tripDocRef, {
+      despesas: updatedDespesas,
+      total_gastos: total,
+      valor_por_pessoa: perPerson,
+      updatedAt: new Date().toISOString()
+    });
+  }
+
+  /**
    * Remove um item de despesa da viagem e recalcula os totais
    */
   async removeExpenseFromTrip(
