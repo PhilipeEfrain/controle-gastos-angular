@@ -75,15 +75,21 @@ describe('ExpenseFormModalComponent', () => {
     expect(savedEmitted).toBe(true);
   });
 
-  it('deve submeter compra parcelada com createInstallments', async () => {
+  it('deve submeter compra parcelada com createInstallments usando o valor informado como valor de cada parcela', async () => {
     component.form.patchValue({
-      descricao: 'Notebook Trabalho',
-      valor: 3000,
+      descricao: 'Curso Online',
+      valor: 271,
       quinzena: 2,
       categoria: 'Educação',
       isParcelado: true,
-      total_parcelas: 10
+      total_parcelas: 32
     });
+
+    const preview = component.installmentPreview;
+    expect(preview).not.toBeNull();
+    expect(preview?.count).toBe(32);
+    expect(preview?.installmentValue).toContain('271,00');
+    expect(preview?.totalValue).toContain('8.672,00');
 
     await component.onSubmit();
 
@@ -91,11 +97,11 @@ describe('ExpenseFormModalComponent', () => {
       'user-123',
       '2025-03',
       expect.objectContaining({
-        descricao: 'Notebook Trabalho',
-        valor: 300,
+        descricao: 'Curso Online',
+        valor: 271,
         quinzena: 2
       }),
-      10
+      32
     );
   });
 

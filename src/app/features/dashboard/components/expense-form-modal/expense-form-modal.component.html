@@ -90,7 +90,7 @@
         <div class="form-row">
           <div class="form-group flex-1">
             <label class="form-label" for="valor">
-              {{ form.get('isParcelado')?.value ? 'Valor Total (R$) *' : 'Valor (R$) *' }}
+              {{ form.get('isParcelado')?.value ? 'Valor da Parcela (R$) *' : 'Valor (R$) *' }}
             </label>
             <input
               id="valor"
@@ -99,7 +99,7 @@
               min="0.01"
               formControlName="valor"
               class="form-input"
-              placeholder="0,00"
+              [placeholder]="form.get('isParcelado')?.value ? 'Ex: 271,00 (valor de cada parcela)' : '0,00'"
               [class.is-invalid]="form.get('valor')?.invalid && form.get('valor')?.touched"
             />
             @if (form.get('valor')?.hasError('required') && form.get('valor')?.touched) {
@@ -168,6 +168,10 @@
                     <div class="preview-header">
                       <span class="preview-title">Projeção do Parcelamento:</span>
                       <strong class="preview-calc">{{ preview.count }}x de {{ preview.installmentValue }}</strong>
+                    </div>
+                    <div class="preview-total-info">
+                      <span class="preview-total-label">Total Acumulado:</span>
+                      <strong class="preview-total-val">{{ preview.totalValue }}</strong>
                     </div>
                     <p class="preview-months">
                       Meses impactados: {{ preview.months.join(', ') }}

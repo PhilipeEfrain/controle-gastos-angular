@@ -130,16 +130,17 @@ export class ExpenseFormModalComponent {
     });
   }
 
-  get installmentPreview(): { count: number; installmentValue: string; months: string[] } | null {
-    const valor = this.form.get('valor')?.value;
-    const count = this.form.get('total_parcelas')?.value;
+  get installmentPreview(): { count: number; installmentValue: string; totalValue: string; months: string[] } | null {
+    const valor = parseFloat(this.form.get('valor')?.value);
+    const count = parseInt(this.form.get('total_parcelas')?.value, 10);
     const isParcelado = this.form.get('isParcelado')?.value;
 
-    if (!isParcelado || !valor || !count || count < 2) {
+    if (!isParcelado || !valor || isNaN(valor) || !count || isNaN(count) || count < 2) {
       return null;
     }
 
-    const installmentAmount = roundBRL(valor / count);
+    const installmentAmount = roundBRL(valor);
+    const totalAmount = roundBRL(valor * count);
     const months: string[] = [];
     for (let i = 0; i < count; i++) {
       months.push(addMonthsToYearMonth(this.mesAno(), i));
@@ -148,6 +149,7 @@ export class ExpenseFormModalComponent {
     return {
       count,
       installmentValue: formatBRL(installmentAmount),
+      totalValue: formatBRL(totalAmount),
       months
     };
   }
@@ -190,8 +192,8 @@ export class ExpenseFormModalComponent {
 
         await this.expenseService.updateExpense(user.uid, this.mesAno(), toEdit.id, updatePayload);
       } else if (formVal.tipo !== 'renda_extra' && formVal.isParcelado && formVal.total_parcelas > 1) {
-        // Criação de compra parcelada em lote via writeBatch (somente despesas)
-        const installmentAmount = roundBRL(parseFloat(formVal.valor) / formVal.total_parcelas);
+        // Criação de compra parcelada em lote via writeBatch (o valor cadastrado é o valor de cada parcela)
+        const installmentAmount = roundBRL(parseFloat(formVal.valor));
         const baseExpense: Expense = {
           tipo: 'despesa',
           descricao: formVal.descricao.trim(),
