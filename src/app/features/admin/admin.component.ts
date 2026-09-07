@@ -1,82 +1,213 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ChangeDetectionStrategy,
+  inject,
+  signal,
+  computed
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { NavbarComponent } from '../../core/components/navbar/navbar.component';
+import { AdminService, SaaSMetrics } from '../../core/services/admin.service';
+import { NotificationService } from '../../core/services/notification.service';
+import { UserProfile, PlanType, PlanStatus, UserRole } from '../../core/models/user.model';
+import { formatBRL } from '../../core/utils/formatters';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, NavbarComponent],
-  template: `
-    <div class="admin-layout">
-      <app-navbar />
-      <main class="admin-container">
-        <div class="admin-header">
-          <div class="header-tag">🛡️ Área de Governança</div>
-          <h1>Painel Administrativo</h1>
-          <p class="subtitle">Gestão de métricas globais, assinaturas SaaS e controle de usuários.</p>
-        </div>
-        <div class="admin-content-placeholder">
-          <div class="admin-card">
-            <h3>Módulo Administrativo Ativo</h3>
-            <p>Controle de acesso baseado em papéis (RBAC) validado com sucesso.</p>
-          </div>
-        </div>
-      </main>
-    </div>
-  `,
-  styles: [`
-    .admin-layout {
-      min-height: 100vh;
-      background: var(--color-background);
-      color: var(--color-text-primary);
-    }
-    .admin-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 2rem 1.5rem;
-    }
-    .admin-header {
-      margin-bottom: 2rem;
-      .header-tag {
-        display: inline-block;
-        font-size: 0.75rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: #60a5fa;
-        background: rgba(59, 130, 246, 0.12);
-        border: 1px solid rgba(59, 130, 246, 0.3);
-        padding: 0.25rem 0.625rem;
-        border-radius: 9999px;
-        margin-bottom: 0.75rem;
-      }
-      h1 {
-        font-size: 1.875rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-      }
-      .subtitle {
-        color: var(--color-text-secondary);
-        font-size: 0.9375rem;
-      }
-    }
-    .admin-card {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: 0.75rem;
-      padding: 2rem;
-      text-align: center;
-      h3 {
-        font-size: 1.125rem;
-        color: #60a5fa;
-        margin-bottom: 0.5rem;
-      }
-      p {
-        color: var(--color-text-secondary);
-        font-size: 0.875rem;
-      }
-    }
-  `],
+  imports: [CommonModule, FormsModule, NavbarComponent],
+  templateUrl: './admin.component.html',
+  styleUrls: ['./admin.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AdminComponent {}
+export class AdminComponent implements OnInit {
+  private adminService = inject(AdminService);
+  private notificationService = inject(NotificationService);
+
+  // Estados Reativos (Signals)
+  readonly users = signal<UserProfile[]>([]);
+  readonly isLoading = signal<boolean>(true);
+  readonly isSaving = signal<boolean>(false);
+  readonly searchTerm = signal<string>('');
+  readonly planFilter = signal<'all' | 'free' | 'pro' | 'duo'>('all');
+
+  // Estado do Modal de Edição de Usuário
+  readonly selectedUserForEdit = signal<UserProfile | null>(null);
+  readonly editPlan = signal<PlanType>('free');
+  readonly editStatus = signal<PlanStatus>('active');
+  readonly editRole = signal<UserRole>('user');
+
+  // Métricas Globais Computadas do SaaS (MRR, Total, Conversão)
+  readonly metrics = computed<SaaSMetrics>(() => {
+    return this.adminService.calculateSaaSMetrics(this.users());
+  });
+
+  // Lista Filtrada de Usuários Reativa
+  readonly filteredUsers = computed<UserProfile[]>(() => {
+    const list = this.users();
+    const query = this.searchTerm().trim().toLowerCase();
+    const plan = this.planFilter();
+
+    return list.filter(user => {
+      // Filtro por plano
+      if (plan !== 'all') {
+        const userPlan = user.plan || 'free';
+        if (userPlan !== plan) return false;
+      }
+
+      // Filtro por busca de texto (Nome, E-mail, UID)
+      if (query) {
+        const nameMatch = user.displayName?.toLowerCase().includes(query) ?? false;
+        const emailMatch = user.email?.toLowerCase().includes(query) ?? false;
+        const uidMatch = user.uid.toLowerCase().includes(query);
+        return nameMatch || emailMatch || uidMatch;
+      }
+
+      return true;
+    });
+  });
+
+  readonly formatBRL = formatBRL;
+
+  ngOnInit(): void {
+    this.loadUsers();
+  }
+
+  /**
+   * Carrega a lista completa de usuários do SaaS
+   */
+  async loadUsers(): Promise<void> {
+    this.isLoading.set(true);
+    try {
+      const result = await this.adminService.getAllUsers();
+      this.users.set(result);
+    } catch {
+      this.notificationService.error('Não foi possível carregar a lista de usuários.');
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
+
+  // Manipulação de Busca e Filtros
+  onSearchInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.searchTerm.set(input.value);
+  }
+
+  clearSearch(): void {
+    this.searchTerm.set('');
+  }
+
+  setPlanFilter(filter: 'all' | 'free' | 'pro' | 'duo'): void {
+    this.planFilter.set(filter);
+  }
+
+  resetFilters(): void {
+    this.searchTerm.set('');
+    this.planFilter.set('all');
+  }
+
+  // Modal de Gestão de Usuário
+  openEditModal(user: UserProfile): void {
+    this.selectedUserForEdit.set(user);
+    this.editPlan.set(user.plan || 'free');
+    this.editStatus.set(user.planStatus || 'active');
+    this.editRole.set(user.role || 'user');
+  }
+
+  closeEditModal(): void {
+    this.selectedUserForEdit.set(null);
+  }
+
+  onStatusChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.editStatus.set(select.value as PlanStatus);
+  }
+
+  onRoleChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.editRole.set(select.value as UserRole);
+  }
+
+  /**
+   * Salva alterações manuais de plano e papel no Firestore
+   */
+  async saveUserChanges(): Promise<void> {
+    const target = this.selectedUserForEdit();
+    if (!target) return;
+
+    this.isSaving.set(true);
+    try {
+      const newPlan = this.editPlan();
+      const newStatus = this.editStatus();
+      const newRole = this.editRole();
+
+      // Atualiza plano e status
+      await this.adminService.updateUserPlan(target.uid, newPlan, newStatus);
+
+      // Atualiza papel RBAC se modificado
+      if (newRole !== target.role) {
+        await this.adminService.updateUserRole(target.uid, newRole);
+      }
+
+      // Atualiza o estado local reativo imediatamente
+      this.users.update(currentList =>
+        currentList.map(u =>
+          u.uid === target.uid
+            ? {
+                ...u,
+                plan: newPlan,
+                planStatus: newStatus,
+                role: newRole,
+                updatedAt: new Date().toISOString()
+              }
+            : u
+        )
+      );
+
+      this.notificationService.success(`Usuário ${target.displayName || target.email} atualizado com sucesso!`);
+      this.closeEditModal();
+    } catch {
+      this.notificationService.error('Erro ao atualizar usuário no banco de dados.');
+    } finally {
+      this.isSaving.set(false);
+    }
+  }
+
+  // Helpers de Interface
+  getUserInitials(user: UserProfile): string {
+    if (user.displayName) {
+      const parts = user.displayName.trim().split(' ');
+      if (parts.length >= 2) {
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+      }
+      return parts[0].substring(0, 2).toUpperCase();
+    }
+    if (user.email) {
+      return user.email.substring(0, 2).toUpperCase();
+    }
+    return 'U';
+  }
+
+  formatUid(uid: string): string {
+    if (!uid) return '';
+    if (uid.length <= 12) return uid;
+    return `${uid.substring(0, 6)}...${uid.substring(uid.length - 4)}`;
+  }
+
+  formatDate(dateStr?: string): string {
+    if (!dateStr) return 'Recente';
+    try {
+      const date = new Date(dateStr);
+      return new Intl.DateTimeFormat('pt-BR', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      }).format(date);
+    } catch {
+      return dateStr;
+    }
+  }
+}

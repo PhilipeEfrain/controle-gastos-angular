@@ -57,6 +57,7 @@
 | `PwaService` | `src/app/core/services/pwa.service.ts` | Monitoramento reativo de conectividade (online/offline), captura de beforeinstallprompt, instalação de PWA e controle de Service Worker. |
 | `NotificationService` | `src/app/core/services/notification.service.ts` | Notificações reativas do tipo Toast com Signals (`success`, `error`, `warning`, `info`). |
 | `LoggerService` | `src/app/core/services/logger.service.ts` | Logging seguro com supressão de stacktraces e dados de exceção em ambiente de produção (CWE-532). |
+| `AdminService` | `src/app/core/services/admin.service.ts` | Gestão administrativa de usuários, papéis RBAC, planos SaaS e cálculo de KPIs de MRR/conversão. |
 
 ---
 

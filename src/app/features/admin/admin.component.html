@@ -1,0 +1,424 @@
+<div class="admin-layout">
+  <app-navbar />
+
+  <main class="admin-container">
+    <!-- Header Executivo -->
+    <header class="admin-header">
+      <div class="header-left">
+        <div class="header-badge">
+          <span class="badge-dot"></span>
+          <span>Área Administrativa & SaaS</span>
+        </div>
+        <h1 class="page-title">Painel de Controle Executivo</h1>
+        <p class="page-subtitle">
+          Acompanhamento de métricas financeiras globais, receita recorrente (MRR) e governança de assinaturas.
+        </p>
+      </div>
+
+      <div class="header-actions">
+        <button
+          type="button"
+          class="btn-refresh"
+          (click)="loadUsers()"
+          [disabled]="isLoading()"
+          title="Recarregar dados"
+          id="btn-refresh-admin"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            class="refresh-icon"
+            [class.spinning]="isLoading()"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+          </svg>
+          <span>Atualizar</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Cards de KPIs (Métricas Globais do SaaS) -->
+    <section class="kpi-grid" aria-label="Métricas Principais">
+      <!-- KPI 1: Total de Usuários -->
+      <div class="kpi-card card-total">
+        <div class="kpi-icon-wrapper icon-users">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+          </svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">Total de Usuários</span>
+          <h2 class="kpi-value" id="kpi-total-users">{{ metrics().totalUsers }}</h2>
+          <span class="kpi-subtext">Base cadastrada no Firebase</span>
+        </div>
+      </div>
+
+      <!-- KPI 2: Usuários no Plano Free -->
+      <div class="kpi-card card-free">
+        <div class="kpi-icon-wrapper icon-free">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">Usuários Free</span>
+          <h2 class="kpi-value" id="kpi-free-users">{{ metrics().freeUsers }}</h2>
+          <span class="kpi-subtext">Potencial de conversão para PRO</span>
+        </div>
+      </div>
+
+      <!-- KPI 3: Assinantes Pro e Duo -->
+      <div class="kpi-card card-pro">
+        <div class="kpi-icon-wrapper icon-pro">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+          </svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">Assinantes Pagos</span>
+          <h2 class="kpi-value" id="kpi-paid-users">{{ metrics().paidUsers }}</h2>
+          <span class="kpi-subtext">{{ metrics().proUsers }} Pro &bull; {{ metrics().duoUsers }} Duo ({{ metrics().conversionRate }}% conv.)</span>
+        </div>
+      </div>
+
+      <!-- KPI 4: MRR Estimado (Receita Recorrente) -->
+      <div class="kpi-card card-mrr">
+        <div class="kpi-icon-wrapper icon-mrr">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">MRR Estimado</span>
+          <h2 class="kpi-value value-highlight" id="kpi-mrr-value">{{ formatBRL(metrics().estimatedMRR) }}</h2>
+          <span class="kpi-subtext">Receita Recorrente Mensal</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Seção de Gerenciamento de Usuários -->
+    <section class="users-management-section">
+      <div class="section-toolbar">
+        <!-- Input de Busca -->
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Buscar por nome, e-mail ou UID..."
+            [value]="searchTerm()"
+            (input)="onSearchInput($event)"
+            class="search-input"
+            id="input-admin-search"
+          />
+          @if (searchTerm()) {
+            <button type="button" class="btn-clear-search" (click)="clearSearch()" title="Limpar busca">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          }
+        </div>
+
+        <!-- Filtros Rápidos -->
+        <div class="filters-group">
+          <!-- Filtro por Plano -->
+          <div class="filter-pills">
+            <button
+              type="button"
+              class="pill-btn"
+              [class.active]="planFilter() === 'all'"
+              (click)="setPlanFilter('all')"
+            >
+              Todos ({{ users().length }})
+            </button>
+            <button
+              type="button"
+              class="pill-btn pill-free"
+              [class.active]="planFilter() === 'free'"
+              (click)="setPlanFilter('free')"
+            >
+              Free
+            </button>
+            <button
+              type="button"
+              class="pill-btn pill-pro"
+              [class.active]="planFilter() === 'pro'"
+              (click)="setPlanFilter('pro')"
+            >
+              Pro
+            </button>
+            <button
+              type="button"
+              class="pill-btn pill-duo"
+              [class.active]="planFilter() === 'duo'"
+              (click)="setPlanFilter('duo')"
+            >
+              Duo
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabela de Usuários -->
+      <div class="table-container">
+        @if (isLoading()) {
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Carregando usuários e métricas da plataforma...</p>
+          </div>
+        } @else if (filteredUsers().length === 0) {
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="empty-icon">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="8" y1="12" x2="16" y2="12" />
+            </svg>
+            <h3>Nenhum usuário encontrado</h3>
+            <p>Tente ajustar o termo da busca ou redefinir os filtros selecionados.</p>
+            @if (searchTerm() || planFilter() !== 'all') {
+              <button type="button" class="btn-reset-filters" (click)="resetFilters()">
+                Redefinir Filtros
+              </button>
+            }
+          </div>
+        } @else {
+          <table class="admin-table" id="table-admin-users">
+            <thead>
+              <tr>
+                <th>Usuário</th>
+                <th>E-mail</th>
+                <th>Papel (RBAC)</th>
+                <th>Plano</th>
+                <th>Status</th>
+                <th>Cadastro</th>
+                <th class="text-right">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (user of filteredUsers(); track user.uid) {
+                <tr class="user-row" [attr.data-user-id]="user.uid">
+                  <!-- Avatar + Nome -->
+                  <td class="col-user">
+                    <div class="user-info-cell">
+                      <div class="user-avatar">
+                        @if (user.photoURL) {
+                          <img [src]="user.photoURL" [alt]="user.displayName || 'Usuário'" class="avatar-img" />
+                        } @else {
+                          <span class="avatar-initials">{{ getUserInitials(user) }}</span>
+                        }
+                      </div>
+                      <div class="user-names">
+                        <span class="user-display-name">{{ user.displayName || 'Sem nome' }}</span>
+                        <span class="user-uid" [title]="user.uid">{{ formatUid(user.uid) }}</span>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- E-mail -->
+                  <td class="col-email">
+                    <span class="email-text">{{ user.email || 'Não informado' }}</span>
+                  </td>
+
+                  <!-- Papel (RBAC) -->
+                  <td class="col-role">
+                    @if (user.role === 'admin') {
+                      <span class="badge badge-admin">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="badge-icon">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                        </svg>
+                        Admin
+                      </span>
+                    } @else {
+                      <span class="badge badge-user">Usuário</span>
+                    }
+                  </td>
+
+                  <!-- Plano -->
+                  <td class="col-plan">
+                    @if (user.plan === 'pro') {
+                      <span class="badge badge-pro">Pro (R$ 9,90)</span>
+                    } @else if (user.plan === 'duo') {
+                      <span class="badge badge-duo">Duo (R$ 19,90)</span>
+                    } @else {
+                      <span class="badge badge-free">Free</span>
+                    }
+                  </td>
+
+                  <!-- Status -->
+                  <td class="col-status">
+                    @if (user.planStatus === 'active') {
+                      <span class="status-indicator status-active">
+                        <span class="dot"></span>
+                        <span>Ativo</span>
+                      </span>
+                    } @else {
+                      <span class="status-indicator status-canceled">
+                        <span class="dot"></span>
+                        <span>Cancelado</span>
+                      </span>
+                    }
+                  </td>
+
+                  <!-- Data de Cadastro -->
+                  <td class="col-date">
+                    <span class="date-text">{{ formatDate(user.createdAt) }}</span>
+                  </td>
+
+                  <!-- Ações -->
+                  <td class="col-actions text-right">
+                    <button
+                      type="button"
+                      class="btn-action-edit"
+                      (click)="openEditModal(user)"
+                      title="Gerenciar plano e permissões do usuário"
+                      [id]="'btn-edit-user-' + user.uid"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                      </svg>
+                      <span>Gerenciar</span>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal de Edição de Plano e Permissão do Usuário -->
+  @if (selectedUserForEdit(); as targetUser) {
+    <div class="modal-backdrop" (click)="closeEditModal()">
+      <div class="modal-dialog" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+        <header class="modal-header">
+          <div class="modal-title-group">
+            <div class="modal-tag">🛡️ Gestão de Conta</div>
+            <h2>Gerenciar Usuário</h2>
+            <p class="modal-subtitle">{{ targetUser.displayName }} ({{ targetUser.email }})</p>
+          </div>
+          <button type="button" class="btn-close-modal" (click)="closeEditModal()" aria-label="Fechar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </header>
+
+        <form class="modal-body" (ngSubmit)="saveUserChanges()">
+          <!-- Seletor de Plano -->
+          <div class="form-group">
+            <label for="edit-user-plan" class="form-label">Plano de Assinatura</label>
+            <div class="plan-options-grid">
+              <label class="plan-option-card" [class.selected]="editPlan() === 'free'">
+                <input
+                  type="radio"
+                  name="editPlan"
+                  value="free"
+                  [checked]="editPlan() === 'free'"
+                  (change)="editPlan.set('free')"
+                />
+                <div class="card-content">
+                  <div class="plan-name">Free</div>
+                  <div class="plan-price">R$ 0,00</div>
+                  <div class="plan-desc">Histórico 2 meses &bull; 3 parcelas</div>
+                </div>
+              </label>
+
+              <label class="plan-option-card" [class.selected]="editPlan() === 'pro'">
+                <input
+                  type="radio"
+                  name="editPlan"
+                  value="pro"
+                  [checked]="editPlan() === 'pro'"
+                  (change)="editPlan.set('pro')"
+                />
+                <div class="card-content">
+                  <div class="plan-name">Pro</div>
+                  <div class="plan-price">R$ 9,90/mês</div>
+                  <div class="plan-desc">13 meses &bull; Dossiê PDF &bull; Ilimitado</div>
+                </div>
+              </label>
+
+              <label class="plan-option-card" [class.selected]="editPlan() === 'duo'">
+                <input
+                  type="radio"
+                  name="editPlan"
+                  value="duo"
+                  [checked]="editPlan() === 'duo'"
+                  (change)="editPlan.set('duo')"
+                />
+                <div class="card-content">
+                  <div class="plan-name">Duo (Casal)</div>
+                  <div class="plan-price">R$ 19,90/mês</div>
+                  <div class="plan-desc">2 contas conectadas &bull; Completo</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Seletor de Status da Assinatura -->
+          <div class="form-group">
+            <label for="edit-user-status" class="form-label">Status da Assinatura</label>
+            <select
+              id="edit-user-status"
+              class="form-select"
+              [value]="editStatus()"
+              (change)="onStatusChange($event)"
+            >
+              <option value="active">Ativo (Acesso Liberado)</option>
+              <option value="canceled">Cancelado (Sem Renovação)</option>
+              <option value="past_due">Atrasado (Pendente)</option>
+              <option value="trial">Período de Testes (Trial)</option>
+            </select>
+          </div>
+
+          <!-- Seletor de Papel RBAC -->
+          <div class="form-group">
+            <label for="edit-user-role" class="form-label">Papel de Acesso (RBAC)</label>
+            <select
+              id="edit-user-role"
+              class="form-select"
+              [value]="editRole()"
+              (change)="onRoleChange($event)"
+            >
+              <option value="user">Usuário Comum (Padrão)</option>
+              <option value="admin">Administrador da Plataforma (Acesso Total)</option>
+            </select>
+            <p class="field-hint">
+              ⚠️ Administradores possuem acesso total a este painel e às métricas financeiras globais.
+            </p>
+          </div>
+
+          <footer class="modal-footer">
+            <button
+              type="button"
+              class="btn-secondary"
+              (click)="closeEditModal()"
+              [disabled]="isSaving()"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="btn-primary"
+              [disabled]="isSaving()"
+              id="btn-confirm-edit-user"
+            >
+              @if (isSaving()) {
+                <div class="btn-spinner"></div>
+                <span>Salvando...</span>
+              } @else {
+                <span>Salvar Alterações</span>
+              }
+            </button>
+          </footer>
+        </form>
+      </div>
+    </div>
+  }
+</div>
