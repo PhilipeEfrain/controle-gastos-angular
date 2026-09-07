@@ -52,7 +52,8 @@ export class MonthlyCycleService {
     userId: string,
     mesAno: string,
     rendaQ1: number,
-    rendaQ2: number
+    rendaQ2: number,
+    regime?: string
   ): Promise<MonthlyCycle> {
     const cycleDocRef = doc(this.firestore, `users/${userId}/ciclos_mensais/${mesAno}`);
     const safeQ1 = roundBRL(rendaQ1 || 0);
@@ -67,6 +68,10 @@ export class MonthlyCycleService {
       updatedAt: new Date().toISOString()
     };
 
+    if (regime) {
+      cycleData.regime_salarial = regime as any;
+    }
+
     await setDoc(cycleDocRef, cycleData, { merge: true });
 
     return {
@@ -76,7 +81,8 @@ export class MonthlyCycleService {
       renda_quinzena_2: safeQ2,
       total_renda: totalRenda,
       total_gastos: 0,
-      saldo_final: totalRenda
+      saldo_final: totalRenda,
+      regime_salarial: regime as any
     };
   }
 

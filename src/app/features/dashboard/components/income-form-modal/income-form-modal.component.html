@@ -37,50 +37,130 @@
 
       <!-- Form Body -->
       <form [formGroup]="form" (ngSubmit)="onSubmit()" class="modal-form">
-        <!-- Quinzena 1 -->
+        <!-- Seletor de Regime Salarial -->
         <div class="form-group">
-          <label class="form-label" for="rendaQ1">
-            Renda 1ª Quinzena (Dia 31 / Salário Base) *
-          </label>
-          <div class="input-prefix-wrapper">
-            <span class="currency-prefix">R$</span>
-            <input
-              id="rendaQ1"
-              type="number"
-              step="0.01"
-              min="0"
-              formControlName="rendaQ1"
-              class="form-input with-prefix"
-              placeholder="0,00"
-              [class.is-invalid]="form.get('rendaQ1')?.invalid && form.get('rendaQ1')?.touched"
-            />
+          <label class="form-label">Modelo de Recebimento Salarial</label>
+          <div class="regime-grid">
+            <button
+              type="button"
+              class="regime-btn"
+              [class.active]="form.get('regime')?.value === 'quinzenal'"
+              (click)="setRegime('quinzenal')"
+            >
+              <span class="regime-title">Quinzenal (2x)</span>
+              <span class="regime-desc">Adiantamento + Salário</span>
+            </button>
+
+            <button
+              type="button"
+              class="regime-btn"
+              [class.active]="form.get('regime')?.value === 'divisao_50_50'"
+              (click)="setRegime('divisao_50_50')"
+            >
+              <span class="regime-title">Divisão 50/50</span>
+              <span class="regime-desc">Metade em cada quinzena</span>
+            </button>
+
+            <button
+              type="button"
+              class="regime-btn"
+              [class.active]="form.get('regime')?.value === 'mensal_q1'"
+              (click)="setRegime('mensal_q1')"
+            >
+              <span class="regime-title">Mensal Único (Q1)</span>
+              <span class="regime-desc">Recebimento no Dia 31</span>
+            </button>
+
+            <button
+              type="button"
+              class="regime-btn"
+              [class.active]="form.get('regime')?.value === 'mensal_q2'"
+              (click)="setRegime('mensal_q2')"
+            >
+              <span class="regime-title">Mensal Único (Q2)</span>
+              <span class="regime-desc">Recebimento no Dia 15</span>
+            </button>
           </div>
-          @if (form.get('rendaQ1')?.hasError('required') && form.get('rendaQ1')?.touched) {
-            <span class="field-error">A renda da 1ª quinzena é obrigatória.</span>
-          }
         </div>
 
-        <!-- Quinzena 2 -->
-        <div class="form-group">
-          <label class="form-label" for="rendaQ2">
-            Renda 2ª Quinzena (Dia 15 / Adiantamento) *
-          </label>
-          <div class="input-prefix-wrapper">
-            <span class="currency-prefix">R$</span>
-            <input
-              id="rendaQ2"
-              type="number"
-              step="0.01"
-              min="0"
-              formControlName="rendaQ2"
-              class="form-input with-prefix"
-              placeholder="0,00"
-              [class.is-invalid]="form.get('rendaQ2')?.invalid && form.get('rendaQ2')?.touched"
-            />
+        <!-- Campo Salário Total (se regime for automatizado) -->
+        @if (form.get('regime')?.value !== 'quinzenal') {
+          <div class="form-group auto-calc-box">
+            <label class="form-label" for="salarioTotal">
+              Salário Total Mensal (R$) *
+            </label>
+            <div class="input-prefix-wrapper">
+              <span class="currency-prefix">R$</span>
+              <input
+                id="salarioTotal"
+                type="number"
+                step="0.01"
+                min="0"
+                formControlName="salarioTotal"
+                (input)="onSalarioTotalChange()"
+                class="form-input with-prefix"
+                placeholder="Ex: 5000,00"
+              />
+            </div>
+            <p class="auto-calc-hint">
+              @if (form.get('regime')?.value === 'divisao_50_50') {
+                Distribuído automaticamente: 50% na 1ª Quinzena e 50% na 2ª Quinzena.
+              } @else if (form.get('regime')?.value === 'mensal_q1') {
+                Todo o valor será alocado na 1ª Quinzena (Dia 31). A cobertura cobrirá a 2ª Quinzena.
+              } @else if (form.get('regime')?.value === 'mensal_q2') {
+                Todo o valor será alocado na 2ª Quinzena (Dia 15).
+              }
+            </p>
           </div>
-          @if (form.get('rendaQ2')?.hasError('required') && form.get('rendaQ2')?.touched) {
-            <span class="field-error">A renda da 2ª quinzena é obrigatória.</span>
-          }
+        }
+
+        <!-- Detalhamento por Quinzena -->
+        <div class="form-row">
+          <!-- Quinzena 1 -->
+          <div class="form-group flex-1">
+            <label class="form-label" for="rendaQ1">
+              1ª Quinzena (Dia 31) *
+            </label>
+            <div class="input-prefix-wrapper">
+              <span class="currency-prefix">R$</span>
+              <input
+                id="rendaQ1"
+                type="number"
+                step="0.01"
+                min="0"
+                formControlName="rendaQ1"
+                class="form-input with-prefix"
+                placeholder="0,00"
+                [class.is-invalid]="form.get('rendaQ1')?.invalid && form.get('rendaQ1')?.touched"
+              />
+            </div>
+            @if (form.get('rendaQ1')?.hasError('required') && form.get('rendaQ1')?.touched) {
+              <span class="field-error">A renda da 1ª quinzena é obrigatória.</span>
+            }
+          </div>
+
+          <!-- Quinzena 2 -->
+          <div class="form-group flex-1">
+            <label class="form-label" for="rendaQ2">
+              2ª Quinzena (Dia 15) *
+            </label>
+            <div class="input-prefix-wrapper">
+              <span class="currency-prefix">R$</span>
+              <input
+                id="rendaQ2"
+                type="number"
+                step="0.01"
+                min="0"
+                formControlName="rendaQ2"
+                class="form-input with-prefix"
+                placeholder="0,00"
+                [class.is-invalid]="form.get('rendaQ2')?.invalid && form.get('rendaQ2')?.touched"
+              />
+            </div>
+            @if (form.get('rendaQ2')?.hasError('required') && form.get('rendaQ2')?.touched) {
+              <span class="field-error">A renda da 2ª quinzena é obrigatória.</span>
+            }
+          </div>
         </div>
 
         <!-- Total Consolidado Preview -->

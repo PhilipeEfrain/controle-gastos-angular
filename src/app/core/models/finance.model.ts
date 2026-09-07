@@ -17,6 +17,8 @@ export interface Expense {
   createdAt?: string;
 }
 
+export type SalaryRegime = 'quinzenal' | 'mensal_q1' | 'mensal_q2' | 'divisao_50_50';
+
 export interface MonthlyCycle {
   id?: string;
   mesAno: string; // Formato YYYY-MM (ex: "2025-03")
@@ -25,6 +27,7 @@ export interface MonthlyCycle {
   total_renda: number;
   total_gastos: number;
   saldo_final: number;
+  regime_salarial?: SalaryRegime;
   updatedAt?: string;
 }
 

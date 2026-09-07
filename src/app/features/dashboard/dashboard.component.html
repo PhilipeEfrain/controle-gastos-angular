@@ -233,12 +233,13 @@
   (saved)="onExpenseSaved()"
 />
 
-<!-- Modal: Configurar Rendas Q1 e Q2 -->
+<!-- Modal: Configurar Rendas Q1 e Q2 e Regime Salarial -->
 <app-income-form-modal
   [isOpen]="isIncomeModalOpen()"
   [mesAno]="financeStore.selectedMonth()"
   [currentQ1]="financeStore.currentCycle()?.renda_quinzena_1 ?? 0"
   [currentQ2]="financeStore.currentCycle()?.renda_quinzena_2 ?? 0"
+  [currentRegime]="financeStore.currentCycle()?.regime_salarial ?? 'quinzenal'"
   (close)="isIncomeModalOpen.set(false)"
   (saved)="onIncomeSaved()"
 />

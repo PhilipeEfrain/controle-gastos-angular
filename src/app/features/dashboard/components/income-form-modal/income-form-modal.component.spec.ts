@@ -77,8 +77,47 @@ describe('IncomeFormModalComponent', () => {
       'user-456',
       '2025-03',
       3500,
-      2200
+      2200,
+      'quinzenal'
     );
     expect(savedEmitted).toBe(true);
+  });
+
+  it('Cenário BDD: deve configurar Salário Mensal Único na Quinzena 1 (Dia 31)', async () => {
+    component.setRegime('mensal_q1');
+    component.form.patchValue({ salarioTotal: 6000 });
+    component.onSalarioTotalChange();
+
+    expect(component.form.get('rendaQ1')?.value).toBe(6000);
+    expect(component.form.get('rendaQ2')?.value).toBe(0);
+
+    await component.onSubmit();
+
+    expect(mockCycleService.saveIncome).toHaveBeenCalledWith(
+      'user-456',
+      '2025-03',
+      6000,
+      0,
+      'mensal_q1'
+    );
+  });
+
+  it('Cenário BDD: deve configurar Salário com Divisão Automática 50/50', async () => {
+    component.setRegime('divisao_50_50');
+    component.form.patchValue({ salarioTotal: 5000 });
+    component.onSalarioTotalChange();
+
+    expect(component.form.get('rendaQ1')?.value).toBe(2500);
+    expect(component.form.get('rendaQ2')?.value).toBe(2500);
+
+    await component.onSubmit();
+
+    expect(mockCycleService.saveIncome).toHaveBeenCalledWith(
+      'user-456',
+      '2025-03',
+      2500,
+      2500,
+      'divisao_50_50'
+    );
   });
 });
