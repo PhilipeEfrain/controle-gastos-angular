@@ -31,8 +31,10 @@ export class App {
   }
 
   readonly showNavbar = computed(() => {
-    const url = this.currentUrl() || this.router.url || '';
-    const isAuthPage = url.startsWith('/auth') || url.includes('/auth');
-    return this.authStore.isAuthenticated() && !isAuthPage;
+    const rawUrl = this.currentUrl() || this.router.url || '';
+    const url = rawUrl.split('?')[0];
+    const isAuthPage = url.startsWith('/auth');
+    const isLandingPage = url === '/' || url === '';
+    return this.authStore.isAuthenticated() && !isAuthPage && !isLandingPage;
   });
 }
