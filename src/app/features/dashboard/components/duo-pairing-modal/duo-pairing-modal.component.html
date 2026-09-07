@@ -1,0 +1,146 @@
+@if (isOpen()) {
+  <div class="modal-backdrop" (click)="onBackdropClick($event)">
+    <div class="modal-container" role="dialog" aria-modal="true" aria-labelledby="duo-modal-title">
+      <!-- Cabeçalho do Modal -->
+      <div class="modal-header">
+        <div class="header-titles">
+          <div class="duo-badge-top">PLANO CASAL / DUO 💕</div>
+          <h2 id="duo-modal-title" class="modal-title">Orçamento a Dois</h2>
+          <p class="modal-subtitle">Controle financeiro conjunto sem misturar contas bancárias pessoais</p>
+        </div>
+        <button
+          type="button"
+          class="close-btn"
+          (click)="close.emit()"
+          title="Fechar"
+          aria-label="Fechar"
+        >
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path
+              fill-rule="evenodd"
+              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Estado 1: Casal Conectado -->
+      @if (isConnected(); as connected) {
+        <div class="connected-state-card">
+          <div class="couple-avatars">
+            <div class="avatar owner-avatar" title="{{ currentGroup()?.ownerName }}">
+              <span>{{ currentGroup()?.ownerName?.charAt(0) || 'E' }}</span>
+              <div class="avatar-label">{{ currentGroup()?.ownerName }}</div>
+            </div>
+            <div class="heart-pulse">💕</div>
+            <div class="avatar partner-avatar" title="{{ currentGroup()?.partnerName }}">
+              <span>{{ currentGroup()?.partnerName?.charAt(0) || 'P' }}</span>
+              <div class="avatar-label">{{ currentGroup()?.partnerName }}</div>
+            </div>
+          </div>
+
+          <div class="connection-status-text">
+            <div class="status-title">Contas Pareadas com Sucesso!</div>
+            <div class="status-desc">
+              Ambos compartilham o painel de despesas quinzenais, registro de quem pagou cada conta e o saldo de acerto 50/50.
+            </div>
+          </div>
+
+          @if (isOwner()) {
+            <button
+              type="button"
+              class="btn-disconnect"
+              (click)="onDisconnect()"
+              [disabled]="isLoading()"
+            >
+              Desvincular Parceiro(a)
+            </button>
+          }
+        </div>
+      } @else {
+        <!-- Estado 2: Aguardando Pareamento / Enviar Convite -->
+        <div class="pairing-flow-grid">
+          <!-- Bloco A: Seu Convite (Para o Titular enviar) -->
+          @if (currentGroup(); as group) {
+            <div class="invite-box">
+              <div class="box-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="box-icon">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
+                <span>Convidar Seu Parceiro(a)</span>
+              </div>
+              <p class="box-desc">Envie este código para o seu parceiro(a) colar no app dele(a):</p>
+              
+              <div class="code-copy-row">
+                <div class="invite-code-pill">{{ group.inviteCode }}</div>
+                <button
+                  type="button"
+                  class="btn-copy-code"
+                  [class.copied]="isCopied()"
+                  (click)="onCopyInviteCode()"
+                >
+                  @if (isCopied()) {
+                    <span>Copiado! ✓</span>
+                  } @else {
+                    <span>Copiar Código</span>
+                  }
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- Divisor OU -->
+          <div class="or-divider">
+            <span>OU</span>
+          </div>
+
+          <!-- Bloco B: Aceitar Convite (Para quem recebeu o código) -->
+          <div class="accept-box">
+            <div class="box-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="box-icon">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+              <span>Recebeu um Convite?</span>
+            </div>
+            <p class="box-desc">Digite o código de 6 dígitos que seu parceiro(a) gerou:</p>
+
+            <div class="accept-input-row">
+              <input
+                type="text"
+                class="invite-input"
+                placeholder="Ex: DUO-7842"
+                [ngModel]="inviteCodeInput()"
+                (ngModelChange)="inviteCodeInput.set($event)"
+                maxlength="10"
+              />
+              <button
+                type="button"
+                class="btn-connect"
+                (click)="onAcceptInvite()"
+                [disabled]="isLoading() || !inviteCodeInput().trim()"
+              >
+                @if (isLoading()) {
+                  Conectando...
+                } @else {
+                  Conectar
+                }
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Rodapé do Modal -->
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn-cancel"
+          (click)="close.emit()"
+        >
+          Fechar
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -19,6 +19,10 @@ import { formatBRL } from '../../core/utils/formatters';
 import { addMonthsToYearMonth } from '../../core/utils/calculations';
 import { getCurrentYearMonth, getMonthOffset } from '../../core/utils/date';
 import { PlanLimitsService } from '../../core/services/plan-limits.service';
+import { DuoService } from '../../core/services/duo.service';
+import { DuoGroup, DuoSettlementSummary } from '../../core/models/duo.model';
+import { DuoPairingModalComponent } from './components/duo-pairing-modal/duo-pairing-modal.component';
+import { DuoSettlementCardComponent } from './components/duo-settlement-card/duo-settlement-card.component';
 import { AppCardComponent } from '../../shared/components/app-card/app-card.component';
 import { DeficitAlertBannerComponent } from '../../shared/components/deficit-alert-banner/deficit-alert-banner.component';
 import { FortnightCardComponent } from './components/fortnight-card/fortnight-card.component';
@@ -44,7 +48,9 @@ import { LimitReachedModalComponent } from '../../shared/components/limit-reache
     CategoryDonutChartComponent,
     MonthlyEvolutionChartComponent,
     ExportModalComponent,
-    LimitReachedModalComponent
+    LimitReachedModalComponent,
+    DuoPairingModalComponent,
+    DuoSettlementCardComponent
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
@@ -56,8 +62,30 @@ export class DashboardComponent implements OnInit {
   private readonly expenseService = inject(ExpenseService);
   private readonly cycleService = inject(MonthlyCycleService);
   private readonly planLimitsService = inject(PlanLimitsService);
+  private readonly duoService = inject(DuoService);
   private readonly notificationService = inject(NotificationService);
   private readonly router = inject(Router);
+
+  // Modo Casal / Duo State
+  readonly duoGroup = signal<DuoGroup | null>(null);
+  readonly isDuoPairingModalOpen = signal<boolean>(false);
+
+  readonly isDuoActive = computed(() => {
+    return this.authStore.isDuo() || (this.duoGroup()?.status === 'active' && !!this.duoGroup()?.partnerId);
+  });
+
+  readonly settlementSummary = computed<DuoSettlementSummary | null>(() => {
+    const group = this.duoGroup();
+    if (!group || group.status !== 'active' || !group.partnerId) return null;
+
+    return this.duoService.calculateSettlement(
+      this.financeStore.expenses(),
+      group.ownerId,
+      group.ownerName || 'Titular',
+      group.partnerId,
+      group.partnerName || 'Parceiro(a)'
+    );
+  });
 
   // Status visual para feedback temporário
   readonly actionMessage = signal<string | null>(null);
@@ -132,10 +160,16 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     const user = this.authStore.currentUser();
     if (user) {
       this.financeStore.connectMonthStream(user.uid, this.financeStore.selectedMonth());
+      try {
+        const group = await this.duoService.getDuoGroupForUser(user.uid);
+        this.duoGroup.set(group);
+      } catch (e) {
+        console.error('Erro ao buscar grupo Duo:', e);
+      }
     }
   }
 
