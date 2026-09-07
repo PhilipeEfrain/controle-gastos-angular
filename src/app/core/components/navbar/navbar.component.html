@@ -127,6 +127,19 @@
         }
       </button>
 
+      @if (isAuthenticated() && !isProOrDuo()) {
+        <button
+          type="button"
+          class="btn-upgrade-pro"
+          (click)="isSubscriptionModalOpen.set(true)"
+          title="Fazer upgrade para o Plano PRO"
+          id="btn-navbar-upgrade-pro"
+        >
+          <span class="pro-sparkle">⭐</span>
+          <span class="pro-text">Seja PRO</span>
+        </button>
+      }
+
       @if (!isOnline()) {
         <div class="offline-status-badge" title="Você está desconectado. Modo offline ativo com sincronização automática.">
           <span class="offline-dot"></span>
@@ -328,6 +341,16 @@
           </button>
         }
 
+        @if (isAuthenticated() && !isProOrDuo()) {
+          <button
+            type="button"
+            class="mobile-btn-upgrade"
+            (click)="isSubscriptionModalOpen.set(true); closeMobileMenu()"
+          >
+            <span>⭐ Fazer Upgrade para o PRO</span>
+          </button>
+        }
+
         @if (user()) {
           <div class="mobile-user-actions">
             <button
@@ -345,5 +368,10 @@
         }
       </nav>
     </div>
+  }
+
+  <!-- Modal de Assinatura Recorrente -->
+  @if (isSubscriptionModalOpen()) {
+    <app-subscription-modal (close)="isSubscriptionModalOpen.set(false)" />
   }
 </header>

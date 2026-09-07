@@ -1,0 +1,414 @@
+<div class="subscription-backdrop" (click)="closeModal()">
+  <div class="subscription-dialog" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+    
+    @if (step() === 'select-plan') {
+      <!-- Cabeçalho -->
+      <header class="dialog-header">
+        <div class="header-badge">⭐ Desbloqueie todo o potencial</div>
+        <h2 class="dialog-title">Eleve seu Controle Financeiro</h2>
+        <p class="dialog-subtitle">
+          Tenha histórico estendido de 13 meses, Dossiê do Ano em PDF, parcelamentos e contas fixas ilimitadas.
+        </p>
+
+        <button type="button" class="btn-close" (click)="closeModal()" aria-label="Fechar modal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </header>
+
+      <!-- Alternador Mensal / Anual -->
+      <div class="cycle-switcher-wrapper">
+        <div class="cycle-switcher">
+          <button
+            type="button"
+            class="switch-btn"
+            [class.active]="cycle() === 'MONTHLY'"
+            (click)="setCycle('MONTHLY')"
+          >
+            Mensal
+          </button>
+          <button
+            type="button"
+            class="switch-btn switch-yearly"
+            [class.active]="cycle() === 'YEARLY'"
+            (click)="setCycle('YEARLY')"
+          >
+            <span>Anual</span>
+            <span class="discount-tag">Economize 25%</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Cards de Planos -->
+      <div class="plans-grid">
+        <!-- Plano PRO Individual -->
+        <div
+          class="plan-card"
+          [class.selected]="selectedPlan() === 'pro'"
+          (click)="selectPlan('pro')"
+          id="card-plan-pro"
+        >
+          <div class="plan-popular-tag">Mais Escolhido</div>
+          <div class="plan-header">
+            <h3 class="plan-title">Pro Individual</h3>
+            <p class="plan-target">Para quem busca liberdade e organização total</p>
+          </div>
+
+          <div class="plan-pricing">
+            @if (cycle() === 'YEARLY') {
+              <div class="price-value">R$ 89,90<span class="price-cycle">/ano</span></div>
+              <div class="price-equivalent">Equivalente a <strong>R$ 7,49/mês</strong></div>
+            } @else {
+              <div class="price-value">R$ 9,90<span class="price-cycle">/mês</span></div>
+              <div class="price-equivalent">Cobrança mensal sem fidelidade</div>
+            }
+          </div>
+
+          <ul class="features-list">
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="check-icon">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+              <span><strong>13 meses de histórico móvel (12+1)</strong></span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="check-icon">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+              <span><strong>Dossiê Completo do Ano em PDF</strong></span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="check-icon">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+              <span>Compras parceladas <strong>ilimitadas</strong></span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="check-icon">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+              <span>Contas fixas e recorrentes <strong>ilimitadas</strong></span>
+            </li>
+          </ul>
+
+          <button type="button" class="btn-select-plan" (click)="selectPlan('pro'); goToCheckout()">
+            Quero o Plano Pro
+          </button>
+        </div>
+
+        <!-- Plano CASAL / DUO -->
+        <div
+          class="plan-card plan-duo"
+          [class.selected]="selectedPlan() === 'duo'"
+          (click)="selectPlan('duo')"
+          id="card-plan-duo"
+        >
+          <div class="plan-duo-tag">Casal / Família</div>
+          <div class="plan-header">
+            <h3 class="plan-title">Casal / Duo</h3>
+            <p class="plan-target">Finanças a dois com contas integradas</p>
+          </div>
+
+          <div class="plan-pricing">
+            @if (cycle() === 'YEARLY') {
+              <div class="price-value">R$ 179,90<span class="price-cycle">/ano</span></div>
+              <div class="price-equivalent">Equivalente a <strong>R$ 14,99/mês</strong></div>
+            } @else {
+              <div class="price-value">R$ 19,90<span class="price-cycle">/mês</span></div>
+              <div class="price-equivalent">Cobrança mensal para 2 contas</div>
+            }
+          </div>
+
+          <ul class="features-list">
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="check-icon">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+              <span><strong>Tudo do plano Pro</strong></span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="check-icon">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+              <span><strong>2 contas conectadas</strong> com rateio inteligente</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="check-icon">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+              <span>Dossiê Anual Conjunto e Individual</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="check-icon">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+              <span>Suporte prioritário via WhatsApp</span>
+            </li>
+          </ul>
+
+          <button type="button" class="btn-select-plan btn-duo" (click)="selectPlan('duo'); goToCheckout()">
+            Quero o Plano Duo
+          </button>
+        </div>
+      </div>
+    }
+
+    @if (step() === 'checkout') {
+      <!-- Etapa de Checkout e Pagamento -->
+      <header class="dialog-header">
+        <button type="button" class="btn-back" (click)="step.set('select-plan')" aria-label="Voltar para planos">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+          </svg>
+          <span>Alterar Plano</span>
+        </button>
+
+        <h2 class="dialog-title">Finalizar Assinatura</h2>
+        <p class="dialog-subtitle">
+          Plano selecionado: <strong>{{ selectedPlan() === 'pro' ? 'Pro Individual' : 'Casal / Duo' }}</strong> &bull;
+          <strong>{{ formatBRL(currentPrice()) }}</strong> ({{ cycle() === 'YEARLY' ? 'Anual' : 'Mensal' }})
+        </p>
+
+        <button type="button" class="btn-close" (click)="closeModal()" aria-label="Fechar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </header>
+
+      <!-- Métodos de Pagamento (Abas) -->
+      <div class="payment-tabs">
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="paymentMethod() === 'PIX'"
+          (click)="setPaymentMethod('PIX')"
+          id="tab-pix"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="tab-icon">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5ZM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5ZM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 13.5 9.375v-4.5Z" />
+          </svg>
+          <span>PIX Instantâneo</span>
+        </button>
+
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="paymentMethod() === 'CREDIT_CARD'"
+          (click)="setPaymentMethod('CREDIT_CARD')"
+          id="tab-card"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="tab-icon">
+            <rect x="2" y="5" width="20" height="14" rx="2" />
+            <line x1="2" y1="10" x2="22" y2="10" />
+          </svg>
+          <span>Cartão de Crédito</span>
+        </button>
+      </div>
+
+      <!-- Conteúdo do PIX -->
+      @if (paymentMethod() === 'PIX') {
+        <div class="pix-checkout-view">
+          @if (!pixGenerated()) {
+            <div class="cpf-form">
+              <label for="input-pix-cpf" class="form-label">Informe seu CPF ou CNPJ para emissão do PIX</label>
+              <input
+                type="text"
+                id="input-pix-cpf"
+                class="form-input"
+                placeholder="000.000.000-00"
+                [value]="customerCpf()"
+                (input)="onCpfInput($event)"
+              />
+              <button
+                type="button"
+                class="btn-generate-pix"
+                (click)="generatePixPayment()"
+                [disabled]="isProcessing() || !isCpfValid()"
+                id="btn-generate-pix"
+              >
+                @if (isProcessing()) {
+                  <div class="btn-spinner"></div>
+                  <span>Gerando PIX...</span>
+                } @else {
+                  <span>Gerar QR Code PIX</span>
+                }
+              </button>
+            </div>
+          } @else {
+            <div class="pix-qr-container">
+              <div class="qr-box">
+                <div class="qr-placeholder">
+                  <!-- QR Code SVG ilustrativo -->
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="qr-svg">
+                    <rect x="3" y="3" width="7" height="7" rx="1" />
+                    <rect x="14" y="3" width="7" height="7" rx="1" />
+                    <rect x="3" y="14" width="7" height="7" rx="1" />
+                    <rect x="14" y="14" width="3" height="3" />
+                    <rect x="18" y="14" width="3" height="3" />
+                    <rect x="14" y="18" width="3" height="3" />
+                    <rect x="18" y="18" width="3" height="3" />
+                  </svg>
+                </div>
+                <span class="qr-timer">⏱️ Expira em 24 horas</span>
+              </div>
+
+              <div class="pix-details">
+                <span class="pix-amount-label">Valor a pagar:</span>
+                <span class="pix-amount-value">{{ formatBRL(currentPrice()) }}</span>
+
+                <div class="copia-cola-box">
+                  <input
+                    type="text"
+                    readonly
+                    [value]="pixPayload()"
+                    class="copia-cola-input"
+                    id="input-pix-code"
+                  />
+                  <button
+                    type="button"
+                    class="btn-copy-pix"
+                    (click)="copyPixPayload()"
+                    id="btn-copy-pix"
+                  >
+                    @if (isCopied()) {
+                      <span>Copiado! ✓</span>
+                    } @else {
+                      <span>Copiar Código PIX</span>
+                    }
+                  </button>
+                </div>
+
+                <div class="pix-simulation-actions">
+                  <p class="pix-instructions">
+                    Abra o app do seu banco, escolha <strong>Pagar via PIX</strong> e escaneie o código ou cole o texto acima.
+                  </p>
+                  <button
+                    type="button"
+                    class="btn-confirm-simulated"
+                    (click)="simulatePaymentConfirmation()"
+                    [disabled]="isProcessing()"
+                    id="btn-confirm-pix-paid"
+                  >
+                    @if (isProcessing()) {
+                      <div class="btn-spinner"></div>
+                      <span>Validando pagamento...</span>
+                    } @else {
+                      <span>Já realizei o pagamento (Confirmar)</span>
+                    }
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Conteúdo do Cartão de Crédito -->
+      @if (paymentMethod() === 'CREDIT_CARD') {
+        <form class="card-checkout-view" (ngSubmit)="processCreditCardPayment()">
+          <div class="form-group">
+            <label class="form-label">Nome impresso no cartão</label>
+            <input
+              type="text"
+              class="form-input"
+              placeholder="Ex: PHILIPE E F GONZALEZ"
+              [value]="cardHolderName()"
+              (input)="cardHolderName.set($any($event.target).value)"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Número do Cartão</label>
+            <input
+              type="text"
+              class="form-input"
+              placeholder="0000 0000 0000 0000"
+              maxlength="19"
+              [value]="cardNumber()"
+              (input)="cardNumber.set($any($event.target).value)"
+              required
+            />
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label">Validade (MM/AA)</label>
+              <input
+                type="text"
+                class="form-input"
+                placeholder="12/28"
+                maxlength="5"
+                [value]="cardExpiry()"
+                (input)="cardExpiry.set($any($event.target).value)"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label">CVV</label>
+              <input
+                type="password"
+                class="form-input"
+                placeholder="123"
+                maxlength="4"
+                [value]="cardCvv()"
+                (input)="cardCvv.set($any($event.target).value)"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">CPF do Titular</label>
+            <input
+              type="text"
+              class="form-input"
+              placeholder="000.000.000-00"
+              [value]="customerCpf()"
+              (input)="onCpfInput($event)"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            class="btn-pay-card"
+            [disabled]="isProcessing() || !isCardFormValid()"
+            id="btn-submit-card"
+          >
+            @if (isProcessing()) {
+              <div class="btn-spinner"></div>
+              <span>Processando assinatura segura...</span>
+            } @else {
+              <span>Assinar por {{ formatBRL(currentPrice()) }}</span>
+            }
+          </button>
+        </form>
+      }
+    }
+
+    @if (step() === 'success') {
+      <!-- Tela de Celebração de Boas-Vindas ao PRO -->
+      <div class="success-view">
+        <div class="celebration-icon">🎉</div>
+        <h2 class="success-title">Parabéns! Você agora é {{ selectedPlan() === 'pro' ? 'PRO' : 'DUO' }}!</h2>
+        <p class="success-description">
+          Sua assinatura foi confirmada com sucesso. Todas as funcionalidades premium, histórico de 13 meses e o Dossiê Anual em PDF já estão desbloqueados na sua conta.
+        </p>
+
+        <div class="success-features-card">
+          <div class="feature-item">✓ Histórico de 13 meses móveis ativado</div>
+          <div class="feature-item">✓ Compras parceladas e despesas fixas ilimitadas</div>
+          <div class="feature-item">✓ Exportação do Dossiê do Ano em PDF liberada</div>
+        </div>
+
+        <button type="button" class="btn-enjoy" (click)="closeModal()" id="btn-enjoy-pro">
+          Acessar Meus Recursos Exclusivos
+        </button>
+      </div>
+    }
+
+  </div>
+</div>

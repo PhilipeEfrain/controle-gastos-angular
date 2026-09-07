@@ -13,11 +13,12 @@ import { NotificationService } from '../../services/notification.service';
 import { PwaService } from '../../services/pwa.service';
 import { ThemeService } from '../../services/theme.service';
 import { BrandLogoComponent } from '../../../shared/components/brand-logo/brand-logo.component';
+import { SubscriptionModalComponent } from '../../../shared/components/subscription-modal/subscription-modal.component';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive, BrandLogoComponent],
+  imports: [CommonModule, RouterLink, RouterLinkActive, BrandLogoComponent, SubscriptionModalComponent],
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -32,10 +33,13 @@ export class NavbarComponent {
 
   readonly isMobileMenuOpen = signal<boolean>(false);
   readonly isLoggingOut = signal<boolean>(false);
+  readonly isSubscriptionModalOpen = signal<boolean>(false);
 
   readonly user = this.authStore.currentUser;
   readonly isAuthenticated = this.authStore.isAuthenticated;
   readonly isAdmin = this.authStore.isAdmin;
+  readonly isProOrDuo = this.authStore.isProOrDuo;
+  readonly currentPlan = this.authStore.currentPlan;
   readonly isOnline = this.pwaService.isOnline;
   readonly canInstall = this.pwaService.canInstall;
   readonly isDark = this.themeService.isDark;
