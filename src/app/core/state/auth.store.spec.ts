@@ -94,4 +94,41 @@ describe('AuthStore (Signals State)', () => {
     expect(store.isLoading()).toBe(false);
     expect(store.isInitialized()).toBe(true);
   });
+
+  it('Cenário BDD (RBAC & Planos): deve calcular corretamente isAdmin, userRole e flags de plano', () => {
+    // Caso padrão: usuário sem role explícito
+    store.setUser(mockUser);
+    expect(store.userRole()).toBe('user');
+    expect(store.isAdmin()).toBe(false);
+    expect(store.currentPlan()).toBe('free');
+    expect(store.planStatus()).toBe('active');
+    expect(store.isProOrDuo()).toBe(false);
+    expect(store.isDuo()).toBe(false);
+
+    // Caso Admin com plano PRO
+    store.setUser({
+      ...mockUser,
+      role: 'admin',
+      plan: 'pro',
+      planStatus: 'active'
+    });
+    expect(store.userRole()).toBe('admin');
+    expect(store.isAdmin()).toBe(true);
+    expect(store.currentPlan()).toBe('pro');
+    expect(store.isProOrDuo()).toBe(true);
+    expect(store.isDuo()).toBe(false);
+
+    // Caso Plano Duo
+    store.setUser({
+      ...mockUser,
+      role: 'user',
+      plan: 'duo',
+      planStatus: 'active'
+    });
+    expect(store.userRole()).toBe('user');
+    expect(store.isAdmin()).toBe(false);
+    expect(store.currentPlan()).toBe('duo');
+    expect(store.isProOrDuo()).toBe(true);
+    expect(store.isDuo()).toBe(true);
+  });
 });

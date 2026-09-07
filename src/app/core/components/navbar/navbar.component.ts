@@ -35,6 +35,7 @@ export class NavbarComponent {
 
   readonly user = this.authStore.currentUser;
   readonly isAuthenticated = this.authStore.isAuthenticated;
+  readonly isAdmin = this.authStore.isAdmin;
   readonly isOnline = this.pwaService.isOnline;
   readonly canInstall = this.pwaService.canInstall;
   readonly isDark = this.themeService.isDark;
