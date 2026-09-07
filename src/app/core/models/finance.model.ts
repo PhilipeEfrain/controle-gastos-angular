@@ -10,11 +10,24 @@ export interface Expense {
   codigo_comprovante?: string;
   categoria: string;
   recorrente?: boolean;
+  recorrente_id?: string;
   data_vencimento?: string;
   parcela_atual?: number;
   total_parcelas?: number;
   grupo_parcela_id?: string;
   createdAt?: string;
+}
+
+export interface RecurringExpense {
+  id?: string;
+  descricao: string;
+  valor: number;
+  quinzena: FortnightNumber;
+  categoria: string;
+  data_vencimento?: string;
+  ativo: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export type SalaryRegime = 'quinzenal' | 'mensal_q1' | 'mensal_q2' | 'divisao_50_50';

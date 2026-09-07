@@ -43,6 +43,12 @@
           {{ expense().parcela_atual }}/{{ expense().total_parcelas }}
         </span>
       }
+
+      @if (expense().recorrente) {
+        <span class="recurring-badge" title="Despesa Recorrente Fixa (Repetida todo mês)">
+          🔁 Recorrente
+        </span>
+      }
     </div>
 
     <div class="expense-meta-line">

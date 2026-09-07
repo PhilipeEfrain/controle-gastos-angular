@@ -51,12 +51,12 @@ service cloud.firestore {
         && (!('regime_salarial' in data) || data.regime_salarial in ['quinzenal', 'mensal_q1', 'mensal_q2', 'divisao_50_50']);
     }
 
-    // Validador de Despesa / Renda Extra com Suporte a Parcelamentos e Comprovantes
+    // Validador de Despesa / Renda Extra com Suporte a Parcelamentos, Recorrências e Comprovantes
     function isValidExpense(data) {
       return data.keys().hasOnly([
         'id', 'descricao', 'valor', 'categoria', 'quinzena', 'mesAno',
         'status_pagamento', 'tipo', 'codigo_comprovante', 'data_vencimento',
-        'recorrente', 'parcela_atual', 'total_parcelas', 'grupo_parcela_id',
+        'recorrente', 'recorrente_id', 'parcela_atual', 'total_parcelas', 'grupo_parcela_id',
         'isParcelado', 'grupoParcelamentoId', 'numeroParcela', 'totalParcelas',
         'observacao', 'observacoes', 'createdAt', 'updatedAt'
       ])
@@ -68,6 +68,20 @@ service cloud.firestore {
         && (!('status_pagamento' in data) || data.status_pagamento is bool)
         && (!('tipo' in data) || data.tipo in ['despesa', 'renda_extra'])
         && (!('codigo_comprovante' in data) || data.codigo_comprovante == null || (data.codigo_comprovante is string && data.codigo_comprovante.size() <= 100));
+    }
+
+    // Validador de Despesas Recorrentes (Contas Fixas)
+    function isValidRecurringExpense(data) {
+      return data.keys().hasOnly([
+        'id', 'descricao', 'valor', 'categoria', 'quinzena',
+        'data_vencimento', 'ativo', 'observacao', 'observacoes',
+        'createdAt', 'updatedAt'
+      ])
+        && isValidPositiveNumber(data.valor)
+        && isValidString(data.descricao, 1, 100)
+        && (!('categoria' in data) || (data.categoria is string && data.categoria.size() <= 50))
+        && (!('quinzena' in data) || isValidFortnight(data.quinzena))
+        && (!('ativo' in data) || data.ativo is bool);
     }
 
     // Validador de Tributos Anuais
@@ -103,6 +117,13 @@ service cloud.firestore {
       allow read: if isOwner(userId);
       allow create, update: if isOwner(userId) && isValidUserProfile(request.resource.data);
       allow delete: if isOwner(userId);
+
+      // Despesas Recorrentes (Contas Fixas Mensais)
+      match /despesas_recorrentes/{recorrenteId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidRecurringExpense(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
 
       // Ciclos Mensais
       match /ciclos_mensais/{mesAno} {

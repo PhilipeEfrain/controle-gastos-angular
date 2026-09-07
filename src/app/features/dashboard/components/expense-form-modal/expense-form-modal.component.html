@@ -140,45 +140,68 @@
           </div>
         </div>
 
-        <!-- Seção Parcelamento (apenas ao criar nova despesa do tipo despesa) -->
-        @if (!expenseToEdit() && form.get('tipo')?.value !== 'renda_extra') {
-          <div class="installments-toggle-container">
-            <label class="checkbox-label">
-              <input type="checkbox" formControlName="isParcelado" />
-              <span>Esta é uma compra parcelada</span>
+        <!-- Opções Avançadas: Recorrência Mensal ou Parcelamento (Apenas para despesas) -->
+        @if (form.get('tipo')?.value !== 'renda_extra') {
+          <div class="advanced-options-container">
+            <!-- Opção 1: Despesa Recorrente / Fixa -->
+            <label class="checkbox-label" [class.is-disabled]="form.get('isParcelado')?.value">
+              <input
+                type="checkbox"
+                formControlName="recorrente"
+                (change)="onRecorrenteChange()"
+              />
+              <span class="checkbox-text">
+                <strong>🔁 Despesa Recorrente</strong>
+                <small class="checkbox-hint">Repetir automaticamente todo mês (Aluguel, Luz, Internet, etc.)</small>
+              </span>
             </label>
 
-            @if (form.get('isParcelado')?.value) {
-              <div class="installments-config">
-                <div class="form-group">
-                  <label class="form-label" for="total_parcelas">Quantidade de Parcelas (2 a 72)</label>
-                  <input
-                    id="total_parcelas"
-                    type="number"
-                    min="2"
-                    max="72"
-                    formControlName="total_parcelas"
-                    class="form-input"
-                  />
-                </div>
+            <!-- Opção 2: Compra Parcelada (Apenas para novas despesas) -->
+            @if (!expenseToEdit()) {
+              <label class="checkbox-label" [class.is-disabled]="form.get('recorrente')?.value">
+                <input
+                  type="checkbox"
+                  formControlName="isParcelado"
+                  (change)="onParceladoChange()"
+                />
+                <span class="checkbox-text">
+                  <strong>💳 Compra Parcelada</strong>
+                  <small class="checkbox-hint">Dividir em múltiplas parcelas mensais</small>
+                </span>
+              </label>
 
-                <!-- Preview de Parcelas -->
-                @if (installmentPreview; as preview) {
-                  <div class="installment-preview-box">
-                    <div class="preview-header">
-                      <span class="preview-title">Projeção do Parcelamento:</span>
-                      <strong class="preview-calc">{{ preview.count }}x de {{ preview.installmentValue }}</strong>
-                    </div>
-                    <div class="preview-total-info">
-                      <span class="preview-total-label">Total Acumulado:</span>
-                      <strong class="preview-total-val">{{ preview.totalValue }}</strong>
-                    </div>
-                    <p class="preview-months">
-                      Meses impactados: {{ preview.months.join(', ') }}
-                    </p>
+              @if (form.get('isParcelado')?.value) {
+                <div class="installments-config">
+                  <div class="form-group">
+                    <label class="form-label" for="total_parcelas">Quantidade de Parcelas (2 a 72)</label>
+                    <input
+                      id="total_parcelas"
+                      type="number"
+                      min="2"
+                      max="72"
+                      formControlName="total_parcelas"
+                      class="form-input"
+                    />
                   </div>
-                }
-              </div>
+
+                  <!-- Preview de Parcelas -->
+                  @if (installmentPreview; as preview) {
+                    <div class="installment-preview-box">
+                      <div class="preview-header">
+                        <span class="preview-title">Projeção do Parcelamento:</span>
+                        <strong class="preview-calc">{{ preview.count }}x de {{ preview.installmentValue }}</strong>
+                      </div>
+                      <div class="preview-total-info">
+                        <span class="preview-total-label">Total Acumulado:</span>
+                        <strong class="preview-total-val">{{ preview.totalValue }}</strong>
+                      </div>
+                      <p class="preview-months">
+                        Meses impactados: {{ preview.months.join(', ') }}
+                      </p>
+                    </div>
+                  }
+                </div>
+              }
             }
           </div>
         }

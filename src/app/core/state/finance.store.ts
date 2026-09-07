@@ -107,6 +107,8 @@ export class FinanceStore {
       next: expenses => {
         this._expenses.set(expenses);
         this._isLoading.set(false);
+        // Sincroniza despesas recorrentes ativas que ainda não foram instanciadas neste mês
+        this.expenseService.syncRecurringExpensesForMonth(userId, mesAno, expenses).catch(() => {});
       },
       error: err => {
         this._error.set(err.message || 'Erro ao carregar despesas');

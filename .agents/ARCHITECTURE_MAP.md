@@ -26,7 +26,8 @@
 | Interface / Type | Arquivo | Descrição |
 | :--- | :--- | :--- |
 | `FortnightNumber` | `src/app/core/models/finance.model.ts` | Tipo literal `1 \| 2`. |
-| `Expense` | `src/app/core/models/finance.model.ts` | Modelo de despesa ou renda extra (`tipo?: 'despesa' \| 'renda_extra'`, valor, quinzena, status_pagamento, categoria, parcelas). |
+| `Expense` | `src/app/core/models/finance.model.ts` | Modelo de despesa ou renda extra (`tipo?: 'despesa' \| 'renda_extra'`, valor, quinzena, status_pagamento, categoria, recorrente, recorrente_id, parcelas). |
+| `RecurringExpense` | `src/app/core/models/finance.model.ts` | Modelo mestre de despesa fixa/recorrente mensal (id, descricao, valor, quinzena, categoria, ativo). |
 | `MonthlyCycle` | `src/app/core/models/finance.model.ts` | Modelo do ciclo mensal com rendas Q1/Q2, totais e saldos consolidados. |
 | `FortnightSummary` | `src/app/core/models/finance.model.ts` | Estrutura de resumo da quinzena (renda, totalGastos, saldo, isDeficit). |
 | `MonthBalanceSummary` | `src/app/core/models/finance.model.ts` | Consolidado global do mês com suporte à flag `q1CobreQ2` e `temDeficitGlobal`. |
@@ -46,7 +47,7 @@
 | :--- | :--- | :--- |
 | `AuthService` | `src/app/core/services/auth.service.ts` | Gerenciamento de login (Google, E-mail/Senha), cadastro, logout e signal do usuário atual. |
 | `MonthlyCycleService` | `src/app/core/services/monthly-cycle.service.ts` | CRUD e stream em tempo real para `users/{userId}/ciclos_mensais/{mesAno}`. |
-| `ExpenseService` | `src/app/core/services/expense.service.ts` | CRUD de despesas, alternância de pagamento, atualização de comprovante e geração em lote de parcelas (`createInstallmentExpenses`). |
+| `ExpenseService` | `src/app/core/services/expense.service.ts` | CRUD de despesas, alternância de pagamento, atualização de comprovante, gestão e sincronização automática de despesas recorrentes (`syncRecurringExpensesForMonth`) e geração em lote de parcelas (`createInstallments`). |
 | `TaxService` | `src/app/core/services/tax.service.ts` | CRUD e sincronização em tempo real de tributos em `users/{userId}/tributos_e_parcelas`. |
 | `TravelService` | `src/app/core/services/travel.service.ts` | CRUD e stream em tempo real para controle de gastos de viagem e rateio (`users/{userId}/viagens`). |
 | `InstallmentService` | `src/app/core/services/installment.service.ts` | Agrupamento de parcelamentos ativos nos ciclos do usuário e quitação/cancelamento em lote via `writeBatch`. |

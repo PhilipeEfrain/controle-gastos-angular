@@ -75,12 +75,14 @@ export class ExpenseFormModalComponent {
     quinzena: [1, [Validators.required]],
     categoria: ['Alimentação', [Validators.required]],
     data_vencimento: [''],
+    recorrente: [false],
     isParcelado: [false],
     total_parcelas: [2, [Validators.min(2), Validators.max(72)]]
   });
 
   // Preview de parcelas computado
   readonly isParcelado = computed(() => !!this.form.get('isParcelado')?.value);
+  readonly isRecorrente = computed(() => !!this.form.get('recorrente')?.value);
 
   get currentCategories(): string[] {
     return this.form.get('tipo')?.value === 'renda_extra'
@@ -101,6 +103,7 @@ export class ExpenseFormModalComponent {
             quinzena: toEdit.quinzena,
             categoria: toEdit.categoria || (itemTipo === 'renda_extra' ? 'Freelance / Serviços' : 'Alimentação'),
             data_vencimento: toEdit.data_vencimento || '',
+            recorrente: !!toEdit.recorrente,
             isParcelado: false,
             total_parcelas: 2
           });
@@ -112,6 +115,7 @@ export class ExpenseFormModalComponent {
             quinzena: this.quinzena(),
             categoria: 'Alimentação',
             data_vencimento: '',
+            recorrente: false,
             isParcelado: false,
             total_parcelas: 2
           });
@@ -126,8 +130,21 @@ export class ExpenseFormModalComponent {
     this.form.patchValue({
       tipo,
       categoria: tipo === 'renda_extra' ? 'Freelance / Serviços' : 'Alimentação',
+      recorrente: false,
       isParcelado: false
     });
+  }
+
+  onRecorrenteChange(): void {
+    if (this.form.get('recorrente')?.value) {
+      this.form.patchValue({ isParcelado: false });
+    }
+  }
+
+  onParceladoChange(): void {
+    if (this.form.get('isParcelado')?.value) {
+      this.form.patchValue({ recorrente: false });
+    }
   }
 
   get installmentPreview(): { count: number; installmentValue: string; totalValue: string; months: string[] } | null {
@@ -184,7 +201,8 @@ export class ExpenseFormModalComponent {
           descricao: formVal.descricao.trim(),
           valor: parseFloat(formVal.valor),
           quinzena: Number(formVal.quinzena) as FortnightNumber,
-          categoria: formVal.categoria
+          categoria: formVal.categoria,
+          recorrente: !!formVal.recorrente
         };
         if (formVal.data_vencimento?.trim()) {
           updatePayload.data_vencimento = formVal.data_vencimento.trim();
@@ -213,14 +231,31 @@ export class ExpenseFormModalComponent {
           formVal.total_parcelas
         );
       } else {
-        // Criação de despesa simples ou renda extra
+        // Criação de despesa simples, recorrente ou renda extra
+        const isRecorrente = formVal.tipo !== 'renda_extra' && !!formVal.recorrente;
+        let recorrenteId: string | undefined;
+
+        if (isRecorrente) {
+          // Registra na coleção de recorrências mestre
+          recorrenteId = await this.expenseService.addRecurringExpense(user.uid, {
+            descricao: formVal.descricao.trim(),
+            valor: parseFloat(formVal.valor),
+            quinzena: Number(formVal.quinzena) as FortnightNumber,
+            categoria: formVal.categoria,
+            data_vencimento: formVal.data_vencimento?.trim() || '',
+            ativo: true
+          });
+        }
+
         const newExpense: Expense = {
           tipo: formVal.tipo || 'despesa',
           descricao: formVal.descricao.trim(),
           valor: parseFloat(formVal.valor),
           quinzena: Number(formVal.quinzena) as FortnightNumber,
           categoria: formVal.categoria,
-          status_pagamento: false
+          status_pagamento: false,
+          recorrente: isRecorrente,
+          recorrente_id: recorrenteId
         };
         if (formVal.data_vencimento?.trim()) {
           newExpense.data_vencimento = formVal.data_vencimento.trim();

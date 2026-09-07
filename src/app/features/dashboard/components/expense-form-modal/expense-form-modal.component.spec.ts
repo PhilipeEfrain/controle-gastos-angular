@@ -22,6 +22,7 @@ describe('ExpenseFormModalComponent', () => {
   beforeEach(async () => {
     mockExpenseService = {
       addExpense: vi.fn().mockResolvedValue('exp-id-1'),
+      addRecurringExpense: vi.fn().mockResolvedValue('rec-id-1'),
       updateExpense: vi.fn().mockResolvedValue(undefined),
       createInstallments: vi.fn().mockResolvedValue('group-id-1')
     };
@@ -155,6 +156,41 @@ describe('ExpenseFormModalComponent', () => {
         valor: 850,
         quinzena: 2,
         categoria: 'Freelance / Serviços'
+      })
+    );
+  });
+
+  it('deve submeter criação de despesa recorrente e registrar na coleção mestre', async () => {
+    component.form.patchValue({
+      descricao: 'Plano de Internet',
+      valor: 120,
+      quinzena: 1,
+      categoria: 'Serviços & Assinaturas',
+      recorrente: true
+    });
+
+    await component.onSubmit();
+
+    expect(mockExpenseService.addRecurringExpense).toHaveBeenCalledWith(
+      'user-123',
+      expect.objectContaining({
+        descricao: 'Plano de Internet',
+        valor: 120,
+        quinzena: 1,
+        categoria: 'Serviços & Assinaturas',
+        ativo: true
+      })
+    );
+
+    expect(mockExpenseService.addExpense).toHaveBeenCalledWith(
+      'user-123',
+      '2025-03',
+      expect.objectContaining({
+        descricao: 'Plano de Internet',
+        valor: 120,
+        quinzena: 1,
+        recorrente: true,
+        recorrente_id: 'rec-id-1'
       })
     );
   });

@@ -3,6 +3,7 @@ import {
   collection,
   doc,
   addDoc,
+  getDocs,
   updateDoc,
   deleteDoc,
   onSnapshot,
@@ -10,7 +11,7 @@ import {
 } from 'firebase/firestore';
 import { Observable } from 'rxjs';
 import { FirebaseService } from './firebase.service';
-import { Expense } from '../models/finance.model';
+import { Expense, RecurringExpense } from '../models/finance.model';
 import { roundBRL, addMonthsToYearMonth } from '../utils/calculations';
 
 @Injectable({
@@ -36,6 +37,29 @@ export class ExpenseService {
             d => ({ id: d.id, ...d.data() } as Expense)
           );
           subscriber.next(expenses);
+        },
+        error => subscriber.error(error)
+      );
+      return { unsubscribe };
+    });
+  }
+
+  /**
+   * Retorna um Observable com as despesas recorrentes mestre em tempo real
+   */
+  getRecurringExpensesStream(userId: string): Observable<RecurringExpense[]> {
+    return new Observable(subscriber => {
+      const recurringColRef = collection(
+        this.firestore,
+        `users/${userId}/despesas_recorrentes`
+      );
+      const unsubscribe = onSnapshot(
+        recurringColRef,
+        snapshot => {
+          const recurring = snapshot.docs.map(
+            d => ({ id: d.id, ...d.data() } as RecurringExpense)
+          );
+          subscriber.next(recurring);
         },
         error => subscriber.error(error)
       );
@@ -73,6 +97,86 @@ export class ExpenseService {
 
     const docRef = await addDoc(expensesColRef, expenseData);
     return docRef.id;
+  }
+
+  /**
+   * Cadastra uma despesa recorrente mestre
+   */
+  async addRecurringExpense(userId: string, recurring: RecurringExpense): Promise<string> {
+    const recurringColRef = collection(
+      this.firestore,
+      `users/${userId}/despesas_recorrentes`
+    );
+
+    const recurringData = this.sanitizeData({
+      ...recurring,
+      valor: roundBRL(recurring.valor),
+      ativo: recurring.ativo ?? true,
+      createdAt: recurring.createdAt || new Date().toISOString()
+    });
+
+    const docRef = await addDoc(recurringColRef, recurringData);
+    return docRef.id;
+  }
+
+  /**
+   * Busca despesas recorrentes ativas pontualmente
+   */
+  async getRecurringExpenses(userId: string): Promise<RecurringExpense[]> {
+    const recurringColRef = collection(
+      this.firestore,
+      `users/${userId}/despesas_recorrentes`
+    );
+    const snapshot = await getDocs(recurringColRef);
+    return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as RecurringExpense));
+  }
+
+  /**
+   * Sincroniza despesas recorrentes ativas para um mês específico se ainda não existirem
+   */
+  async syncRecurringExpensesForMonth(
+    userId: string,
+    mesAno: string,
+    existingExpenses: Expense[]
+  ): Promise<void> {
+    const recurringList = await this.getRecurringExpenses(userId);
+    const activeRecurring = recurringList.filter(r => r.ativo !== false);
+
+    if (activeRecurring.length === 0) {
+      return;
+    }
+
+    const missingRecurring = activeRecurring.filter(rec => {
+      return !existingExpenses.some(exp =>
+        (exp.recorrente_id && exp.recorrente_id === rec.id) ||
+        (exp.recorrente && exp.descricao.trim().toLowerCase() === rec.descricao.trim().toLowerCase() && exp.quinzena === rec.quinzena)
+      );
+    });
+
+    if (missingRecurring.length === 0) {
+      return;
+    }
+
+    const batch = writeBatch(this.firestore);
+    for (const rec of missingRecurring) {
+      const expenseRef = doc(
+        collection(this.firestore, `users/${userId}/ciclos_mensais/${mesAno}/despesas`)
+      );
+      const newExpense: Expense = this.sanitizeData({
+        descricao: rec.descricao.trim(),
+        valor: roundBRL(rec.valor),
+        quinzena: rec.quinzena,
+        categoria: rec.categoria,
+        recorrente: true,
+        recorrente_id: rec.id,
+        status_pagamento: false,
+        data_vencimento: rec.data_vencimento || '',
+        createdAt: new Date().toISOString()
+      });
+      batch.set(expenseRef, newExpense);
+    }
+
+    await batch.commit();
   }
 
   /**
