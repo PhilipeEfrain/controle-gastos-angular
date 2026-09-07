@@ -1,0 +1,273 @@
+<div class="settings-wrapper">
+  <div class="app-container">
+    <!-- Header da Página -->
+    <header class="settings-header">
+      <div class="header-left">
+        <h1 class="page-title">Configurações & Perfil</h1>
+        <p class="page-subtitle">Gerencie suas preferências de conta, tema visual e segurança</p>
+      </div>
+    </header>
+
+    <!-- Layout com Abas e Conteúdo -->
+    <div class="settings-layout">
+      <!-- Navegação Lateral por Abas -->
+      <aside class="settings-sidebar">
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="activeTab() === 'profile'"
+          (click)="setTab('profile')"
+          id="tab-profile"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+          </svg>
+          <span>Perfil da Conta</span>
+        </button>
+
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="activeTab() === 'appearance'"
+          (click)="setTab('appearance')"
+          id="tab-appearance"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
+          </svg>
+          <span>Aparência & Tema</span>
+        </button>
+
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="activeTab() === 'security'"
+          (click)="setTab('security')"
+          id="tab-security"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+          </svg>
+          <span>Segurança & Sessão</span>
+        </button>
+      </aside>
+
+      <!-- Área de Conteúdo da Aba Ativa -->
+      <main class="settings-content">
+        <!-- ABA 1: PERFIL DA CONTA -->
+        @if (activeTab() === 'profile') {
+          <app-card>
+            <div class="card-inner">
+              <div class="section-header">
+                <h2 class="section-title">Informações Pessoais</h2>
+                <p class="section-desc">Atualize seu nome de exibição e foto vinculada à sua conta</p>
+              </div>
+
+              <!-- Avatar Preview -->
+              <div class="avatar-section">
+                <div class="avatar-container">
+                  @if (authStore.currentUser()?.photoURL; as photo) {
+                    <img [src]="photo" [alt]="authStore.userDisplayName()" class="avatar-large" />
+                  } @else {
+                    <div class="avatar-placeholder">
+                      {{ userInitials() }}
+                    </div>
+                  }
+                </div>
+                <div class="avatar-info">
+                  <span class="user-display-title">{{ authStore.userDisplayName() }}</span>
+                  <span class="user-email-subtitle">{{ authStore.currentUser()?.email }}</span>
+                  <span class="uid-tag">ID: {{ authStore.currentUser()?.uid }}</span>
+                </div>
+              </div>
+
+              <!-- Formulário de Edição -->
+              <form [formGroup]="profileForm" (ngSubmit)="onSaveProfile()" class="settings-form">
+                <div class="form-group">
+                  <label for="displayName" class="form-label">Nome de Exibição</label>
+                  <input
+                    id="displayName"
+                    type="text"
+                    formControlName="displayName"
+                    class="form-input"
+                    placeholder="Seu nome completo"
+                    [class.is-invalid]="profileForm.get('displayName')?.invalid && profileForm.get('displayName')?.touched"
+                  />
+                  @if (profileForm.get('displayName')?.invalid && profileForm.get('displayName')?.touched) {
+                    <span class="field-error">Nome de exibição é obrigatório (mínimo 2 caracteres).</span>
+                  }
+                </div>
+
+                <div class="form-group">
+                  <label for="photoURL" class="form-label">URL da Foto de Perfil (Opcional)</label>
+                  <input
+                    id="photoURL"
+                    type="url"
+                    formControlName="photoURL"
+                    class="form-input"
+                    placeholder="https://exemplo.com/minha-foto.jpg"
+                  />
+                  <span class="field-hint">Insira o link de uma imagem pública para personalizar seu avatar.</span>
+                </div>
+
+                <div class="form-actions">
+                  <button
+                    type="submit"
+                    class="btn-primary"
+                    [disabled]="isSavingProfile() || profileForm.invalid"
+                    id="btn-save-profile"
+                  >
+                    @if (isSavingProfile()) {
+                      <div class="spinner"></div>
+                      <span>Salvando...</span>
+                    } @else {
+                      <svg viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                      </svg>
+                      <span>Salvar Alterações</span>
+                    }
+                  </button>
+                </div>
+              </form>
+            </div>
+          </app-card>
+        }
+
+        <!-- ABA 2: APARÊNCIA & TEMA -->
+        @if (activeTab() === 'appearance') {
+          <app-card>
+            <div class="card-inner">
+              <div class="section-header">
+                <h2 class="section-title">Tema Visual</h2>
+                <p class="section-desc">Personalize a aparência do aplicativo para o modo escuro ou claro</p>
+              </div>
+
+              <!-- Seletor de Tema com Cards Interativos -->
+              <div class="theme-selection-grid">
+                <!-- Tema Escuro -->
+                <button
+                  type="button"
+                  class="theme-card"
+                  [class.active]="themeService.currentTheme() === 'dark'"
+                  (click)="onThemeSelect('dark')"
+                  id="theme-dark-btn"
+                >
+                  <div class="theme-preview dark-preview">
+                    <div class="preview-header"></div>
+                    <div class="preview-body">
+                      <div class="preview-line"></div>
+                      <div class="preview-box"></div>
+                    </div>
+                  </div>
+                  <div class="theme-info">
+                    <div class="theme-title-row">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
+                      </svg>
+                      <span class="theme-name">Modo Escuro (Padrão)</span>
+                    </div>
+                    <p class="theme-desc">Interface moderna em tons escuros com alto conforto visual.</p>
+                  </div>
+                  @if (themeService.currentTheme() === 'dark') {
+                    <span class="active-badge">Ativo</span>
+                  }
+                </button>
+
+                <!-- Tema Claro -->
+                <button
+                  type="button"
+                  class="theme-card"
+                  [class.active]="themeService.currentTheme() === 'light'"
+                  (click)="onThemeSelect('light')"
+                  id="theme-light-btn"
+                >
+                  <div class="theme-preview light-preview">
+                    <div class="preview-header"></div>
+                    <div class="preview-body">
+                      <div class="preview-line"></div>
+                      <div class="preview-box"></div>
+                    </div>
+                  </div>
+                  <div class="theme-info">
+                    <div class="theme-title-row">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
+                      </svg>
+                      <span class="theme-name">Modo Claro</span>
+                    </div>
+                    <p class="theme-desc">Interface limpa e iluminada com alta legibilidade em ambientes claros.</p>
+                  </div>
+                  @if (themeService.currentTheme() === 'light') {
+                    <span class="active-badge">Ativo</span>
+                  }
+                </button>
+              </div>
+
+              <!-- Preferências Regionais -->
+              <div class="regional-section">
+                <h3 class="subsection-title">Padrão de Moeda</h3>
+                <div class="currency-display-box">
+                  <div class="currency-badge">BRL (R$)</div>
+                  <span class="currency-desc">Real Brasileiro • Formato monetário oficial</span>
+                </div>
+              </div>
+            </div>
+          </app-card>
+        }
+
+        <!-- ABA 3: SEGURANÇA & SESSÃO -->
+        @if (activeTab() === 'security') {
+          <app-card>
+            <div class="card-inner">
+              <div class="section-header">
+                <h2 class="section-title">Segurança da Conta</h2>
+                <p class="section-desc">Gerencie suas credenciais de acesso e encerramento de sessão</p>
+              </div>
+
+              <!-- Redefinição de Senha -->
+              <div class="security-action-box">
+                <div class="action-info">
+                  <span class="action-title">Redefinição de Senha</span>
+                  <span class="action-desc">Enviaremos um link de redefinição para <strong>{{ authStore.currentUser()?.email }}</strong>.</span>
+                </div>
+                <button
+                  type="button"
+                  class="btn-secondary"
+                  (click)="onSendPasswordReset()"
+                  [disabled]="isSendingPasswordReset()"
+                  id="btn-reset-password"
+                >
+                  @if (isSendingPasswordReset()) {
+                    <div class="spinner"></div>
+                    <span>Enviando...</span>
+                  } @else {
+                    <span>Enviar E-mail de Redefinição</span>
+                  }
+                </button>
+              </div>
+
+              <!-- Encerramento de Sessão -->
+              <div class="security-action-box danger-box">
+                <div class="action-info">
+                  <span class="action-title text-danger">Encerrar Sessão</span>
+                  <span class="action-desc">Desconectar sua conta com segurança deste dispositivo.</span>
+                </div>
+                <button
+                  type="button"
+                  class="btn-danger"
+                  (click)="onLogout()"
+                  id="btn-settings-logout"
+                >
+                  <svg viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd" />
+                  </svg>
+                  <span>Sair da Conta</span>
+                </button>
+              </div>
+            </div>
+          </app-card>
+        }
+      </main>
+    </div>
+  </div>
+</div>

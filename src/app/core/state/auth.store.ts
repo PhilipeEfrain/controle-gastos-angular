@@ -92,6 +92,17 @@ export class AuthStore {
     }
   }
 
+  updateCurrentUser(data: Partial<UserProfile>): void {
+    const current = this._currentUser();
+    if (current) {
+      this._currentUser.set({
+        ...current,
+        ...data,
+        preferences: data.preferences ? { ...current.preferences, ...data.preferences } as any : current.preferences
+      });
+    }
+  }
+
   setLoading(loading: boolean): void {
     this._isLoading.set(loading);
   }

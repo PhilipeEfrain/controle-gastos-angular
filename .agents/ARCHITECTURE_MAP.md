@@ -51,6 +51,7 @@
 | `TravelService` | `src/app/core/services/travel.service.ts` | CRUD e stream em tempo real para controle de gastos de viagem e rateio (`users/{userId}/viagens`). |
 | `InstallmentService` | `src/app/core/services/installment.service.ts` | Agrupamento de parcelamentos ativos nos ciclos do usuário e quitação/cancelamento em lote via `writeBatch`. |
 | `ExportService` | `src/app/core/services/export.service.ts` | Exportação de balanço e relatórios em CSV (UTF-8 com BOM para Excel) e PDF estruturado A4 client-side para impressão. |
+| `ThemeService` | `src/app/core/services/theme.service.ts` | Gerenciamento reativo de tema (Dark / Light) com persistência em localStorage e sincronização com DOM. |
 | `NotificationService` | `src/app/core/services/notification.service.ts` | Notificações reativas do tipo Toast com Signals (`success`, `error`, `warning`, `info`). |
 
 ---
@@ -115,6 +116,11 @@
 | Componente | Seletor | Descrição |
 | :--- | :--- | :--- |
 | `AuthComponent` | `app-auth` | Tela com abas de Login e Cadastro, suporte a Google Sign-In e recuperação de senha. |
+
+### H. Feature: Configurações & Perfil (`src/app/features/settings/`)
+| Componente | Seletor | Descrição |
+| :--- | :--- | :--- |
+| `SettingsComponent` | `app-settings` | Gestão de perfil (nome de exibição, avatar), alternância de tema Dark/Light e redefinição de senha. |
 
 ---
 
