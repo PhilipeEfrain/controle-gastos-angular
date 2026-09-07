@@ -5,6 +5,7 @@ import { TaxesComponent } from './taxes.component';
 import { FinanceStore } from '../../core/state/finance.store';
 import { AuthStore } from '../../core/state/auth.store';
 import { TaxService } from '../../core/services/tax.service';
+import { PlanLimitsService } from '../../core/services/plan-limits.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { UserProfile } from '../../core/models/user.model';
 import { AnnualTax } from '../../core/models/finance.model';
@@ -76,12 +77,23 @@ describe('TaxesComponent', () => {
       info: vi.fn()
     };
 
+    const mockPlanLimitsService = {
+      checkTaxLimit: vi.fn().mockReturnValue({
+        allowed: true,
+        currentCount: 2,
+        maxLimit: null,
+        resourceName: 'Tributos Anuais',
+        limitMessage: ''
+      })
+    };
+
     await TestBed.configureTestingModule({
       imports: [TaxesComponent],
       providers: [
         { provide: FinanceStore, useValue: mockFinanceStore },
         { provide: AuthStore, useValue: mockAuthStore },
         { provide: TaxService, useValue: mockTaxService },
+        { provide: PlanLimitsService, useValue: mockPlanLimitsService },
         { provide: NotificationService, useValue: mockNotificationService },
         { provide: Router, useValue: mockRouter }
       ]
@@ -126,5 +138,22 @@ describe('TaxesComponent', () => {
   it('deve navegar para /dashboard ao acionar goToDashboard', () => {
     component.goToDashboard();
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/dashboard']);
+  });
+
+  it('Cenário BDD (Feature Gate): DEVE exibir modal de limite ao tentar cadastrar tributo além do limite Free', () => {
+    const planLimitsService = TestBed.inject(PlanLimitsService);
+    vi.spyOn(planLimitsService, 'checkTaxLimit').mockReturnValue({
+      allowed: false,
+      currentCount: 1,
+      maxLimit: 1,
+      resourceName: 'Tributos Anuais',
+      limitMessage: 'Você atingiu o limite de 1 tributo anual.'
+    });
+
+    component.openNewTaxModal();
+
+    expect(component.isLimitModalOpen()).toBe(true);
+    expect(component.isTaxModalOpen()).toBe(false);
+    expect(component.limitModalMessage()).toContain('limite de 1 tributo anual');
   });
 });

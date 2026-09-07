@@ -235,3 +235,12 @@
     </div>
   </div>
 }
+
+@if (limitModalData(); as data) {
+  <app-limit-reached-modal
+    [title]="data.title"
+    [message]="data.message"
+    [resourceName]="data.resourceName"
+    (close)="limitModalData.set(null)"
+  />
+}

@@ -1,7 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
+import { of } from 'rxjs';
 import { ExpenseFormModalComponent } from './expense-form-modal.component';
 import { ExpenseService } from '../../../../core/services/expense.service';
+import { InstallmentService } from '../../../../core/services/installment.service';
+import { PlanLimitsService } from '../../../../core/services/plan-limits.service';
 import { AuthStore } from '../../../../core/state/auth.store';
 import { UserProfile } from '../../../../core/models/user.model';
 
@@ -10,13 +13,16 @@ describe('ExpenseFormModalComponent', () => {
   let fixture: ComponentFixture<ExpenseFormModalComponent>;
 
   let mockExpenseService: any;
+  let mockInstallmentService: any;
+  let mockPlanLimitsService: any;
   let mockAuthStore: any;
 
   const mockUser: UserProfile = {
     uid: 'user-123',
     email: 'user@finance.com',
     displayName: 'Usuário Teste',
-    photoURL: null
+    photoURL: null,
+    plan: 'free'
   };
 
   beforeEach(async () => {
@@ -24,17 +30,43 @@ describe('ExpenseFormModalComponent', () => {
       addExpense: vi.fn().mockResolvedValue('exp-id-1'),
       addRecurringExpense: vi.fn().mockResolvedValue('rec-id-1'),
       updateExpense: vi.fn().mockResolvedValue(undefined),
-      createInstallments: vi.fn().mockResolvedValue('group-id-1')
+      createInstallments: vi.fn().mockResolvedValue('group-id-1'),
+      getRecurringExpensesStream: vi.fn().mockReturnValue(of([]))
+    };
+
+    mockInstallmentService = {
+      getInstallmentsOverview: vi.fn().mockReturnValue(of([]))
+    };
+
+    mockPlanLimitsService = {
+      checkRecurringExpenseLimit: vi.fn().mockReturnValue({
+        allowed: true,
+        currentCount: 0,
+        maxLimit: 3,
+        resourceName: 'Contas Fixas Recorrentes',
+        limitMessage: ''
+      }),
+      checkInstallmentLimit: vi.fn().mockReturnValue({
+        allowed: true,
+        currentCount: 0,
+        maxLimit: 3,
+        resourceName: 'Compras Parceladas',
+        limitMessage: ''
+      })
     };
 
     mockAuthStore = {
-      currentUser: signal<UserProfile | null>(mockUser)
+      currentUser: signal<UserProfile | null>(mockUser),
+      currentPlan: signal('free'),
+      isProOrDuo: signal(false)
     };
 
     await TestBed.configureTestingModule({
       imports: [ExpenseFormModalComponent],
       providers: [
         { provide: ExpenseService, useValue: mockExpenseService },
+        { provide: InstallmentService, useValue: mockInstallmentService },
+        { provide: PlanLimitsService, useValue: mockPlanLimitsService },
         { provide: AuthStore, useValue: mockAuthStore }
       ]
     }).compileComponents();
@@ -193,5 +225,58 @@ describe('ExpenseFormModalComponent', () => {
         recorrente_id: 'rec-id-1'
       })
     );
+  });
+
+  it('Cenário BDD (Feature Gate): DEVE exibir modal de limite ao tentar cadastrar parcelamento além do limite Free', async () => {
+    mockPlanLimitsService.checkInstallmentLimit.mockReturnValue({
+      allowed: false,
+      currentCount: 3,
+      maxLimit: 3,
+      resourceName: 'Compras Parceladas',
+      limitMessage: 'Você atingiu o limite de 3 compras parceladas ativas.'
+    });
+
+    component.form.patchValue({
+      descricao: 'Geladeira Nova',
+      valor: 350,
+      quinzena: 1,
+      categoria: 'Moradia',
+      isParcelado: true,
+      total_parcelas: 10
+    });
+
+    await component.onSubmit();
+
+    expect(component.limitModalData()).toEqual(expect.objectContaining({
+      title: 'Limite de Parcelamentos Atingido',
+      resourceName: 'Compras Parceladas'
+    }));
+    expect(mockExpenseService.createInstallments).not.toHaveBeenCalled();
+  });
+
+  it('Cenário BDD (Feature Gate): DEVE exibir modal de limite ao tentar cadastrar conta fixa além do limite Free', async () => {
+    mockPlanLimitsService.checkRecurringExpenseLimit.mockReturnValue({
+      allowed: false,
+      currentCount: 3,
+      maxLimit: 3,
+      resourceName: 'Contas Fixas Recorrentes',
+      limitMessage: 'Você atingiu o limite de 3 contas fixas recorrentes.'
+    });
+
+    component.form.patchValue({
+      descricao: 'Streaming de Música',
+      valor: 35,
+      quinzena: 1,
+      categoria: 'Serviços & Assinaturas',
+      recorrente: true
+    });
+
+    await component.onSubmit();
+
+    expect(component.limitModalData()).toEqual(expect.objectContaining({
+      title: 'Limite de Contas Fixas Atingido',
+      resourceName: 'Contas Fixas Recorrentes'
+    }));
+    expect(mockExpenseService.addRecurringExpense).not.toHaveBeenCalled();
   });
 });

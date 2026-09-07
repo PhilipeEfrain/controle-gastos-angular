@@ -60,6 +60,7 @@
 | `LoggerService` | `src/app/core/services/logger.service.ts` | Logging seguro com supressão de stacktraces e dados de exceção em ambiente de produção (CWE-532). |
 | `AdminService` | `src/app/core/services/admin.service.ts` | Gestão administrativa de usuários, papéis RBAC, planos SaaS e cálculo de KPIs de MRR/conversão. |
 | `AsaasService` | `src/app/core/services/asaas.service.ts` | Integração com Gateway Asaas API v3: tabela oficial de preços, criação de clientes, assinaturas recorrentes (PIX e Cartão) e processamento seguro de Webhooks. |
+| `PlanLimitsService` | `src/app/core/services/plan-limits.service.ts` | Validação de regras e limites da matriz de planos SaaS (Free: máx 3 recorrentes, 3 parcelamentos, 1 tributo, 1 viagem, 2 meses histórico; Pro/Duo: ilimitado, 13 meses e PDF). |
 
 ---
 
@@ -86,6 +87,7 @@
 | `ConfirmationModalComponent` | `app-confirmation-modal` | Modal de confirmação reutilizável para exclusão ou ações irreversíveis. |
 | `BrandLogoComponent` | `app-brand-logo` | Componente de identidade visual que renderiza dinamicamente o símbolo oficial Quinzena (vetor Dark no tema claro e vetor White no tema escuro) com suporte a tamanhos e slogan. |
 | `SubscriptionModalComponent` | `app-subscription-modal` | Modal responsivo de checkout e assinatura com alternância Mensal/Anual (25% off), seleção de planos PRO/DUO, pagamentos PIX/Cartão e ativação imediata. |
+| `LimitReachedModalComponent` | `app-limit-reached-modal` | Modal de bloqueio amigável de limites do plano Free com destaque de benefícios PRO e conversão direta para checkout. |
 
 ### B. Core & Navegação (`src/app/core/components/`)
 | Componente | Seletor | Descrição |

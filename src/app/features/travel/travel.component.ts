@@ -30,6 +30,8 @@ import { formatBRL } from '../../core/utils/formatters';
 import { roundBRL } from '../../core/utils/calculations';
 import { AppCardComponent } from '../../shared/components/app-card/app-card.component';
 import { ConfirmationModalComponent } from '../../shared/components/confirmation-modal/confirmation-modal.component';
+import { LimitReachedModalComponent } from '../../shared/components/limit-reached-modal/limit-reached-modal.component';
+import { PlanLimitsService } from '../../core/services/plan-limits.service';
 
 @Component({
   selector: 'app-travel',
@@ -38,7 +40,8 @@ import { ConfirmationModalComponent } from '../../shared/components/confirmation
     CommonModule,
     ReactiveFormsModule,
     AppCardComponent,
-    ConfirmationModalComponent
+    ConfirmationModalComponent,
+    LimitReachedModalComponent
   ],
   templateUrl: './travel.component.html',
   styleUrls: ['./travel.component.scss'],
@@ -48,6 +51,7 @@ export class TravelComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private travelService = inject(TravelService);
   private expenseService = inject(ExpenseService);
+  private planLimitsService = inject(PlanLimitsService);
   private notificationService = inject(NotificationService);
   readonly authStore = inject(AuthStore);
 
@@ -57,6 +61,8 @@ export class TravelComponent implements OnInit, OnDestroy {
 
   // Modais de Controle
   readonly isTripModalOpen = signal<boolean>(false);
+  readonly isLimitModalOpen = signal<boolean>(false);
+  readonly limitModalMessage = signal<string>('');
   readonly tripToEdit = signal<TravelTrip | null>(null);
 
   readonly isExpenseModalOpen = signal<boolean>(false);
@@ -160,6 +166,13 @@ export class TravelComponent implements OnInit, OnDestroy {
 
   // --- Modal Viagem (Criar / Editar) ---
   openCreateTripModal(): void {
+    const limitCheck = this.planLimitsService.checkTripLimit(this.trips().length);
+    if (!limitCheck.allowed) {
+      this.limitModalMessage.set(limitCheck.limitMessage);
+      this.isLimitModalOpen.set(true);
+      return;
+    }
+
     this.tripToEdit.set(null);
     this.tripForm.reset({
       titulo: '',

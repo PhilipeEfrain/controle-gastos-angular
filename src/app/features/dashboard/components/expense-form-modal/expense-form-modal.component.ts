@@ -17,14 +17,18 @@ import {
 } from '@angular/forms';
 import { Expense, FortnightNumber } from '../../../../core/models/finance.model';
 import { ExpenseService } from '../../../../core/services/expense.service';
+import { InstallmentService } from '../../../../core/services/installment.service';
+import { PlanLimitsService } from '../../../../core/services/plan-limits.service';
 import { AuthStore } from '../../../../core/state/auth.store';
 import { formatBRL } from '../../../../core/utils/formatters';
 import { addMonthsToYearMonth, roundBRL } from '../../../../core/utils/calculations';
+import { LimitReachedModalComponent } from '../../../../shared/components/limit-reached-modal/limit-reached-modal.component';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-expense-form-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, LimitReachedModalComponent],
   templateUrl: './expense-form-modal.component.html',
   styleUrls: ['./expense-form-modal.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -32,6 +36,8 @@ import { addMonthsToYearMonth, roundBRL } from '../../../../core/utils/calculati
 export class ExpenseFormModalComponent {
   private fb = inject(FormBuilder);
   private expenseService = inject(ExpenseService);
+  private installmentService = inject(InstallmentService);
+  private planLimitsService = inject(PlanLimitsService);
   private authStore = inject(AuthStore);
 
   readonly isOpen = input<boolean>(false);
@@ -44,6 +50,7 @@ export class ExpenseFormModalComponent {
 
   readonly isLoading = signal<boolean>(false);
   readonly errorMessage = signal<string | null>(null);
+  readonly limitModalData = signal<{ title: string; message: string; resourceName: string } | null>(null);
 
   readonly expenseCategories = [
     'Alimentação',
@@ -210,6 +217,24 @@ export class ExpenseFormModalComponent {
 
         await this.expenseService.updateExpense(user.uid, this.mesAno(), toEdit.id, updatePayload);
       } else if (formVal.tipo !== 'renda_extra' && formVal.isParcelado && formVal.total_parcelas > 1) {
+        // Validação de Limite de Compras Parceladas no Plano Free
+        try {
+          const overview = await firstValueFrom(this.installmentService.getInstallmentsOverview(user.uid));
+          const activePurchases = overview.filter(g => g.saldo_restante > 0).length;
+          const limitCheck = this.planLimitsService.checkInstallmentLimit(activePurchases);
+          if (!limitCheck.allowed) {
+            this.isLoading.set(false);
+            this.limitModalData.set({
+              title: 'Limite de Parcelamentos Atingido',
+              message: limitCheck.limitMessage,
+              resourceName: 'Compras Parceladas'
+            });
+            return;
+          }
+        } catch {
+          // Em caso de falha de leitura pontual, prossegue
+        }
+
         // Criação de compra parcelada em lote via writeBatch (o valor cadastrado é o valor de cada parcela)
         const installmentAmount = roundBRL(parseFloat(formVal.valor));
         const baseExpense: Expense = {
@@ -236,6 +261,24 @@ export class ExpenseFormModalComponent {
         let recorrenteId: string | undefined;
 
         if (isRecorrente) {
+          // Validação de Limite de Contas Fixas Recorrentes no Plano Free
+          try {
+            const recurringList = await firstValueFrom(this.expenseService.getRecurringExpensesStream(user.uid));
+            const activeRecurring = recurringList.filter(r => r.ativo !== false).length;
+            const limitCheck = this.planLimitsService.checkRecurringExpenseLimit(activeRecurring);
+            if (!limitCheck.allowed) {
+              this.isLoading.set(false);
+              this.limitModalData.set({
+                title: 'Limite de Contas Fixas Atingido',
+                message: limitCheck.limitMessage,
+                resourceName: 'Contas Fixas Recorrentes'
+              });
+              return;
+            }
+          } catch {
+            // Prossegue se stream der timeout
+          }
+
           // Registra na coleção de recorrências mestre
           recorrenteId = await this.expenseService.addRecurringExpense(user.uid, {
             descricao: formVal.descricao.trim(),

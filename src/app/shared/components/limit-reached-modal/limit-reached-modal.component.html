@@ -1,0 +1,73 @@
+<div class="modal-backdrop" (click)="onClose()" role="dialog" aria-modal="true" aria-labelledby="limit-title">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <!-- Header com Glow e Ícone PRO -->
+    <div class="modal-header">
+      <div class="icon-wrapper">
+        <span class="pro-crown">👑</span>
+      </div>
+      <button type="button" class="btn-close" (click)="onClose()" aria-label="Fechar modal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="close-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Conteúdo Principal -->
+    <div class="modal-body">
+      <div class="badge-tag">Plano Gratuito</div>
+      <h2 id="limit-title" class="limit-title">{{ title() }}</h2>
+      <p class="limit-message">{{ message() }}</p>
+
+      <!-- Grid de Recursos Desbloqueados no PRO -->
+      <div class="benefits-card">
+        <div class="benefits-title">O que você desbloqueia no Plano PRO:</div>
+        <ul class="benefits-list">
+          <li class="benefit-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="check-icon">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+            </svg>
+            <span><strong>{{ resourceName() }} Ilimitados</strong> (sem limites de quantidade)</span>
+          </li>
+          <li class="benefit-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="check-icon">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+            </svg>
+            <span><strong>Histórico Completo de 13 Meses</strong> móveis para planejamento</span>
+          </li>
+          <li class="benefit-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="check-icon">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+            </svg>
+            <span><strong>Exportação do Dossiê Anual em PDF</strong> consolidado</span>
+          </li>
+          <li class="benefit-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="check-icon">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+            </svg>
+            <span><strong>Despesas Recorrentes & Parcelamentos</strong> ilimitados</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="price-callout">
+        <span class="price-text">Apenas <strong>R$ 7,49/mês</strong> no plano anual</span>
+        <span class="discount-badge">Economize 25%</span>
+      </div>
+    </div>
+
+    <!-- Ações / CTAs -->
+    <div class="modal-footer">
+      <button type="button" class="btn-cancel" (click)="onClose()">
+        Continuar no Free
+      </button>
+      <button type="button" class="btn-upgrade" (click)="openSubscription()" id="btn-limit-upgrade">
+        <span>⭐ Fazer Upgrade para o PRO</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Checkout / Assinatura acionado diretamente -->
+@if (isSubscriptionOpen()) {
+  <app-subscription-modal (close)="onSubscriptionClosed()" />
+}

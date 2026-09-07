@@ -5,6 +5,8 @@ import { DashboardComponent } from './dashboard.component';
 import { FinanceStore } from '../../core/state/finance.store';
 import { AuthStore } from '../../core/state/auth.store';
 import { ExpenseService } from '../../core/services/expense.service';
+import { InstallmentService } from '../../core/services/installment.service';
+import { PlanLimitsService } from '../../core/services/plan-limits.service';
 import { MonthlyCycleService } from '../../core/services/monthly-cycle.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { UserProfile } from '../../core/models/user.model';
@@ -104,6 +106,17 @@ describe('DashboardComponent', () => {
       info: vi.fn()
     };
 
+    const mockInstallmentService = {
+      getInstallmentsOverview: vi.fn().mockReturnValue({ pipe: vi.fn(), subscribe: vi.fn() })
+    };
+
+    const mockPlanLimitsService = {
+      checkRecurringExpenseLimit: vi.fn().mockReturnValue({ allowed: true }),
+      checkInstallmentLimit: vi.fn().mockReturnValue({ allowed: true }),
+      checkTaxLimit: vi.fn().mockReturnValue({ allowed: true }),
+      checkTripLimit: vi.fn().mockReturnValue({ allowed: true })
+    };
+
     await TestBed.configureTestingModule({
       imports: [DashboardComponent],
       providers: [
@@ -111,6 +124,8 @@ describe('DashboardComponent', () => {
         { provide: AuthStore, useValue: mockAuthStore },
         { provide: ExpenseService, useValue: mockExpenseService },
         { provide: MonthlyCycleService, useValue: mockCycleService },
+        { provide: InstallmentService, useValue: mockInstallmentService },
+        { provide: PlanLimitsService, useValue: mockPlanLimitsService },
         { provide: NotificationService, useValue: mockNotificationService },
         { provide: Router, useValue: mockRouter }
       ]
