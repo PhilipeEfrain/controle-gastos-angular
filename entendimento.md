@@ -119,8 +119,17 @@ users/{userId}
 - **Estilização e Design System**: **SCSS Modular** (Padrão de abstrações, variáveis e mixins) com Design Tokens em CSS Custom Properties para Dark Mode e paleta financeira personalizada (Esmeralda, Carmim/Ruby, Slate Dark, Glassmorphism).
 
 
-## 6. Github
-
+## 6. GitHub
+- **Método de acesso**: GitHub CLI (`gh`) autenticado para gerenciamento de Issues, PRs e Kanban.
 - **URL do repositório**: https://github.com/PhilipeEfrain/controle-gastos-angular.git
 - **Nome do repositório**: controle-gastos-angular
 - **Controle do projeto e Kanban**: https://github.com/users/PhilipeEfrain/projects/5
+
+---
+
+## 7. Firebase Cloud
+- **Project ID**: `controle-gastos-app-36264`
+- **Project Name**: Controle de Gastos Quinzenais
+- **App ID (Web)**: `1:562686483207:web:8f8fb528069c1af4b083a2`
+- **Auth Domain**: `controle-gastos-app-36264.firebaseapp.com`
+- **Storage Bucket**: `controle-gastos-app-36264.firebasestorage.app`
