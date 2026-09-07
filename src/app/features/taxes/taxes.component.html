@@ -230,3 +230,14 @@
   (close)="isTaxModalOpen.set(false)"
   (saved)="onTaxSaved()"
 />
+
+<!-- Modal de Limite Atingido -->
+@if (isLimitModalOpen()) {
+  <app-limit-reached-modal
+    [title]="'Limite de Tributos Atingido'"
+    [message]="limitModalMessage()"
+    [resourceName]="'Tributos Anuais'"
+    (close)="isLimitModalOpen.set(false)"
+  />
+}
+

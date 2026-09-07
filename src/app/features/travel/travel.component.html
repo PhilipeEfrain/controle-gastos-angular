@@ -465,3 +465,14 @@
   (confirm)="onConfirmDelete()"
   (cancel)="isDeleteModalOpen.set(false)"
 />
+
+<!-- Modal de Limite Atingido -->
+@if (isLimitModalOpen()) {
+  <app-limit-reached-modal
+    [title]="'Limite de Viagens Atingido'"
+    [message]="limitModalMessage()"
+    [resourceName]="'Viagens & Rateios'"
+    (close)="isLimitModalOpen.set(false)"
+  />
+}
+

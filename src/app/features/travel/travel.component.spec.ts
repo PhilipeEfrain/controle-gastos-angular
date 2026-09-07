@@ -4,6 +4,7 @@ import { of } from 'rxjs';
 import { TravelComponent } from './travel.component';
 import { TravelService } from '../../core/services/travel.service';
 import { ExpenseService } from '../../core/services/expense.service';
+import { PlanLimitsService } from '../../core/services/plan-limits.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { AuthStore } from '../../core/state/auth.store';
 import { UserProfile } from '../../core/models/user.model';
@@ -62,7 +63,19 @@ describe('TravelComponent', () => {
     };
 
     mockAuthStore = {
-      currentUser: signal<UserProfile | null>(mockUser)
+      currentUser: signal<UserProfile | null>(mockUser),
+      currentPlan: signal('free'),
+      isProOrDuo: signal(false)
+    };
+
+    const mockPlanLimitsService = {
+      checkTripLimit: vi.fn().mockReturnValue({
+        allowed: true,
+        currentCount: 0,
+        maxLimit: 1,
+        resourceName: 'Viagens & Rateios',
+        limitMessage: ''
+      })
     };
 
     await TestBed.configureTestingModule({
@@ -70,6 +83,7 @@ describe('TravelComponent', () => {
       providers: [
         { provide: TravelService, useValue: mockTravelService },
         { provide: ExpenseService, useValue: mockExpenseService },
+        { provide: PlanLimitsService, useValue: mockPlanLimitsService },
         { provide: NotificationService, useValue: mockNotificationService },
         { provide: AuthStore, useValue: mockAuthStore }
       ]
@@ -210,5 +224,22 @@ describe('TravelComponent', () => {
       })
     );
     expect(mockNotificationService.success).toHaveBeenCalled();
+  });
+
+  it('Cenário BDD (Feature Gate): DEVE exibir modal de limite ao tentar cadastrar viagem além do limite Free', () => {
+    const planLimitsService = TestBed.inject(PlanLimitsService);
+    vi.spyOn(planLimitsService, 'checkTripLimit').mockReturnValue({
+      allowed: false,
+      currentCount: 1,
+      maxLimit: 1,
+      resourceName: 'Viagens & Rateios',
+      limitMessage: 'Você atingiu o limite de 1 viagem cadastrada.'
+    });
+
+    component.openCreateTripModal();
+
+    expect(component.isLimitModalOpen()).toBe(true);
+    expect(component.isTripModalOpen()).toBe(false);
+    expect(component.limitModalMessage()).toContain('limite de 1 viagem');
   });
 });

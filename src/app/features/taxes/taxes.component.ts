@@ -14,10 +14,12 @@ import { AuthStore } from '../../core/state/auth.store';
 import { TaxService } from '../../core/services/tax.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { AnnualTax } from '../../core/models/finance.model';
+import { PlanLimitsService } from '../../core/services/plan-limits.service';
 import { formatBRL } from '../../core/utils/formatters';
 import { AppCardComponent } from '../../shared/components/app-card/app-card.component';
 import { TaxComparisonCardComponent } from './components/tax-comparison-card/tax-comparison-card.component';
 import { TaxFormModalComponent } from './components/tax-form-modal/tax-form-modal.component';
+import { LimitReachedModalComponent } from '../../shared/components/limit-reached-modal/limit-reached-modal.component';
 
 @Component({
   selector: 'app-taxes',
@@ -26,7 +28,8 @@ import { TaxFormModalComponent } from './components/tax-form-modal/tax-form-moda
     CommonModule,
     AppCardComponent,
     TaxComparisonCardComponent,
-    TaxFormModalComponent
+    TaxFormModalComponent,
+    LimitReachedModalComponent
   ],
   templateUrl: './taxes.component.html',
   styleUrls: ['./taxes.component.scss'],
@@ -36,10 +39,13 @@ export class TaxesComponent implements OnInit {
   readonly financeStore = inject(FinanceStore);
   readonly authStore = inject(AuthStore);
   private readonly taxService = inject(TaxService);
+  private readonly planLimitsService = inject(PlanLimitsService);
   private readonly notificationService = inject(NotificationService);
   private readonly router = inject(Router);
 
   readonly isTaxModalOpen = signal<boolean>(false);
+  readonly isLimitModalOpen = signal<boolean>(false);
+  readonly limitModalMessage = signal<string>('');
   readonly taxToEdit = signal<AnnualTax | null>(null);
   readonly statusFilter = signal<'Todos' | 'Pendente' | 'Pago'>('Todos');
   readonly actionMessage = signal<string | null>(null);
@@ -82,6 +88,12 @@ export class TaxesComponent implements OnInit {
   }
 
   openNewTaxModal(): void {
+    const limitCheck = this.planLimitsService.checkTaxLimit(this.totalCount());
+    if (!limitCheck.allowed) {
+      this.limitModalMessage.set(limitCheck.limitMessage);
+      this.isLimitModalOpen.set(true);
+      return;
+    }
     this.taxToEdit.set(null);
     this.isTaxModalOpen.set(true);
   }
