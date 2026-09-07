@@ -1,0 +1,96 @@
+<div class="evolution-card">
+  <div class="evolution-header">
+    <div class="header-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="20" x2="18" y2="10" />
+        <line x1="12" y1="20" x2="12" y2="4" />
+        <line x1="6" y1="20" x2="6" y2="14" />
+      </svg>
+    </div>
+    <div class="header-titles">
+      <h4 class="card-title">Evolução Histórica Mensal</h4>
+      <p class="card-subtitle">Comparativo de Renda vs. Gastos ao longo dos ciclos</p>
+    </div>
+
+    <!-- Mini Legenda -->
+    <div class="chart-legend">
+      <div class="legend-dot income">
+        <span class="dot"></span>
+        <span>Rendas</span>
+      </div>
+      <div class="legend-dot expense">
+        <span class="dot"></span>
+        <span>Gastos</span>
+      </div>
+    </div>
+  </div>
+
+  @if (chartData().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">📈</div>
+      <p class="empty-text">Nenhum histórico de ciclo disponível</p>
+      <span class="empty-hint">Os meses cadastrados aparecerão aqui para análise comparativa</span>
+    </div>
+  } @else {
+    <div class="evolution-content">
+      <!-- Tooltip Flutuante / Detalhe Ativo -->
+      <div class="active-summary">
+        @if (activeMonthData(); as active) {
+          <div class="tooltip-badge">
+            <span class="tooltip-month">{{ active.label }} ({{ active.mesAno }})</span>
+            <div class="tooltip-row">
+              <span class="tooltip-income">Renda: {{ formatCurrency(active.totalRenda) }}</span>
+              <span class="tooltip-expense">Gastos: {{ formatCurrency(active.totalGastos) }}</span>
+              <span class="tooltip-balance" [class.is-deficit]="active.isDeficit">
+                Saldo: {{ formatCurrency(active.saldo) }}
+              </span>
+            </div>
+          </div>
+        } @else {
+          <span class="hover-hint">Passe o cursor sobre as barras para ver os detalhes do mês</span>
+        }
+      </div>
+
+      <!-- Bar Chart Grid -->
+      <div class="bars-container">
+        <!-- Linhas de grade de fundo -->
+        <div class="grid-lines">
+          <div class="grid-line"></div>
+          <div class="grid-line"></div>
+          <div class="grid-line"></div>
+        </div>
+
+        <div class="bars-wrapper">
+          @for (month of chartData(); track month.mesAno) {
+            <div
+              class="month-column"
+              [class.is-current]="month.isCurrent"
+              [class.is-hovered]="hoveredMonth() === month.mesAno"
+              (mouseenter)="onMonthHover(month.mesAno)"
+              (mouseleave)="onMonthHover(null)"
+            >
+              <div class="bars-pair">
+                <!-- Barra de Renda (Emerald) -->
+                <div
+                  class="bar bar-income"
+                  [style.height.%]="month.rendaHeight"
+                  title="Renda: {{ formatCurrency(month.totalRenda) }}"
+                ></div>
+
+                <!-- Barra de Gastos (Rose/Violet) -->
+                <div
+                  class="bar bar-expense"
+                  [style.height.%]="month.gastosHeight"
+                  title="Gastos: {{ formatCurrency(month.totalGastos) }}"
+                ></div>
+              </div>
+
+              <!-- Rótulo do Mês -->
+              <span class="month-label">{{ month.label }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

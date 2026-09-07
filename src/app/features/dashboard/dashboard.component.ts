@@ -14,7 +14,7 @@ import { AuthStore } from '../../core/state/auth.store';
 import { ExpenseService } from '../../core/services/expense.service';
 import { MonthlyCycleService } from '../../core/services/monthly-cycle.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { Expense, FortnightNumber } from '../../core/models/finance.model';
+import { Expense, FortnightNumber, MonthlyCycle } from '../../core/models/finance.model';
 import { formatBRL } from '../../core/utils/formatters';
 import { addMonthsToYearMonth } from '../../core/utils/calculations';
 import { getCurrentYearMonth } from '../../core/utils/date';
@@ -25,6 +25,8 @@ import { FortnightCardComponent } from './components/fortnight-card/fortnight-ca
 import { ExpenseFormModalComponent } from './components/expense-form-modal/expense-form-modal.component';
 import { IncomeFormModalComponent } from './components/income-form-modal/income-form-modal.component';
 import { ReceiptModalComponent } from './components/receipt-modal/receipt-modal.component';
+import { CategoryDonutChartComponent } from './components/category-donut-chart/category-donut-chart.component';
+import { MonthlyEvolutionChartComponent } from './components/monthly-evolution-chart/monthly-evolution-chart.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -37,7 +39,9 @@ import { ReceiptModalComponent } from './components/receipt-modal/receipt-modal.
     FortnightCardComponent,
     ExpenseFormModalComponent,
     IncomeFormModalComponent,
-    ReceiptModalComponent
+    ReceiptModalComponent,
+    CategoryDonutChartComponent,
+    MonthlyEvolutionChartComponent
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
@@ -53,6 +57,27 @@ export class DashboardComponent implements OnInit {
 
   // Status visual para feedback temporário
   readonly actionMessage = signal<string | null>(null);
+
+  // Controle de Visualização de Gráficos Analíticos
+  readonly showCharts = signal<boolean>(true);
+
+  // Ciclos consolidados para evolução mensal
+  readonly recentCycles = computed<MonthlyCycle[]>(() => {
+    const current = this.financeStore.currentCycle();
+    const selected = this.financeStore.selectedMonth();
+    const summary = this.financeStore.balanceSummary();
+
+    const activeCycle: MonthlyCycle = current ?? {
+      mesAno: selected,
+      renda_quinzena_1: summary.q1.renda,
+      renda_quinzena_2: summary.q2.renda,
+      total_renda: summary.totalRenda,
+      total_gastos: summary.totalGastos,
+      saldo_final: summary.saldoFinal,
+    };
+
+    return [activeCycle];
+  });
 
   // Estados dos Modais
   readonly isExpenseModalOpen = signal<boolean>(false);

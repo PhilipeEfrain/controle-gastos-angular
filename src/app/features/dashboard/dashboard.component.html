@@ -235,6 +235,47 @@
         (updateReceipt)="openReceiptModal($event)"
       />
     </section>
+
+    <!-- Seção de Analytics e Gráficos Financeiros -->
+    <section class="analytics-section">
+      <div class="analytics-header-row">
+        <h3 class="analytics-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 3v18h18" />
+            <path d="M18 17l-5-5-4 4-4-4" />
+          </svg>
+          <span>Inteligência & Gráficos Financeiros</span>
+        </h3>
+
+        <button
+          type="button"
+          class="analytics-toggle-btn"
+          (click)="showCharts.set(!showCharts())"
+          title="Ocultar/Exibir Gráficos"
+        >
+          @if (showCharts()) {
+            <span>Ocultar Gráficos</span>
+          } @else {
+            <span>Exibir Gráficos</span>
+          }
+        </button>
+      </div>
+
+      @if (showCharts()) {
+        <div class="analytics-grid">
+          <!-- Gráfico Donut de Categorias -->
+          <app-category-donut-chart
+            [expenses]="financeStore.expenses()"
+          />
+
+          <!-- Gráfico de Evolução Histórica -->
+          <app-monthly-evolution-chart
+            [cycles]="recentCycles()"
+            [selectedMonth]="financeStore.selectedMonth()"
+          />
+        </div>
+      }
+    </section>
   </div>
 </div>
 
