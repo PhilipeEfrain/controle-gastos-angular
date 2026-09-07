@@ -1,0 +1,206 @@
+@use 'abstracts' as *;
+
+.fortnight-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.fortnight-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.fortnight-title {
+  font-size: $font-size-lg;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.ref-badge {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  border-radius: $radius-full;
+  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+}
+
+.edit-income-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: $radius-sm;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface-hover);
+  color: var(--color-text-secondary);
+  font-size: $font-size-xs;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  svg {
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--color-text-primary);
+  }
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  padding: 0.875rem;
+  border-radius: $radius-md;
+  background-color: rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--color-border);
+}
+
+.metric-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  &.balance-item {
+    align-items: flex-start;
+  }
+}
+
+.metric-label {
+  font-size: 0.6875rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 500;
+}
+
+.metric-value {
+  font-size: $font-size-sm;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+
+  &.income {
+    color: var(--color-success-light);
+  }
+
+  &.expense {
+    color: var(--color-text-primary);
+  }
+}
+
+.progress-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.divider {
+  height: 1px;
+  background-color: var(--color-border);
+  width: 100%;
+}
+
+.expenses-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section-title {
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.add-expense-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: $radius-sm;
+  border: none;
+  background-color: var(--color-primary);
+  color: #fff;
+  font-size: $font-size-xs;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  svg {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+
+  &:hover {
+    background-color: var(--color-primary-light);
+    transform: translateY(-1px);
+  }
+}
+
+.expenses-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.empty-state {
+  @include flex-center;
+  flex-direction: column;
+  padding: 2rem 1rem;
+  border-radius: $radius-md;
+  border: 1px dashed var(--color-border);
+  background-color: rgba(255, 255, 255, 0.01);
+  text-align: center;
+}
+
+.empty-icon {
+  width: 2rem;
+  height: 2rem;
+  color: var(--color-text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.empty-text {
+  font-size: $font-size-sm;
+  color: var(--color-text-muted);
+  margin: 0 0 0.75rem 0;
+}
+
+.empty-add-btn {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-primary-light);
+  font-size: $font-size-xs;
+  font-weight: 500;
+  padding: 0.375rem 0.75rem;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &:hover {
+    background-color: rgba(59, 130, 246, 0.1);
+    border-color: var(--color-primary-light);
+  }
+}

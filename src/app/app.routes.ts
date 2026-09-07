@@ -10,8 +10,18 @@ export const routes: Routes = [
     canActivate: [publicGuard]
   },
   {
+    path: 'dashboard',
+    loadComponent: () =>
+      import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: '',
     redirectTo: 'dashboard',
     pathMatch: 'full'
+  },
+  {
+    path: '**',
+    redirectTo: 'dashboard'
   }
 ];

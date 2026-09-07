@@ -1,0 +1,192 @@
+<div class="dashboard-wrapper">
+  <div class="app-container">
+    <!-- Feedback de Ação / Notificação -->
+    @if (actionMessage()) {
+      <div class="action-toast">
+        <span>{{ actionMessage() }}</span>
+      </div>
+    }
+
+    <!-- Header do Dashboard: Mês Seletor e Perfil -->
+    <header class="dashboard-header">
+      <div class="header-left">
+        <h1 class="page-title">Controle Financeiro</h1>
+        <p class="page-subtitle">Gestão quinzenal inteligente de receitas e despesas</p>
+      </div>
+
+      <div class="header-controls">
+        <!-- Navegação de Mês -->
+        <div class="month-navigator">
+          <button
+            type="button"
+            class="nav-arrow-btn"
+            (click)="prevMonth()"
+            title="Mês anterior"
+            aria-label="Mês anterior"
+          >
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path
+                fill-rule="evenodd"
+                d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </button>
+
+          <span class="current-month-display">
+            {{ financeStore.selectedMonthLabel() }}
+          </span>
+
+          <button
+            type="button"
+            class="nav-arrow-btn"
+            (click)="nextMonth()"
+            title="Próximo mês"
+            aria-label="Próximo mês"
+          >
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path
+                fill-rule="evenodd"
+                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </button>
+
+          <button
+            type="button"
+            class="today-btn"
+            (click)="goToCurrentMonth()"
+            title="Ir para o mês atual"
+          >
+            Hoje
+          </button>
+        </div>
+
+        <!-- Botão Logout -->
+        <button
+          type="button"
+          class="logout-btn"
+          (click)="onLogout()"
+          title="Encerrar sessão"
+        >
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path
+              fill-rule="evenodd"
+              d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <span>Sair</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Top Summary Cards (4 colunas) -->
+    <section class="summary-cards-grid">
+      <!-- Card 1: Renda Prevista -->
+      <app-card>
+        <div class="summary-card-inner">
+          <div class="summary-info">
+            <span class="summary-label">Renda Total do Mês</span>
+            <span class="summary-value text-emerald">{{ formattedTotalRenda() }}</span>
+          </div>
+          <div class="summary-icon bg-emerald-light">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        </div>
+      </app-card>
+
+      <!-- Card 2: Total de Despesas -->
+      <app-card>
+        <div class="summary-card-inner">
+          <div class="summary-info">
+            <span class="summary-label">Total de Gastos</span>
+            <span class="summary-value">{{ formattedTotalGastos() }}</span>
+          </div>
+          <div class="summary-icon bg-blue-light">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+          </div>
+        </div>
+      </app-card>
+
+      <!-- Card 3: Saldo Líquido Consolidado -->
+      <app-card [variant]="financeStore.balanceSummary().temDeficitGlobal ? 'danger' : 'default'">
+        <div class="summary-card-inner">
+          <div class="summary-info">
+            <span class="summary-label">Saldo Consolidado</span>
+            <span class="summary-value" [class.text-danger]="financeStore.balanceSummary().temDeficitGlobal" [class.text-emerald]="!financeStore.balanceSummary().temDeficitGlobal">
+              {{ formattedSaldoGlobal() }}
+            </span>
+          </div>
+          <div class="summary-badge-container">
+            <app-balance-badge [value]="financeStore.balanceSummary().saldoFinal" />
+          </div>
+        </div>
+      </app-card>
+
+      <!-- Card 4: Status do Ciclo -->
+      <app-card>
+        <div class="summary-card-inner">
+          <div class="summary-info">
+            <span class="summary-label">Status do Mês</span>
+            <span class="summary-status-tag" [class.is-ok]="!financeStore.balanceSummary().temDeficitGlobal" [class.is-danger]="financeStore.balanceSummary().temDeficitGlobal">
+              {{ coverageStatusText() }}
+            </span>
+          </div>
+          <div class="summary-icon bg-purple-light">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+        </div>
+      </app-card>
+    </section>
+
+    <!-- Banner de Alerta Condicional de Déficit / Cobertura -->
+    @if (financeStore.balanceSummary().q1CobreQ2 || financeStore.balanceSummary().temDeficitGlobal) {
+      <section class="banner-section">
+        <app-deficit-alert-banner
+          [q1CobreQ2]="financeStore.balanceSummary().q1CobreQ2"
+          [temDeficitGlobal]="financeStore.balanceSummary().temDeficitGlobal"
+          [saldoQ1]="financeStore.balanceSummary().q1.saldo"
+          [saldoQ2]="financeStore.balanceSummary().q2.saldo"
+          [saldoFinal]="financeStore.balanceSummary().saldoFinal"
+        />
+      </section>
+    }
+
+    <!-- Grid Quinzenal (Quinzena 1 e Quinzena 2 lado a lado) -->
+    <section class="fortnights-grid">
+      <!-- Quinzena 1: Renda do Dia 31 -->
+      <app-fortnight-card
+        [quinzena]="1"
+        [summary]="financeStore.balanceSummary().q1"
+        [expenses]="financeStore.q1Expenses()"
+        [isLoading]="financeStore.isLoading()"
+        (addExpense)="onAddExpenseQuick($event)"
+        (editIncome)="onEditIncomeQuick($event)"
+        (togglePaid)="onTogglePaid($event)"
+        (deleteExpense)="onDeleteExpense($event)"
+        (updateReceipt)="onUpdateReceiptQuick($event)"
+      />
+
+      <!-- Quinzena 2: Renda do Dia 15 -->
+      <app-fortnight-card
+        [quinzena]="2"
+        [summary]="financeStore.balanceSummary().q2"
+        [expenses]="financeStore.q2Expenses()"
+        [isLoading]="financeStore.isLoading()"
+        (addExpense)="onAddExpenseQuick($event)"
+        (editIncome)="onEditIncomeQuick($event)"
+        (togglePaid)="onTogglePaid($event)"
+        (deleteExpense)="onDeleteExpense($event)"
+        (updateReceipt)="onUpdateReceiptQuick($event)"
+      />
+    </section>
+  </div>
+</div>
