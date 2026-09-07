@@ -39,20 +39,49 @@ export class AdminService {
   } as const;
 
   /**
-   * Busca todos os usuários cadastrados na plataforma
+   * Busca todos os usuários cadastrados na plataforma de forma robusta e resiliente
    */
   async getAllUsers(): Promise<UserProfile[]> {
     try {
       const usersRef = collection(this.firestore, 'users');
-      const q = query(usersRef, orderBy('createdAt', 'desc'));
-      const snapshot = await getDocs(q);
+      const snapshot = await getDocs(usersRef);
 
       if (snapshot.empty) {
         return [];
       }
 
-      return snapshot.docs.map(docSnap => {
+      const usersList: UserProfile[] = snapshot.docs.map(docSnap => {
         const data = docSnap.data();
+
+        // Tratamento resiliente de datas (Timestamp do Firestore, ISO string ou fallback)
+        let createdAtIso = new Date().toISOString();
+        const rawCreated = data['createdAt'];
+        if (rawCreated) {
+          if (typeof rawCreated === 'string') {
+            createdAtIso = rawCreated;
+          } else if (typeof rawCreated === 'object' && rawCreated !== null) {
+            if (typeof rawCreated.toDate === 'function') {
+              createdAtIso = rawCreated.toDate().toISOString();
+            } else if (rawCreated.seconds) {
+              createdAtIso = new Date(rawCreated.seconds * 1000).toISOString();
+            }
+          }
+        }
+
+        let updatedAtIso: string | undefined = undefined;
+        const rawUpdated = data['updatedAt'];
+        if (rawUpdated) {
+          if (typeof rawUpdated === 'string') {
+            updatedAtIso = rawUpdated;
+          } else if (typeof rawUpdated === 'object' && rawUpdated !== null) {
+            if (typeof rawUpdated.toDate === 'function') {
+              updatedAtIso = rawUpdated.toDate().toISOString();
+            } else if (rawUpdated.seconds) {
+              updatedAtIso = new Date(rawUpdated.seconds * 1000).toISOString();
+            }
+          }
+        }
+
         return {
           uid: docSnap.id,
           email: data['email'] || null,
@@ -65,9 +94,16 @@ export class AdminService {
           asaasCustomerId: data['asaasCustomerId'] || null,
           asaasSubscriptionId: data['asaasSubscriptionId'] || null,
           preferences: data['preferences'],
-          createdAt: data['createdAt'] || new Date().toISOString(),
-          updatedAt: data['updatedAt']
+          createdAt: createdAtIso,
+          updatedAt: updatedAtIso
         } as UserProfile;
+      });
+
+      // Ordena por data de cadastro (mais recentes primeiro)
+      return usersList.sort((a, b) => {
+        const timeA = new Date(a.createdAt || 0).getTime();
+        const timeB = new Date(b.createdAt || 0).getTime();
+        return timeB - timeA;
       });
     } catch (error) {
       this.logger.error('Erro ao listar usuários no painel administrativo:', error);

@@ -8,16 +8,16 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NavbarComponent } from '../../core/components/navbar/navbar.component';
 import { AdminService, SaaSMetrics } from '../../core/services/admin.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { AuthStore } from '../../core/state/auth.store';
 import { UserProfile, PlanType, PlanStatus, UserRole } from '../../core/models/user.model';
 import { formatBRL } from '../../core/utils/formatters';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule, NavbarComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -25,6 +25,7 @@ import { formatBRL } from '../../core/utils/formatters';
 export class AdminComponent implements OnInit {
   private adminService = inject(AdminService);
   private notificationService = inject(NotificationService);
+  private authStore = inject(AuthStore);
 
   // Estados Reativos (Signals)
   readonly users = signal<UserProfile[]>([]);
@@ -82,9 +83,19 @@ export class AdminComponent implements OnInit {
     this.isLoading.set(true);
     try {
       const result = await this.adminService.getAllUsers();
-      this.users.set(result);
+      if (result.length === 0 && this.authStore.currentUser()) {
+        const current = this.authStore.currentUser()!;
+        this.users.set([current]);
+      } else {
+        this.users.set(result);
+      }
     } catch {
-      this.notificationService.error('Não foi possível carregar a lista de usuários.');
+      // Se houver restrição de permissão de listagem, garante o próprio usuário logado
+      if (this.authStore.currentUser()) {
+        this.users.set([this.authStore.currentUser()!]);
+      } else {
+        this.notificationService.error('Não foi possível carregar a lista de usuários.');
+      }
     } finally {
       this.isLoading.set(false);
     }
