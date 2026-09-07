@@ -42,6 +42,8 @@ describe('NavbarComponent', () => {
       currentUser: signal<UserProfile | null>(mockUser),
       isAuthenticated: signal<boolean>(true),
       isAdmin: signal<boolean>(false),
+      isProOrDuo: signal<boolean>(false),
+      currentPlan: signal<'free' | 'pro' | 'duo'>('free'),
       logout: vi.fn().mockResolvedValue(undefined)
     };
 
@@ -146,5 +148,24 @@ describe('NavbarComponent', () => {
     const adminLink = fixture.nativeElement.querySelector('#nav-admin');
     expect(adminLink).toBeTruthy();
     expect(adminLink.textContent).toContain('Admin');
+  });
+
+  it('Cenário BDD (Assinatura): DEVE abrir e fechar o modal de assinatura', () => {
+    expect(component.isSubscriptionModalOpen()).toBe(false);
+    component.isSubscriptionModalOpen.set(true);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-subscription-modal')).toBeTruthy();
+
+    component.isSubscriptionModalOpen.set(false);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-subscription-modal')).toBeNull();
+  });
+
+  it('Cenário BDD (Assinatura): DEVE exibir botão Seja PRO para usuários Free', () => {
+    (mockAuthStore.isProOrDuo as WritableSignal<boolean>).set(false);
+    fixture.detectChanges();
+    const proBtn = fixture.nativeElement.querySelector('.btn-upgrade-pro');
+    expect(proBtn).toBeTruthy();
+    expect(proBtn.textContent).toContain('Seja PRO');
   });
 });
