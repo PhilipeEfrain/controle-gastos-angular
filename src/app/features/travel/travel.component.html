@@ -1,0 +1,409 @@
+<div class="travel-wrapper">
+  <div class="app-container">
+    <!-- Header da Página -->
+    <header class="travel-header">
+      <div class="header-left">
+        <h1 class="page-title">Gastos de Viagem & Rateio</h1>
+        <p class="page-subtitle">Planeje despesas de viagens, divida entre participantes e lance sua cota no orçamento</p>
+      </div>
+
+      <div class="header-actions">
+        <button
+          type="button"
+          class="btn-primary"
+          (click)="openCreateTripModal()"
+        >
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path
+              fill-rule="evenodd"
+              d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <span>Nova Viagem</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Top Summary Cards -->
+    <section class="summary-cards-grid">
+      <app-card>
+        <div class="summary-card-inner">
+          <div class="summary-info">
+            <span class="summary-label">Viagens Cadastradas</span>
+            <span class="summary-value">{{ totalViagens() }}</span>
+          </div>
+          <div class="summary-icon-box blue">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        </div>
+      </app-card>
+
+      <app-card>
+        <div class="summary-card-inner">
+          <div class="summary-info">
+            <span class="summary-label">Total Acumulado em Viagens</span>
+            <span class="summary-value emerald">{{ totalGastoGeral() }}</span>
+          </div>
+          <div class="summary-icon-box emerald">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+          </div>
+        </div>
+      </app-card>
+    </section>
+
+    <!-- Lista de Viagens -->
+    @if (isLoading()) {
+      <div class="loading-state">
+        <span class="spinner"></span>
+        <span>Carregando suas viagens...</span>
+      </div>
+    } @else if (trips().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h3 class="empty-title">Nenhuma viagem cadastrada</h3>
+        <p class="empty-desc">
+          Organize os gastos das suas férias ou passeios em grupo e calcule a cota de cada participante.
+        </p>
+        <button
+          type="button"
+          class="btn-primary"
+          (click)="openCreateTripModal()"
+        >
+          Cadastrar Primeira Viagem
+        </button>
+      </div>
+    } @else {
+      <div class="trips-grid">
+        @for (trip of trips(); track trip.id) {
+          <div
+            class="trip-card"
+            [class.is-expanded]="selectedTrip()?.id === trip.id"
+            (click)="selectTrip(trip)"
+          >
+            <!-- Trip Header -->
+            <div class="trip-card-header">
+              <div class="trip-title-group">
+                <div class="trip-icon-badge">✈️</div>
+                <div>
+                  <h3 class="trip-title">{{ trip.titulo }}</h3>
+                  @if (trip.destino) {
+                    <span class="trip-destination">📍 {{ trip.destino }}</span>
+                  }
+                </div>
+              </div>
+
+              <div class="trip-actions-header" (click)="$event.stopPropagation()">
+                <button
+                  type="button"
+                  class="action-icon-btn"
+                  (click)="openEditTripModal(trip, $event)"
+                  title="Editar viagem"
+                >
+                  <svg viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                  </svg>
+                </button>
+
+                <button
+                  type="button"
+                  class="action-icon-btn delete"
+                  (click)="openDeleteModal(trip, $event)"
+                  title="Excluir viagem"
+                >
+                  <svg viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Trip Metrics Box -->
+            <div class="trip-metrics-box">
+              <div class="metric-block">
+                <span class="metric-label">Total da Viagem</span>
+                <strong class="metric-val">{{ formatCurrency(trip.total_gastos) }}</strong>
+              </div>
+
+              <div class="metric-block">
+                <span class="metric-label">Participantes</span>
+                <strong class="metric-val participants-badge">
+                  👥 {{ trip.quantidade_participantes }} {{ trip.quantidade_participantes === 1 ? 'pessoa' : 'pessoas' }}
+                </strong>
+              </div>
+
+              <div class="metric-block highlight">
+                <span class="metric-label">Cota Individual</span>
+                <strong class="metric-val per-person">
+                  {{ formatCurrency(trip.valor_por_pessoa) }}
+                </strong>
+              </div>
+            </div>
+
+            <!-- Action Bar: Adicionar Gasto & Lançar no Orçamento -->
+            <div class="trip-action-bar" (click)="$event.stopPropagation()">
+              <button
+                type="button"
+                class="btn-add-expense"
+                (click)="openAddExpenseModal(trip, $event)"
+              >
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                </svg>
+                <span>+ Adicionar Gasto</span>
+              </button>
+
+              <button
+                type="button"
+                class="btn-import-cycle"
+                [disabled]="trip.valor_por_pessoa <= 0"
+                (click)="openImportModal(trip, $event)"
+                title="Lançar minha cota no orçamento mensal"
+              >
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+                <span>Lançar no Orçamento</span>
+              </button>
+            </div>
+
+            <!-- Tabela de Despesas Detalhadas da Viagem -->
+            @if (trip.despesas && trip.despesas.length > 0) {
+              <div class="trip-expenses-table-container">
+                <div class="table-header-title">
+                  <span>Itens de Despesa ({{ trip.despesas.length }})</span>
+                </div>
+                <div class="trip-expenses-list">
+                  @for (item of trip.despesas; track item.id) {
+                    <div class="trip-expense-row">
+                      <div class="item-info">
+                        <span class="item-desc">{{ item.descricao }}</span>
+                        <span class="item-category">{{ item.categoria }}</span>
+                      </div>
+                      <div class="item-right">
+                        <span class="item-value">{{ formatCurrency(item.valor) }}</span>
+                        <button
+                          type="button"
+                          class="item-delete-btn"
+                          (click)="onDeleteExpense(trip, item.id!, $event)"
+                          title="Remover gasto"
+                        >
+                          <svg viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            } @else {
+              <div class="no-expenses-hint">
+                <span>Nenhum gasto adicionado ainda. Clique em "+ Adicionar Gasto".</span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Modal: Criar / Editar Viagem -->
+@if (isTripModalOpen()) {
+  <div class="modal-backdrop" (click)="isTripModalOpen.set(false)">
+    <div class="modal-container" (click)="$event.stopPropagation()" role="dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">{{ tripToEdit() ? 'Editar Viagem' : 'Nova Viagem' }}</h3>
+        <button type="button" class="close-btn" (click)="isTripModalOpen.set(false)">✕</button>
+      </div>
+
+      <form [formGroup]="tripForm" (ngSubmit)="onSaveTrip()" class="modal-form">
+        <div class="form-group">
+          <label class="form-label" for="titulo">Título da Viagem / Evento *</label>
+          <input
+            id="titulo"
+            type="text"
+            formControlName="titulo"
+            class="form-input"
+            placeholder="Ex: Viagem Litoral Norte, Carnaval Rio"
+          />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label class="form-label" for="destino">Destino (Opcional)</label>
+            <input
+              id="destino"
+              type="text"
+              formControlName="destino"
+              class="form-input"
+              placeholder="Ex: Ubatuba - SP"
+            />
+          </div>
+
+          <div class="form-group flex-1">
+            <label class="form-label" for="quantidade_participantes">Participantes (Pessoas) *</label>
+            <input
+              id="quantidade_participantes"
+              type="number"
+              min="1"
+              max="50"
+              formControlName="quantidade_participantes"
+              class="form-input"
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label class="form-label" for="data_inicio">Data Início</label>
+            <input
+              id="data_inicio"
+              type="date"
+              formControlName="data_inicio"
+              class="form-input"
+            />
+          </div>
+
+          <div class="form-group flex-1">
+            <label class="form-label" for="data_fim">Data Término</label>
+            <input
+              id="data_fim"
+              type="date"
+              formControlName="data_fim"
+              class="form-input"
+            />
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="isTripModalOpen.set(false)">Cancelar</button>
+          <button type="submit" class="btn-submit" [disabled]="tripForm.invalid">
+            {{ tripToEdit() ? 'Salvar Alterações' : 'Criar Viagem' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- Modal: Adicionar Gasto à Viagem -->
+@if (isExpenseModalOpen()) {
+  <div class="modal-backdrop" (click)="isExpenseModalOpen.set(false)">
+    <div class="modal-container" (click)="$event.stopPropagation()" role="dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Adicionar Gasto à Viagem</h3>
+        <button type="button" class="close-btn" (click)="isExpenseModalOpen.set(false)">✕</button>
+      </div>
+
+      <form [formGroup]="expenseForm" (ngSubmit)="onSaveExpense()" class="modal-form">
+        <div class="form-group">
+          <label class="form-label" for="exp-descricao">Descrição do Gasto *</label>
+          <input
+            id="exp-descricao"
+            type="text"
+            formControlName="descricao"
+            class="form-input"
+            placeholder="Ex: Airbnb, Gasolina / Pedágio, Churrasco"
+          />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label class="form-label" for="exp-valor">Valor Total do Item (R$) *</label>
+            <input
+              id="exp-valor"
+              type="number"
+              step="0.01"
+              min="0.01"
+              formControlName="valor"
+              class="form-input"
+              placeholder="0,00"
+            />
+          </div>
+
+          <div class="form-group flex-1">
+            <label class="form-label" for="exp-categoria">Categoria *</label>
+            <select id="exp-categoria" formControlName="categoria" class="form-select">
+              @for (cat of categories; track cat) {
+                <option [value]="cat">{{ cat }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="isExpenseModalOpen.set(false)">Cancelar</button>
+          <button type="submit" class="btn-submit" [disabled]="expenseForm.invalid">
+            Adicionar Gasto
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- Modal: Importar Cota para Orçamento Mensal -->
+@if (isImportModalOpen()) {
+  <div class="modal-backdrop" (click)="isImportModalOpen.set(false)">
+    <div class="modal-container" (click)="$event.stopPropagation()" role="dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Lançar no Orçamento Mensal</h3>
+        <button type="button" class="close-btn" (click)="isImportModalOpen.set(false)">✕</button>
+      </div>
+
+      <div class="import-preview-banner">
+        <span>Sua cota calculada:</span>
+        <strong class="import-val">{{ formatCurrency(tripToImport()?.valor_por_pessoa || 0) }}</strong>
+        <p class="import-hint">Uma despesa será criada automaticamente na quinzena selecionada.</p>
+      </div>
+
+      <form [formGroup]="importForm" (ngSubmit)="onConfirmImport()" class="modal-form">
+        <div class="form-group">
+          <label class="form-label" for="imp-mes">Mês de Lançamento (YYYY-MM) *</label>
+          <input
+            id="imp-mes"
+            type="month"
+            formControlName="mesAno"
+            class="form-input"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="imp-quinzena">Quinzena do Orçamento *</label>
+          <select id="imp-quinzena" formControlName="quinzena" class="form-select">
+            <option [value]="1">1ª Quinzena (Dia 31)</option>
+            <option [value]="2">2ª Quinzena (Dia 15)</option>
+          </select>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="isImportModalOpen.set(false)">Cancelar</button>
+          <button type="submit" class="btn-submit" [disabled]="importForm.invalid">
+            Confirmar Lançamento
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- Modal Confirmação de Exclusão -->
+<app-confirmation-modal
+  [isOpen]="isDeleteModalOpen()"
+  title="Excluir Viagem"
+  [message]="'Tem certeza de que deseja excluir a viagem ' + (tripToDelete()?.titulo || '') + '? Todos os gastos cadastrados serão apagados.'"
+  confirmButtonText="Excluir Viagem"
+  variant="danger"
+  (confirm)="onConfirmDelete()"
+  (cancel)="isDeleteModalOpen.set(false)"
+/>

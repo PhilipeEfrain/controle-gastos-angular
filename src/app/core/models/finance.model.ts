@@ -61,3 +61,27 @@ export interface AnnualTax {
   data_pagamento?: string;
   ano_referencia?: number;
 }
+
+export interface TravelExpenseItem {
+  id?: string;
+  descricao: string;
+  valor: number;
+  categoria: string;
+  pago_por?: string;
+  dividir: boolean; // se true, divide pelo número de participantes; se false, gasto individual
+  createdAt?: string;
+}
+
+export interface TravelTrip {
+  id?: string;
+  titulo: string;
+  destino?: string;
+  data_inicio?: string;
+  data_fim?: string;
+  quantidade_participantes: number;
+  despesas: TravelExpenseItem[];
+  total_gastos: number;
+  valor_por_pessoa: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
