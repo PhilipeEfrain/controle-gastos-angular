@@ -28,6 +28,12 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'parcelamentos',
+    loadComponent: () =>
+      import('./features/installments/installments.component').then(m => m.InstallmentsComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: '',
     redirectTo: 'dashboard',
     pathMatch: 'full'

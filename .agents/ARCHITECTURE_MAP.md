@@ -33,6 +33,8 @@
 | `AnnualTax` | `src/app/core/models/finance.model.ts` | Modelo de tributo/imposto anual (IPTU, IPVA, valor_orcado, valor_pago, status). |
 | `TravelTrip` | `src/app/core/models/finance.model.ts` | Modelo de viagem com nome, quantidade de pessoas, moeda, itens de despesa e data. |
 | `TravelExpenseItem` | `src/app/core/models/finance.model.ts` | Item de despesa de viagem com descrição, categoria, valor, pagador e rateio (`dividir`). |
+| `InstallmentGroup` | `src/app/core/models/finance.model.ts` | Agrupamento de compras parceladas com progresso (ex: 3/10), saldo restante e parcelas vinculadas. |
+| `InstallmentParcel` | `src/app/core/models/finance.model.ts` | Item individual de parcela com mês de referência, número, valor e status de quitação. |
 | `UserProfile` | `src/app/core/models/user.model.ts` | Modelo de perfil de usuário autenticado no Firebase. |
 | `ToastNotification` | `src/app/core/models/notification.model.ts` | Modelo de notificação Toast reativa (id, tipo, mensagem, duração). |
 
@@ -47,6 +49,7 @@
 | `ExpenseService` | `src/app/core/services/expense.service.ts` | CRUD de despesas, alternância de pagamento, atualização de comprovante e geração em lote de parcelas (`createInstallmentExpenses`). |
 | `TaxService` | `src/app/core/services/tax.service.ts` | CRUD e sincronização em tempo real de tributos em `users/{userId}/tributos_e_parcelas`. |
 | `TravelService` | `src/app/core/services/travel.service.ts` | CRUD e stream em tempo real para controle de gastos de viagem e rateio (`users/{userId}/viagens`). |
+| `InstallmentService` | `src/app/core/services/installment.service.ts` | Agrupamento de parcelamentos ativos nos ciclos do usuário e quitação/cancelamento em lote via `writeBatch`. |
 | `NotificationService` | `src/app/core/services/notification.service.ts` | Notificações reativas do tipo Toast com Signals (`success`, `error`, `warning`, `info`). |
 
 ---
@@ -101,7 +104,12 @@
 | :--- | :--- | :--- |
 | `TravelComponent` | `app-travel` | Gestão de viagens com múltiplos participantes, rateio por pessoa/item, cálculo em tempo real e exportação direta da cota individual para o orçamento quinzenal. |
 
-### F. Feature: Autenticação (`src/app/features/auth/`)
+### F. Feature: Compras Parceladas (`src/app/features/installments/`)
+| Componente | Seletor | Descrição |
+| :--- | :--- | :--- |
+| `InstallmentsComponent` | `app-installments` | Painel de compras parceladas, acompanhamento de progresso de quitação (ex: 3/10), quitação antecipada em lote com writeBatch e cancelamento de parcelas futuras. |
+
+### G. Feature: Autenticação (`src/app/features/auth/`)
 | Componente | Seletor | Descrição |
 | :--- | :--- | :--- |
 | `AuthComponent` | `app-auth` | Tela com abas de Login e Cadastro, suporte a Google Sign-In e recuperação de senha. |

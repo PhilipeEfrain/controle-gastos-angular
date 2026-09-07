@@ -85,3 +85,31 @@ export interface TravelTrip {
   createdAt?: string;
   updatedAt?: string;
 }
+
+export interface InstallmentParcel {
+  id: string;
+  mesAno: string;
+  parcela_atual: number;
+  total_parcelas: number;
+  valor: number;
+  status_pagamento: boolean;
+  quinzena: FortnightNumber;
+  data_vencimento?: string;
+}
+
+export interface InstallmentGroup {
+  grupo_parcela_id: string;
+  descricao: string;
+  categoria: string;
+  valor_parcela: number;
+  total_parcelas: number;
+  parcelas_pagas: number;
+  total_pago: number;
+  saldo_restante: number;
+  valor_total: number;
+  percentual_concluido: number;
+  proximo_vencimento?: string;
+  parcelas: InstallmentParcel[];
+}
+
+

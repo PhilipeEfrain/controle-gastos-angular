@@ -1,0 +1,296 @@
+<div class="installments-wrapper">
+  <div class="container">
+    <!-- Header -->
+    <header class="page-header">
+      <div class="header-left">
+        <h1 class="page-title">Painel de Compras Parceladas</h1>
+        <p class="page-subtitle">
+          Acompanhe o saldo devedor, progresso de quitação e antecipe parcelas futuras
+        </p>
+      </div>
+
+      <div class="header-actions">
+        <button
+          type="button"
+          class="btn-back"
+          (click)="goToDashboard()"
+          title="Voltar ao Dashboard"
+        >
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path
+              fill-rule="evenodd"
+              d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <span>Dashboard</span>
+        </button>
+
+        <button
+          type="button"
+          class="btn-new-expense"
+          (click)="goToDashboard()"
+          title="Novo Lançamento Parcelado"
+        >
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path
+              fill-rule="evenodd"
+              d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <span>Novo Parcelamento</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Top Summary Cards -->
+    <section class="summary-cards-grid">
+      <!-- Total Restante a Pagar -->
+      <app-card [variant]="totalDebtRemaining() > 0 ? 'danger' : 'default'">
+        <div class="summary-card-inner">
+          <div class="summary-info">
+            <span class="summary-label">Saldo Devedor Total</span>
+            <span class="summary-value text-danger">{{ formatCurrency(totalDebtRemaining()) }}</span>
+          </div>
+          <div class="summary-icon bg-red-light">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="5" width="20" height="14" rx="2" />
+              <line x1="2" y1="10" x2="22" y2="10" />
+            </svg>
+          </div>
+        </div>
+      </app-card>
+
+      <!-- Total Já Pago -->
+      <app-card>
+        <div class="summary-card-inner">
+          <div class="summary-info">
+            <span class="summary-label">Total Já Quitado</span>
+            <span class="summary-value text-emerald">{{ formatCurrency(totalAlreadyPaid()) }}</span>
+          </div>
+          <div class="summary-icon bg-emerald-light">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+          </div>
+        </div>
+      </app-card>
+
+      <!-- Compras Ativas -->
+      <app-card>
+        <div class="summary-card-inner">
+          <div class="summary-info">
+            <span class="summary-label">Compras Parceladas Ativas</span>
+            <span class="summary-value">{{ activePurchasesCount() }}</span>
+          </div>
+          <div class="summary-icon bg-indigo-light">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <path d="M16 10a4 4 0 0 1-8 0" />
+            </svg>
+          </div>
+        </div>
+      </app-card>
+    </section>
+
+    <!-- Content: Listagem de Parcelamentos -->
+    @if (isLoading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Carregando compras parceladas...</p>
+      </div>
+    } @else if (installmentGroups().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">💳</div>
+        <h3 class="empty-title">Nenhum parcelamento ativo encontrado</h3>
+        <p class="empty-desc">
+          Ao cadastrar despesas parceladas no Dashboard, elas aparecerão agrupadas aqui para controle de quitação.
+        </p>
+        <button type="button" class="btn-primary" (click)="goToDashboard()">
+          Ir para o Dashboard
+        </button>
+      </div>
+    } @else {
+      <div class="installments-grid">
+        @for (group of installmentGroups(); track group.grupo_parcela_id) {
+          <div class="installment-card" [class.is-completed]="group.saldo_restante === 0">
+            <!-- Header do Card -->
+            <div class="card-top">
+              <div class="card-titles">
+                <div class="title-row">
+                  <h3 class="item-title">{{ group.descricao }}</h3>
+                  <span class="category-badge">{{ group.categoria }}</span>
+                </div>
+                <span class="installments-progress-label">
+                  {{ group.parcelas_pagas }} de {{ group.total_parcelas }} parcelas pagas
+                  ({{ group.percentual_concluido | number: '1.0-0' }}%)
+                </span>
+              </div>
+
+              <div class="card-values">
+                <span class="val-label">Saldo Restante</span>
+                <span class="val-remaining" [class.is-zero]="group.saldo_restante === 0">
+                  {{ formatCurrency(group.saldo_restante) }}
+                </span>
+                <span class="val-per-month">
+                  {{ group.total_parcelas - group.parcelas_pagas }}x de {{ formatCurrency(group.valor_parcela) }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Segmented Progress Bar -->
+            <div class="segmented-progress" title="Progresso de parcelas">
+              @for (p of group.parcelas; track p.id) {
+                <div
+                  class="progress-segment"
+                  [class.is-paid]="p.status_pagamento"
+                  [title]="p.parcela_atual + '/' + p.total_parcelas + ' - ' + p.mesAno + ' (' + (p.status_pagamento ? 'Paga' : 'Pendente') + ')'"
+                ></div>
+              }
+            </div>
+
+            <!-- Detalhamento de Parcelas (Grid Expansível) -->
+            <div class="parcels-preview-list">
+              @for (p of group.parcelas; track p.id) {
+                <div class="parcel-pill" [class.is-paid]="p.status_pagamento">
+                  <span class="parcel-num">{{ p.parcela_atual }}/{{ p.total_parcelas }}</span>
+                  <span class="parcel-month">{{ p.mesAno }}</span>
+                  <span class="parcel-status">{{ p.status_pagamento ? '✓ Paga' : 'Pendente' }}</span>
+                </div>
+              }
+            </div>
+
+            <!-- Footer & Actions -->
+            <div class="card-footer">
+              @if (group.saldo_restante > 0) {
+                <button
+                  type="button"
+                  class="btn-advance-pay"
+                  (click)="openAdvanceModal(group)"
+                >
+                  <svg viewBox="0 0 20 20" fill="currentColor">
+                    <path
+                      fill-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                  <span>Quitar / Antecipar</span>
+                </button>
+              } @else {
+                <div class="completed-badge">
+                  <span>✓ Quitado com Sucesso</span>
+                </div>
+              }
+
+              <button
+                type="button"
+                class="btn-cancel-group"
+                (click)="openCancelModal(group)"
+                title="Cancelar e remover parcelas futuras"
+              >
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path
+                    fill-rule="evenodd"
+                    d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <span>Remover Futuras</span>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Modal: Quitação Antecipada de Parcelas -->
+@if (isAdvanceModalOpen() && selectedGroupForAdvance(); as group) {
+  <div class="modal-backdrop" (click)="isAdvanceModalOpen.set(false)">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Quitação Antecipada</h3>
+          <p class="modal-subtitle">{{ group.descricao }}</p>
+        </div>
+        <button
+          type="button"
+          class="close-btn"
+          (click)="isAdvanceModalOpen.set(false)"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p class="select-hint">
+          Selecione as parcelas futuras que deseja marcar como quitadas antecipadamente:
+        </p>
+
+        <div class="parcels-selection-list">
+          @for (p of group.parcelas; track p.id) {
+            @if (!p.status_pagamento) {
+              <label class="parcel-select-item" [class.is-selected]="selectedParcelasToPay().includes(p.id)">
+                <input
+                  type="checkbox"
+                  [checked]="selectedParcelasToPay().includes(p.id)"
+                  (change)="toggleParcelaSelection(p.id)"
+                />
+                <div class="select-info">
+                  <span class="select-title">Parcela {{ p.parcela_atual }}/{{ p.total_parcelas }}</span>
+                  <span class="select-month">{{ p.mesAno }} ({{ p.quinzena }}ª Quinzena)</span>
+                </div>
+                <span class="select-value">{{ formatCurrency(p.valor) }}</span>
+              </label>
+            }
+          }
+        </div>
+
+        <!-- Total Selecionado -->
+        <div class="advance-total-box">
+          <span>Total a Quitar ({{ selectedParcelasToPay().length }} parcela(s)):</span>
+          <strong class="total-amount">{{ formatCurrency(totalAdvanceSelectedAmount()) }}</strong>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn-cancel"
+          (click)="isAdvanceModalOpen.set(false)"
+          [disabled]="isSavingBatch()"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="button"
+          class="btn-confirm-pay"
+          (click)="confirmAdvancePayment()"
+          [disabled]="selectedParcelasToPay().length === 0 || isSavingBatch()"
+        >
+          @if (isSavingBatch()) {
+            <span>Processando...</span>
+          } @else {
+            <span>Confirmar Quitação</span>
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal de Confirmação: Cancelamento/Exclusão de Parcelas Futuras -->
+<app-confirmation-modal
+  [isOpen]="isCancelModalOpen()"
+  title="Remover Parcelas Futuras?"
+  [message]="'Deseja cancelar o parcelamento de ' + (groupToCancel()?.descricao || '') + ' e excluir todas as parcelas ainda pendentes nos próximos meses?'"
+  confirmButtonText="Excluir Futuras"
+  (close)="isCancelModalOpen.set(false)"
+  (confirm)="confirmCancelGroup()"
+/>
