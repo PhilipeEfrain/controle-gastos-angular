@@ -20,14 +20,33 @@ $color-warning-hover: var(--color-warning-hover);
 $color-warning-bg: var(--color-warning-bg);
 $color-warning-border: var(--color-warning-border);
 
+// Backgrounds & Superfícies
+$bg-app: var(--bg-app);
+$bg-surface: var(--bg-surface);
+$bg-surface-elevated: var(--bg-surface-elevated);
+$bg-surface-hover: var(--bg-surface-hover);
+
 $color-background: var(--color-background);
 $color-surface: var(--color-surface);
 $color-surface-elevated: var(--color-surface-elevated);
 $color-surface-hover: var(--color-surface-hover);
 
+// Bordas
+$border-color: var(--border-color);
+$border-color-focus: var(--border-color-focus);
 $color-border: var(--color-border);
 $color-border-focus: var(--color-border-focus);
 
+// Tipografia
+$text-primary: var(--text-primary);
+$text-secondary: var(--text-secondary);
+$text-muted: var(--text-muted);
 $color-text-primary: var(--color-text-primary);
 $color-text-secondary: var(--color-text-secondary);
 $color-text-muted: var(--color-text-muted);
+
+// Glassmorphism
+$glass-bg: var(--glass-bg);
+$glass-border: var(--glass-border);
+$glass-blur: var(--glass-blur);
+$glass-shadow: var(--glass-shadow);

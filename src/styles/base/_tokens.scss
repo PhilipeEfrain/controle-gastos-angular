@@ -1,4 +1,4 @@
-// Design Tokens Globais: CSS Custom Properties
+// Design Tokens Globais: CSS Custom Properties Unificadas
 :root {
   // Ações e Marca
   --color-primary: #6366f1;
@@ -26,19 +26,31 @@
   --color-warning-border: rgba(245, 158, 11, 0.28);
 
   // Superfícies & Backgrounds (Dark Mode Padrão)
-  --color-background: #0b0f19;
-  --color-surface: #111827;
-  --color-surface-elevated: #1f2937;
-  --color-surface-hover: #1e293b;
+  --bg-app: #0b0f19;
+  --bg-surface: #111827;
+  --bg-surface-elevated: #1f2937;
+  --bg-surface-hover: #1e293b;
+
+  --color-background: var(--bg-app);
+  --color-surface: var(--bg-surface);
+  --color-surface-elevated: var(--bg-surface-elevated);
+  --color-surface-hover: var(--bg-surface-hover);
 
   // Bordas e Divisores
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-border-focus: rgba(99, 102, 241, 0.5);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-color-focus: rgba(99, 102, 241, 0.5);
+
+  --color-border: var(--border-color);
+  --color-border-focus: var(--border-color-focus);
 
   // Tipografia
-  --color-text-primary: #f9fafb;
-  --color-text-secondary: #9ca3af;
-  --color-text-muted: #6b7280;
+  --text-primary: #f9fafb;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
 
   // Glassmorphism
   --glass-bg: rgba(17, 24, 39, 0.75);
