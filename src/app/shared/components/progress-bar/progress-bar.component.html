@@ -1,0 +1,22 @@
+<div class="progress-container">
+  @if (showLabel() && (label() || max() > 0)) {
+    <div class="progress-header">
+      @if (label()) {
+        <span class="progress-header__label">{{ label() }}</span>
+      }
+      <span class="progress-header__percent" [class]="'text-' + status()">
+        {{ formattedPercentage() }}
+      </span>
+    </div>
+  }
+
+  <div class="progress-track" [style.height]="height()">
+    <div
+      class="progress-fill"
+      [class.progress-fill--success]="status() === 'success'"
+      [class.progress-fill--warning]="status() === 'warning'"
+      [class.progress-fill--danger]="status() === 'danger'"
+      [style.width.%]="percentage()"
+    ></div>
+  </div>
+</div>

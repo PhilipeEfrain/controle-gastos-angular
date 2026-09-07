@@ -1,0 +1,57 @@
+@use 'abstracts' as *;
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+.progress-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  width: 100%;
+}
+
+.progress-header {
+  @include flex-between;
+  font-size: var(--font-size-xs);
+
+  &__label {
+    color: var(--text-secondary);
+    font-weight: var(--font-weight-medium);
+  }
+
+  &__percent {
+    font-family: var(--font-family-mono);
+    font-weight: var(--font-weight-semibold);
+  }
+}
+
+.progress-track {
+  width: 100%;
+  background-color: var(--bg-surface-elevated);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &--success {
+    background: linear-gradient(90deg, #059669 0%, #10b981 100%);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+  }
+
+  &--warning {
+    background: linear-gradient(90deg, #d97706 0%, #f59e0b 100%);
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+  }
+
+  &--danger {
+    background: linear-gradient(90deg, #dc2626 0%, #ef4444 100%);
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+  }
+}

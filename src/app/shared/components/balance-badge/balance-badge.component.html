@@ -1,0 +1,13 @@
+<span
+  class="balance-badge"
+  [class.balance-badge--positive]="isPositive()"
+  [class.balance-badge--negative]="!isPositive()"
+  [class.balance-badge--sm]="size() === 'sm'"
+  [class.balance-badge--md]="size() === 'md'"
+  [class.balance-badge--lg]="size() === 'lg'"
+>
+  @if (label()) {
+    <span class="balance-badge__label">{{ label() }}:</span>
+  }
+  <span class="balance-badge__value">{{ formattedValue() }}</span>
+</span>
