@@ -1,20 +1,24 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { App } from './app.component';
 import { AuthStore } from './core/state/auth.store';
 import { AuthService } from './core/services/auth.service';
 import { NotificationService } from './core/services/notification.service';
-import { signal } from '@angular/core';
+import { signal, WritableSignal } from '@angular/core';
 
 describe('App', () => {
   let mockAuthStore: Partial<AuthStore>;
   let mockAuthService: Partial<AuthService>;
   let mockNotificationService: Partial<NotificationService>;
+  let isAuthenticatedSignal: WritableSignal<boolean>;
+  let router: Router;
 
   beforeEach(async () => {
+    isAuthenticatedSignal = signal(false);
+
     mockAuthStore = {
       currentUser: signal(null),
-      isAuthenticated: signal(false),
+      isAuthenticated: isAuthenticatedSignal,
       logout: vi.fn().mockResolvedValue(undefined)
     };
 
@@ -33,17 +37,48 @@ describe('App', () => {
     await TestBed.configureTestingModule({
       imports: [App],
       providers: [
-        provideRouter([]),
+        provideRouter([
+          { path: 'auth', children: [] },
+          { path: 'dashboard', children: [] }
+        ]),
         { provide: AuthStore, useValue: mockAuthStore },
         { provide: AuthService, useValue: mockAuthService },
         { provide: NotificationService, useValue: mockNotificationService }
       ]
     }).compileComponents();
+
+    router = TestBed.inject(Router);
   });
 
   it('deve criar a casca principal da aplicação (App Shell)', () => {
     const fixture = TestBed.createComponent(App);
     const app = fixture.componentInstance;
     expect(app).toBeTruthy();
+  });
+
+  it('não deve exibir a Navbar quando o usuário não estiver autenticado', () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+    expect(app.showNavbar()).toBe(false);
+  });
+
+  it('não deve exibir a Navbar quando estiver na rota /auth mesmo se autenticado', async () => {
+    isAuthenticatedSignal.set(true);
+    await router.navigate(['/auth']);
+
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+
+    expect(app.showNavbar()).toBe(false);
+  });
+
+  it('deve exibir a Navbar quando autenticado e navegando para /dashboard', async () => {
+    isAuthenticatedSignal.set(true);
+    await router.navigate(['/dashboard']);
+
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+
+    expect(app.showNavbar()).toBe(true);
   });
 });

@@ -1,9 +1,9 @@
 <div class="app-shell">
-  @if (isAuthenticated()) {
+  @if (showNavbar()) {
     <app-navbar />
   }
 
-  <main class="main-content" [class.authenticated-layout]="isAuthenticated()">
+  <main class="main-content" [class.authenticated-layout]="showNavbar()">
     <router-outlet />
   </main>
 
