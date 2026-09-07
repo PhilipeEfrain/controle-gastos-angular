@@ -1,0 +1,117 @@
+<div
+  class="expense-row"
+  [class.is-paid]="expense().status_pagamento"
+  data-testid="expense-row"
+>
+  <!-- Checkbox de Quitação -->
+  <button
+    type="button"
+    class="pay-checkbox"
+    [class.checked]="expense().status_pagamento"
+    (click)="onCheckboxClick($event)"
+    [attr.aria-label]="expense().status_pagamento ? 'Marcar como não pago' : 'Marcar como pago'"
+    title="Alternar quitação"
+  >
+    @if (expense().status_pagamento) {
+      <svg class="check-icon" viewBox="0 0 20 20" fill="currentColor">
+        <path
+          fill-rule="evenodd"
+          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+          clip-rule="evenodd"
+        />
+      </svg>
+    }
+  </button>
+
+  <!-- Informações da Despesa -->
+  <div class="expense-details">
+    <div class="expense-header-line">
+      <span class="expense-desc" [title]="expense().descricao">
+        {{ expense().descricao }}
+      </span>
+
+      @if (expense().total_parcelas && expense().total_parcelas! > 1) {
+        <span class="installment-badge">
+          {{ expense().parcela_atual }}/{{ expense().total_parcelas }}
+        </span>
+      }
+    </div>
+
+    <div class="expense-meta-line">
+      @if (expense().categoria) {
+        <span class="category-chip">{{ expense().categoria }}</span>
+      }
+
+      @if (expense().data_vencimento) {
+        <span class="due-date">Venc: {{ expense().data_vencimento }}</span>
+      }
+
+      <!-- Comprovante Badge / Ação -->
+      @if (expense().codigo_comprovante) {
+        <button
+          type="button"
+          class="receipt-badge"
+          (click)="onReceiptClick($event)"
+          [title]="'Comprovante: ' + expense().codigo_comprovante"
+        >
+          <svg class="receipt-icon" viewBox="0 0 20 20" fill="currentColor">
+            <path
+              fill-rule="evenodd"
+              d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <span class="receipt-text">{{ expense().codigo_comprovante }}</span>
+        </button>
+      } @else {
+        <button
+          type="button"
+          class="add-receipt-btn"
+          (click)="onReceiptClick($event)"
+          title="Adicionar código de comprovante"
+        >
+          + Comprovante
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Valor e Ações -->
+  <div class="expense-right-panel">
+    <span class="expense-amount" [class.is-paid-amount]="expense().status_pagamento">
+      {{ formattedAmount }}
+    </span>
+
+    <div class="actions-group">
+      <button
+        type="button"
+        class="action-btn edit-btn"
+        (click)="onEditClick($event)"
+        title="Editar despesa"
+        aria-label="Editar despesa"
+      >
+        <svg viewBox="0 0 20 20" fill="currentColor">
+          <path
+            d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"
+          />
+        </svg>
+      </button>
+
+      <button
+        type="button"
+        class="action-btn delete-btn"
+        (click)="onDeleteClick($event)"
+        title="Excluir despesa"
+        aria-label="Excluir despesa"
+      >
+        <svg viewBox="0 0 20 20" fill="currentColor">
+          <path
+            fill-rule="evenodd"
+            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+            clip-rule="evenodd"
+          />
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
