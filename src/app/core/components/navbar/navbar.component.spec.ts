@@ -8,12 +8,19 @@ import { PwaService } from '../../services/pwa.service';
 import { UserProfile } from '../../models/user.model';
 import { signal, WritableSignal } from '@angular/core';
 
+import { ThemeService } from '../../services/theme.service';
+
 describe('NavbarComponent', () => {
   let component: NavbarComponent;
   let fixture: ComponentFixture<NavbarComponent>;
   let mockAuthStore: Partial<AuthStore>;
   let mockAuthService: Partial<AuthService>;
   let mockNotificationService: Partial<NotificationService>;
+  let mockThemeService: {
+    currentTheme: WritableSignal<'dark' | 'light'>;
+    isDark: WritableSignal<boolean>;
+    toggleTheme: ReturnType<typeof vi.fn>;
+  };
   let mockPwaService: {
     isOnline: WritableSignal<boolean>;
     canInstall: WritableSignal<boolean>;
@@ -47,6 +54,12 @@ describe('NavbarComponent', () => {
       success: vi.fn()
     };
 
+    mockThemeService = {
+      currentTheme: signal<'dark' | 'light'>('dark'),
+      isDark: signal<boolean>(true),
+      toggleTheme: vi.fn()
+    };
+
     mockPwaService = {
       isOnline: signal(true),
       canInstall: signal(false),
@@ -60,6 +73,7 @@ describe('NavbarComponent', () => {
         { provide: AuthStore, useValue: mockAuthStore },
         { provide: AuthService, useValue: mockAuthService },
         { provide: NotificationService, useValue: mockNotificationService },
+        { provide: ThemeService, useValue: mockThemeService },
         { provide: PwaService, useValue: mockPwaService }
       ]
     }).compileComponents();
@@ -111,5 +125,10 @@ describe('NavbarComponent', () => {
 
     await component.installPwa();
     expect(mockPwaService.installApp).toHaveBeenCalled();
+  });
+
+  it('deve chamar toggleTheme ao clicar no botão de tema', () => {
+    component.toggleTheme();
+    expect(mockThemeService.toggleTheme).toHaveBeenCalled();
   });
 });

@@ -77,6 +77,36 @@
 
     <!-- User Profile & Actions -->
     <div class="header-actions">
+      <!-- Alternador de Tema Dark/Light -->
+      <button
+        type="button"
+        class="btn-theme-toggle"
+        (click)="toggleTheme()"
+        [title]="isDark() ? 'Alternar para tema claro' : 'Alternar para tema escuro'"
+        [attr.aria-label]="isDark() ? 'Alternar para tema claro' : 'Alternar para tema escuro'"
+        id="btn-navbar-theme"
+      >
+        @if (isDark()) {
+          <!-- Ícone Sol para modo Claro -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon">
+            <circle cx="12" cy="12" r="5" />
+            <line x1="12" y1="1" x2="12" y2="3" />
+            <line x1="12" y1="21" x2="12" y2="23" />
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+            <line x1="1" y1="12" x2="3" y2="12" />
+            <line x1="21" y1="12" x2="23" y2="12" />
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+          </svg>
+        } @else {
+          <!-- Ícone Lua para modo Escuro -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+        }
+      </button>
+
       @if (!isOnline()) {
         <div class="offline-status-badge" title="Você está desconectado. Modo offline ativo com sincronização automática.">
           <span class="offline-dot"></span>
@@ -218,6 +248,32 @@
           </svg>
           <span>Configurações</span>
         </a>
+
+        <button
+          type="button"
+          class="mobile-nav-link mobile-theme-btn"
+          (click)="toggleTheme(); closeMobileMenu()"
+        >
+          @if (isDark()) {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="nav-icon">
+              <circle cx="12" cy="12" r="5" />
+              <line x1="12" y1="1" x2="12" y2="3" />
+              <line x1="12" y1="21" x2="12" y2="23" />
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+              <line x1="1" y1="12" x2="3" y2="12" />
+              <line x1="21" y1="12" x2="23" y2="12" />
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+            </svg>
+            <span>Alternar para Modo Claro</span>
+          } @else {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="nav-icon">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+            <span>Alternar para Modo Escuro</span>
+          }
+        </button>
 
         @if (canInstall()) {
           <button

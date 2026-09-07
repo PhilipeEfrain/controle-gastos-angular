@@ -11,6 +11,7 @@ import { AuthStore } from '../../state/auth.store';
 import { AuthService } from '../../services/auth.service';
 import { NotificationService } from '../../services/notification.service';
 import { PwaService } from '../../services/pwa.service';
+import { ThemeService } from '../../services/theme.service';
 import { BrandLogoComponent } from '../../../shared/components/brand-logo/brand-logo.component';
 
 @Component({
@@ -27,6 +28,7 @@ export class NavbarComponent {
   private router = inject(Router);
   private notificationService = inject(NotificationService);
   private pwaService = inject(PwaService);
+  readonly themeService = inject(ThemeService);
 
   readonly isMobileMenuOpen = signal<boolean>(false);
   readonly isLoggingOut = signal<boolean>(false);
@@ -35,6 +37,11 @@ export class NavbarComponent {
   readonly isAuthenticated = this.authStore.isAuthenticated;
   readonly isOnline = this.pwaService.isOnline;
   readonly canInstall = this.pwaService.canInstall;
+  readonly isDark = this.themeService.isDark;
+
+  toggleTheme(): void {
+    this.themeService.toggleTheme();
+  }
 
   async installPwa(): Promise<void> {
     await this.pwaService.installApp();
