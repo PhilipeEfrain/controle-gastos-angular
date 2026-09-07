@@ -1,0 +1,37 @@
+@if (shouldShowAlert()) {
+  <div
+    class="deficit-banner"
+    [class.deficit-banner--critical]="isCritical()"
+    [class.deficit-banner--warning]="!isCritical()"
+  >
+    <div class="deficit-banner__icon">
+      @if (isCritical()) {
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+      } @else {
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+          <line x1="12" y1="9" x2="12" y2="13" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
+      }
+    </div>
+
+    <div class="deficit-banner__content">
+      @if (isCritical()) {
+        <strong class="deficit-banner__title">Atenção: Déficit Orçamentário no Mês</strong>
+        <p class="deficit-banner__message">
+          O saldo total do ciclo está negativo em <strong>-{{ formattedSaldoFinal() }}</strong>. As rendas somadas não cobrem o total de gastos projetados.
+        </p>
+      } @else {
+        <strong class="deficit-banner__title">Compensação de Fluxo Quinzenal</strong>
+        <p class="deficit-banner__message">
+          A Quinzena 2 fecha com déficit de <strong>-{{ formattedSaldoQ2() }}</strong>, mas a sobra da Quinzena 1 (<strong>{{ formattedSaldoQ1() }}</strong>) é suficiente para cobrir o período.
+        </p>
+      }
+    </div>
+  </div>
+}
