@@ -63,6 +63,21 @@
           </button>
         </div>
 
+        <!-- Botão Rendas do Mês -->
+        <button
+          type="button"
+          class="income-btn"
+          (click)="openIncomeModal()"
+          title="Configurar Rendas Q1 e Q2"
+        >
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path
+              d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"
+            />
+          </svg>
+          <span>Rendas</span>
+        </button>
+
         <!-- Botão Logout -->
         <button
           type="button"
@@ -168,11 +183,12 @@
         [summary]="financeStore.balanceSummary().q1"
         [expenses]="financeStore.q1Expenses()"
         [isLoading]="financeStore.isLoading()"
-        (addExpense)="onAddExpenseQuick($event)"
-        (editIncome)="onEditIncomeQuick($event)"
+        (addExpense)="openNewExpenseModal(1)"
+        (editIncome)="openIncomeModal()"
         (togglePaid)="onTogglePaid($event)"
+        (editExpense)="openEditExpenseModal($event)"
         (deleteExpense)="onDeleteExpense($event)"
-        (updateReceipt)="onUpdateReceiptQuick($event)"
+        (updateReceipt)="openReceiptModal($event)"
       />
 
       <!-- Quinzena 2: Renda do Dia 15 -->
@@ -181,12 +197,42 @@
         [summary]="financeStore.balanceSummary().q2"
         [expenses]="financeStore.q2Expenses()"
         [isLoading]="financeStore.isLoading()"
-        (addExpense)="onAddExpenseQuick($event)"
-        (editIncome)="onEditIncomeQuick($event)"
+        (addExpense)="openNewExpenseModal(2)"
+        (editIncome)="openIncomeModal()"
         (togglePaid)="onTogglePaid($event)"
+        (editExpense)="openEditExpenseModal($event)"
         (deleteExpense)="onDeleteExpense($event)"
-        (updateReceipt)="onUpdateReceiptQuick($event)"
+        (updateReceipt)="openReceiptModal($event)"
       />
     </section>
   </div>
 </div>
+
+<!-- Modal: Adicionar / Editar Despesa (Simples ou Parcelada) -->
+<app-expense-form-modal
+  [isOpen]="isExpenseModalOpen()"
+  [quinzena]="expenseModalQuinzena()"
+  [expenseToEdit]="expenseToEdit()"
+  [mesAno]="financeStore.selectedMonth()"
+  (close)="isExpenseModalOpen.set(false)"
+  (saved)="onExpenseSaved()"
+/>
+
+<!-- Modal: Configurar Rendas Q1 e Q2 -->
+<app-income-form-modal
+  [isOpen]="isIncomeModalOpen()"
+  [mesAno]="financeStore.selectedMonth()"
+  [currentQ1]="financeStore.currentCycle()?.renda_quinzena_1 ?? 0"
+  [currentQ2]="financeStore.currentCycle()?.renda_quinzena_2 ?? 0"
+  (close)="isIncomeModalOpen.set(false)"
+  (saved)="onIncomeSaved()"
+/>
+
+<!-- Modal: Vincular Código de Comprovante -->
+<app-receipt-modal
+  [isOpen]="isReceiptModalOpen()"
+  [expense]="selectedExpenseForReceipt()"
+  [mesAno]="financeStore.selectedMonth()"
+  (close)="isReceiptModalOpen.set(false)"
+  (saved)="onReceiptSaved()"
+/>

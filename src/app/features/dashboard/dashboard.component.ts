@@ -21,6 +21,9 @@ import { AppCardComponent } from '../../shared/components/app-card/app-card.comp
 import { BalanceBadgeComponent } from '../../shared/components/balance-badge/balance-badge.component';
 import { DeficitAlertBannerComponent } from '../../shared/components/deficit-alert-banner/deficit-alert-banner.component';
 import { FortnightCardComponent } from './components/fortnight-card/fortnight-card.component';
+import { ExpenseFormModalComponent } from './components/expense-form-modal/expense-form-modal.component';
+import { IncomeFormModalComponent } from './components/income-form-modal/income-form-modal.component';
+import { ReceiptModalComponent } from './components/receipt-modal/receipt-modal.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -30,7 +33,10 @@ import { FortnightCardComponent } from './components/fortnight-card/fortnight-ca
     AppCardComponent,
     BalanceBadgeComponent,
     DeficitAlertBannerComponent,
-    FortnightCardComponent
+    FortnightCardComponent,
+    ExpenseFormModalComponent,
+    IncomeFormModalComponent,
+    ReceiptModalComponent
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
@@ -45,6 +51,16 @@ export class DashboardComponent implements OnInit {
 
   // Status visual para feedback temporário
   readonly actionMessage = signal<string | null>(null);
+
+  // Estados dos Modais
+  readonly isExpenseModalOpen = signal<boolean>(false);
+  readonly expenseModalQuinzena = signal<FortnightNumber>(1);
+  readonly expenseToEdit = signal<Expense | null>(null);
+
+  readonly isIncomeModalOpen = signal<boolean>(false);
+
+  readonly isReceiptModalOpen = signal<boolean>(false);
+  readonly selectedExpenseForReceipt = signal<Expense | null>(null);
 
   // Formatações computadas para os Top Cards
   readonly formattedTotalRenda = computed(() =>
@@ -110,7 +126,46 @@ export class DashboardComponent implements OnInit {
     this.financeStore.setSelectedMonth(month, user?.uid);
   }
 
-  // Ações de Despesas
+  // Abertura de Modais
+  openNewExpenseModal(quinzena: FortnightNumber): void {
+    this.expenseModalQuinzena.set(quinzena);
+    this.expenseToEdit.set(null);
+    this.isExpenseModalOpen.set(true);
+  }
+
+  openEditExpenseModal(expense: Expense): void {
+    this.expenseModalQuinzena.set(expense.quinzena);
+    this.expenseToEdit.set(expense);
+    this.isExpenseModalOpen.set(true);
+  }
+
+  openIncomeModal(): void {
+    this.isIncomeModalOpen.set(true);
+  }
+
+  openReceiptModal(expense: Expense): void {
+    this.selectedExpenseForReceipt.set(expense);
+    this.isReceiptModalOpen.set(true);
+  }
+
+  onExpenseSaved(): void {
+    this.showFeedback('Despesa registrada com sucesso!');
+  }
+
+  onIncomeSaved(): void {
+    this.showFeedback('Rendas atualizadas com sucesso!');
+  }
+
+  onReceiptSaved(): void {
+    this.showFeedback('Comprovante bancário vinculado!');
+  }
+
+  private showFeedback(msg: string): void {
+    this.actionMessage.set(msg);
+    setTimeout(() => this.actionMessage.set(null), 3000);
+  }
+
+  // Ações Diretas de Despesas
   async onTogglePaid(expense: Expense): Promise<void> {
     const user = this.authStore.currentUser();
     if (!user || !expense.id) return;
@@ -140,101 +195,9 @@ export class DashboardComponent implements OnInit {
         this.financeStore.selectedMonth(),
         expense.id
       );
-      this.actionMessage.set(`Despesa "${expense.descricao}" excluída com sucesso.`);
-      setTimeout(() => this.actionMessage.set(null), 3000);
+      this.showFeedback(`Despesa "${expense.descricao}" excluída com sucesso.`);
     } catch (err: any) {
       this.actionMessage.set('Erro ao excluir despesa: ' + err.message);
-    }
-  }
-
-  async onAddExpenseQuick(quinzena: FortnightNumber): Promise<void> {
-    const user = this.authStore.currentUser();
-    if (!user) return;
-
-    const descricao = window.prompt(`[Quinzena ${quinzena}] Descrição da despesa:`);
-    if (!descricao || !descricao.trim()) return;
-
-    const valorStr = window.prompt('Valor da despesa em R$ (ex: 150,00):');
-    if (!valorStr) return;
-
-    const valor = parseFloat(valorStr.replace('.', '').replace(',', '.'));
-    if (isNaN(valor) || valor <= 0) {
-      alert('Valor inválido!');
-      return;
-    }
-
-    const categoria = window.prompt('Categoria (ex: Alimentação, Moradia, Transporte):') || 'Geral';
-
-    try {
-      await this.expenseService.addExpense(user.uid, this.financeStore.selectedMonth(), {
-        descricao: descricao.trim(),
-        valor,
-        quinzena,
-        categoria: categoria.trim(),
-        status_pagamento: false
-      });
-      this.actionMessage.set('Despesa adicionada com sucesso!');
-      setTimeout(() => this.actionMessage.set(null), 3000);
-    } catch (err: any) {
-      this.actionMessage.set('Erro ao criar despesa: ' + err.message);
-    }
-  }
-
-  async onEditIncomeQuick(quinzena: FortnightNumber): Promise<void> {
-    const user = this.authStore.currentUser();
-    if (!user) return;
-
-    const cycle = this.financeStore.currentCycle();
-    const currentQ1 = cycle?.renda_quinzena_1 ?? 0;
-    const currentQ2 = cycle?.renda_quinzena_2 ?? 0;
-
-    const valorStr = window.prompt(
-      `Definir Renda da Quinzena ${quinzena} (${quinzena === 1 ? 'Dia 31' : 'Dia 15'}) em R$:`,
-      (quinzena === 1 ? currentQ1 : currentQ2).toString()
-    );
-
-    if (valorStr === null) return;
-
-    const valor = parseFloat(valorStr.replace('.', '').replace(',', '.'));
-    if (isNaN(valor) || valor < 0) {
-      alert('Valor de renda inválido!');
-      return;
-    }
-
-    try {
-      const newQ1 = quinzena === 1 ? valor : currentQ1;
-      const newQ2 = quinzena === 2 ? valor : currentQ2;
-
-      await this.cycleService.saveIncome(user.uid, this.financeStore.selectedMonth(), newQ1, newQ2);
-      this.actionMessage.set(`Renda da Quinzena ${quinzena} atualizada!`);
-      setTimeout(() => this.actionMessage.set(null), 3000);
-    } catch (err: any) {
-      this.actionMessage.set('Erro ao atualizar renda: ' + err.message);
-    }
-  }
-
-  async onUpdateReceiptQuick(expense: Expense): Promise<void> {
-    const user = this.authStore.currentUser();
-    if (!user || !expense.id) return;
-
-    const codigo = window.prompt(
-      `Código de comprovante para "${expense.descricao}":`,
-      expense.codigo_comprovante || ''
-    );
-
-    if (codigo === null) return;
-
-    try {
-      await this.expenseService.updateReceiptCode(
-        user.uid,
-        this.financeStore.selectedMonth(),
-        expense.id,
-        codigo
-      );
-      this.actionMessage.set('Comprovante atualizado!');
-      setTimeout(() => this.actionMessage.set(null), 3000);
-    } catch (err: any) {
-      this.actionMessage.set('Erro ao salvar comprovante: ' + err.message);
     }
   }
 

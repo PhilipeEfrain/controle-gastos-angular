@@ -1,0 +1,88 @@
+@if (isOpen()) {
+  <div class="modal-backdrop" (click)="onClose()">
+    <div
+      class="modal-container"
+      (click)="$event.stopPropagation()"
+      role="dialog"
+      aria-modal="true"
+    >
+      <!-- Header -->
+      <div class="modal-header">
+        <div class="header-titles">
+          <h3 class="modal-title">Código de Comprovante</h3>
+          <p class="modal-subtitle">Vincule a autenticação do pagamento da despesa</p>
+        </div>
+
+        <button
+          type="button"
+          class="close-btn"
+          (click)="onClose()"
+          aria-label="Fechar"
+        >
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path
+              fill-rule="evenodd"
+              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Detalhes da despesa -->
+      @if (expenseDetails; as details) {
+        <div class="expense-summary-box">
+          <span class="exp-title">{{ details.descricao }}</span>
+          <strong class="exp-amount">{{ details.valorFormatted }}</strong>
+        </div>
+      }
+
+      @if (errorMessage()) {
+        <div class="form-alert-danger">
+          {{ errorMessage() }}
+        </div>
+      }
+
+      <!-- Form Body -->
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="modal-form">
+        <div class="form-group">
+          <label class="form-label" for="codigoComprovante">
+            Código / Autenticação Bancária
+          </label>
+          <input
+            id="codigoComprovante"
+            type="text"
+            formControlName="codigoComprovante"
+            class="form-input"
+            placeholder="Ex: DOC. 9847294, PIX-E92837498"
+          />
+        </div>
+
+        <!-- Actions -->
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn-cancel"
+            (click)="onClose()"
+            [disabled]="isLoading()"
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            class="btn-submit"
+            [disabled]="isLoading()"
+          >
+            @if (isLoading()) {
+              <span class="spinner"></span>
+              <span>Salvando...</span>
+            } @else {
+              <span>Salvar Comprovante</span>
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
