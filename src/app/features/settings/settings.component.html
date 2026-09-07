@@ -142,9 +142,9 @@
                 <p class="section-desc">Personalize a aparência do aplicativo para o modo escuro ou claro</p>
               </div>
 
-              <!-- Seletor de Tema com Cards Interativos -->
+              <!-- Seletor de Tema com Cards Interativos (3 Opções) -->
               <div class="theme-selection-grid">
-                <!-- Tema Escuro -->
+                <!-- Tema Escuro Quinzena (Verde Orgânico) -->
                 <button
                   type="button"
                   class="theme-card"
@@ -164,16 +164,45 @@
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
                       </svg>
-                      <span class="theme-name">Modo Escuro (Padrão)</span>
+                      <span class="theme-name">Escuro Quinzena</span>
                     </div>
-                    <p class="theme-desc">Interface moderna em tons escuros com alto conforto visual.</p>
+                    <p class="theme-desc">Superfície orgânica Tinta (#17211C) com acentos em Verde Ciclo e Menta Fluxo.</p>
                   </div>
                   @if (themeService.currentTheme() === 'dark') {
                     <span class="active-badge">Ativo</span>
                   }
                 </button>
 
-                <!-- Tema Claro -->
+                <!-- Tema Escuro Azul Noturno (Cores Originais) -->
+                <button
+                  type="button"
+                  class="theme-card"
+                  [class.active]="themeService.currentTheme() === 'dark-blue'"
+                  (click)="onThemeSelect('dark-blue')"
+                  id="theme-dark-blue-btn"
+                >
+                  <div class="theme-preview dark-blue-preview">
+                    <div class="preview-header"></div>
+                    <div class="preview-body">
+                      <div class="preview-line"></div>
+                      <div class="preview-box"></div>
+                    </div>
+                  </div>
+                  <div class="theme-info">
+                    <div class="theme-title-row">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                      </svg>
+                      <span class="theme-name">Escuro Azul (Original)</span>
+                    </div>
+                    <p class="theme-desc">Paleta original com Slate Noturno (#0B0F17) e destaques em Azul Oceânico e Emerald.</p>
+                  </div>
+                  @if (themeService.currentTheme() === 'dark-blue') {
+                    <span class="active-badge">Ativo</span>
+                  }
+                </button>
+
+                <!-- Tema Claro (Areia Calma) -->
                 <button
                   type="button"
                   class="theme-card"
@@ -195,7 +224,7 @@
                       </svg>
                       <span class="theme-name">Modo Claro</span>
                     </div>
-                    <p class="theme-desc">Interface limpa e iluminada com alta legibilidade em ambientes claros.</p>
+                    <p class="theme-desc">Interface serena e iluminada em Areia Calma (#F5F2E9) com tipografia Tinta.</p>
                   </div>
                   @if (themeService.currentTheme() === 'light') {
                     <span class="active-badge">Ativo</span>

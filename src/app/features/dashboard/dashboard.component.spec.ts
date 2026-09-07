@@ -127,11 +127,12 @@ describe('DashboardComponent', () => {
 
   it('deve renderizar o título, seletor de mês e os 4 summary cards', () => {
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.textContent).toContain('Controle Financeiro');
+    expect(compiled.textContent).toContain('Quinzena');
+    expect(compiled.textContent).toContain('Saiba quanto entra, quanto sai e quanto sobra.');
     expect(compiled.textContent).toContain('Março de 2025');
     expect(compiled.textContent).toContain('5.000,00');
     expect(compiled.textContent).toContain('4.800,00');
-    expect(compiled.textContent).toContain('Superavitário');
+    expect(compiled.textContent).toContain('Seu mês em equilíbrio');
   });
 
   it('deve abrir e fechar o modal de nova despesa', () => {

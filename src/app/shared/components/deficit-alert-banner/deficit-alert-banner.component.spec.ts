@@ -32,7 +32,7 @@ describe('DeficitAlertBannerComponent', () => {
     const banner = fixture.nativeElement.querySelector('.deficit-banner');
     expect(banner).toBeTruthy();
     expect(banner.classList.contains('deficit-banner--warning')).toBe(true);
-    expect(banner.textContent).toContain('Compensação de Fluxo Quinzenal');
+    expect(banner.textContent).toContain('Tudo certo: sua próxima quinzena está coberta.');
   });
 
   it('Cenário BDD: deve renderizar banner crítico em carmim quando houver déficit global', () => {

@@ -118,7 +118,7 @@ describe('SettingsComponent', () => {
     });
   });
 
-  describe('Cenário BDD: Alternância de tema Dark/Light', () => {
+  describe('Cenário BDD: Alternância de tema Dark/Light/Dark-Blue', () => {
     it('deve selecionar tema claro e sincronizar no ThemeService e Firestore', () => {
       component.onThemeSelect('light');
 
@@ -126,7 +126,17 @@ describe('SettingsComponent', () => {
       expect(mockAuthService.updateProfileData).toHaveBeenCalledWith('usr-999', {
         preferences: { theme: 'light', currency: 'BRL' }
       });
-      expect(mockNotificationService.info).toHaveBeenCalledWith('Tema alterado para Claro.');
+      expect(mockNotificationService.info).toHaveBeenCalledWith('Tema alterado para Modo Claro.');
+    });
+
+    it('deve selecionar tema Escuro Azul e sincronizar no ThemeService e Firestore', () => {
+      component.onThemeSelect('dark-blue');
+
+      expect(mockThemeService.setTheme).toHaveBeenCalledWith('dark-blue');
+      expect(mockAuthService.updateProfileData).toHaveBeenCalledWith('usr-999', {
+        preferences: { theme: 'dark-blue', currency: 'BRL' }
+      });
+      expect(mockNotificationService.info).toHaveBeenCalledWith('Tema alterado para Escuro Azul (Original).');
     });
   });
 

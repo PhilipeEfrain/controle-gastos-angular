@@ -78,6 +78,7 @@
 | `ProgressBarComponent` | `app-progress-bar` | Barra de progresso visual demonstrando percentual gasto em relação à renda prevista. |
 | `ToastContainerComponent` | `app-toast-container` | Contêiner flutuante com animações para renderização de alertas Toast. |
 | `ConfirmationModalComponent` | `app-confirmation-modal` | Modal de confirmação reutilizável para exclusão ou ações irreversíveis. |
+| `BrandLogoComponent` | `app-brand-logo` | Componente de identidade visual que renderiza dinamicamente o símbolo oficial Quinzena (vetor Dark no tema claro e vetor White no tema escuro) com suporte a tamanhos e slogan. |
 
 ### B. Core & Navegação (`src/app/core/components/`)
 | Componente | Seletor | Descrição |

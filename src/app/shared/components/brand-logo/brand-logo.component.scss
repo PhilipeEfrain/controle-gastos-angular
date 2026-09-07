@@ -1,0 +1,104 @@
+@use 'abstracts' as *;
+
+.brand-logo-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  user-select: none;
+
+  .symbol-box {
+    @include flex-center;
+    flex-shrink: 0;
+    transition: transform $transition-fast;
+
+    .brand-symbol {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  .brand-text-block {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+
+    .brand-name {
+      font-family: var(--font-family-base);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--color-text-primary);
+    }
+
+    .brand-tagline {
+      font-size: 0.6875rem;
+      font-weight: 500;
+      color: var(--color-text-muted);
+      margin-top: 0.125rem;
+    }
+  }
+
+  // Tamanhos
+  &[data-size='sm'] {
+    gap: 0.5rem;
+
+    .symbol-box {
+      width: 1.75rem;
+      height: 1.75rem;
+    }
+
+    .brand-name {
+      font-size: 1.125rem;
+    }
+  }
+
+  &[data-size='md'] {
+    gap: 0.75rem;
+
+    .symbol-box {
+      width: 2.25rem;
+      height: 2.25rem;
+    }
+
+    .brand-name {
+      font-size: 1.375rem;
+    }
+  }
+
+  &[data-size='lg'] {
+    gap: 0.875rem;
+
+    .symbol-box {
+      width: 3.25rem;
+      height: 3.25rem;
+    }
+
+    .brand-name {
+      font-size: 1.75rem;
+    }
+  }
+
+  &[data-size='xl'] {
+    gap: 1.25rem;
+    flex-direction: column;
+    text-align: center;
+
+    .symbol-box {
+      width: 4.5rem;
+      height: 4.5rem;
+    }
+
+    .brand-name {
+      font-size: 2.25rem;
+    }
+
+    .brand-tagline {
+      font-size: $font-size-sm;
+    }
+  }
+
+  &:hover .symbol-box {
+    transform: scale(1.04) rotate(2deg);
+  }
+}

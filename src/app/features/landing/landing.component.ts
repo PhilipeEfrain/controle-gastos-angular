@@ -16,10 +16,12 @@ interface FaqItem {
   isOpen: boolean;
 }
 
+import { BrandLogoComponent } from '../../shared/components/brand-logo/brand-logo.component';
+
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, BrandLogoComponent],
   templateUrl: './landing.component.html',
   styleUrls: ['./landing.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -72,8 +74,8 @@ export class LandingComponent {
 
   readonly faqs = signal<FaqItem[]>([
     {
-      question: 'Por que o Quinzena organiza o orçamento em duas quinzenas?',
-      answer: 'Porque a maioria dos trabalhadores recebe renda fracionada (adiantamento no dia 15 e salário no dia 31). Apps tradicionais juntam tudo em um bloco mensal único, criando falsas impressões de sobra ou descompasso de caixa. O Quinzena sincroniza suas contas com os dias reais em que o dinheiro cai na conta.',
+      question: 'Quinzena organiza o orçamento somente em duas quinzenas?',
+      answer: 'Não! Embora o método central seja o controle em dois tempos (sincronizado com os dias 31 e 15), o aplicativo também suporta múltiplos regimes salariais (divisão 50/50, renda integral na 1ª ou 2ª quinzena), além de módulos independentes para tributos anuais, compras parceladas e rateio de viagens.',
       isOpen: false
     },
     {

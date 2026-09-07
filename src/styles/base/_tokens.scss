@@ -1,16 +1,33 @@
-// Design Tokens Globais: CSS Custom Properties Unificadas
+// Design Tokens Globais: Identidade Oficial Quinzena
 :root {
-  // Ações e Marca
-  --color-primary: #6366f1;
-  --color-primary-hover: #4f46e5;
-  --color-primary-light: rgba(99, 102, 241, 0.12);
+  // Paleta Oficial de Cores Quinzena
+  --brand-verde-ciclo: #173F35;
+  --brand-menta-fluxo: #A8E6CF;
+  --brand-lima-sinal: #D9F99D;
+  --brand-areia-calma: #F5F2E9;
+  --brand-tinta: #17211C;
 
-  // Finanças: Superávit / Entrada / Sucesso
-  --color-success: #10b981;
-  --color-success-hover: #059669;
-  --color-success-bg: rgba(16, 185, 129, 0.12);
-  --color-success-border: rgba(16, 185, 129, 0.28);
-  --color-success-light: #34d399;
+  // Ações e Marca (Dark Mode Padrão - Verde Quinzena)
+  --color-primary: #10b981;
+  --color-primary-hover: #059669;
+  --color-primary-light: #A8E6CF;
+  --color-primary-bg: rgba(168, 230, 207, 0.12);
+  --color-primary-border: rgba(168, 230, 207, 0.35);
+  --color-accent: #D9F99D;
+
+  // Botões de Destaque Primários (Dark Mode)
+  --btn-primary-bg: linear-gradient(135deg, #173F35 0%, #1a5446 60%, #10b981 100%);
+  --btn-primary-hover-bg: linear-gradient(135deg, #1f4f43 0%, #216a58 60%, #34d399 100%);
+  --btn-primary-text: #F5F2E9;
+  --btn-primary-border: rgba(168, 230, 207, 0.4);
+  --btn-primary-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+
+  // Finanças: Superávit / Entrada / Sucesso (Menta Fluxo / Lima Sinal)
+  --color-success: #34d399;
+  --color-success-hover: #A8E6CF;
+  --color-success-bg: rgba(168, 230, 207, 0.12);
+  --color-success-border: rgba(168, 230, 207, 0.3);
+  --color-success-light: #D9F99D;
 
   // Finanças: Déficit / Saída / Alerta
   --color-danger: #ef4444;
@@ -25,11 +42,11 @@
   --color-warning-bg: rgba(245, 158, 11, 0.12);
   --color-warning-border: rgba(245, 158, 11, 0.28);
 
-  // Superfícies & Backgrounds (Dark Mode Padrão)
-  --bg-app: #0b0f19;
-  --bg-surface: #111827;
-  --bg-surface-elevated: #1f2937;
-  --bg-surface-hover: #1e293b;
+  // Superfícies & Backgrounds (Dark Mode - Base Tinta Orgânica)
+  --bg-app: #0e1512;
+  --bg-surface: #17211c;
+  --bg-surface-elevated: #1f2e27;
+  --bg-surface-hover: #273a32;
 
   --color-background: var(--bg-app);
   --color-surface: var(--bg-surface);
@@ -37,26 +54,26 @@
   --color-surface-hover: var(--bg-surface-hover);
 
   // Bordas e Divisores
-  --border-color: rgba(255, 255, 255, 0.08);
-  --border-color-focus: rgba(99, 102, 241, 0.5);
+  --border-color: rgba(245, 242, 233, 0.09);
+  --border-color-focus: rgba(217, 249, 157, 0.5);
 
   --color-border: var(--border-color);
   --color-border-focus: var(--border-color-focus);
 
-  // Tipografia
-  --text-primary: #f9fafb;
-  --text-secondary: #9ca3af;
-  --text-muted: #6b7280;
+  // Tipografia (Areia Calma no Dark)
+  --text-primary: #f5f2e9;
+  --text-secondary: #a0b0a8;
+  --text-muted: #6b7c72;
 
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
   --color-text-muted: var(--text-muted);
 
-  // Glassmorphism
-  --glass-bg: rgba(17, 24, 39, 0.75);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-blur: blur(12px);
-  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  // Glassmorphism Dark
+  --glass-bg: rgba(23, 33, 28, 0.8);
+  --glass-border: rgba(245, 242, 233, 0.08);
+  --glass-blur: blur(14px);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
 
   // Border Radius
   --radius-sm: 0.375rem;   // 6px
@@ -72,16 +89,16 @@
   --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
 
   // Sombras
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.15);
-  --shadow-glow-success: 0 0 20px rgba(16, 185, 129, 0.25);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.15);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.25), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.35), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+  --shadow-glow-success: 0 0 20px rgba(168, 230, 207, 0.25);
   --shadow-glow-danger: 0 0 20px rgba(239, 68, 68, 0.25);
-  --shadow-glow-primary: 0 0 20px rgba(99, 102, 241, 0.25);
+  --shadow-glow-primary: 0 0 20px rgba(16, 185, 129, 0.25);
 
-  // Fontes
-  --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  --font-family-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  // Fontes: Manrope (Oficial)
+  --font-family-base: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-mono: 'JetBrains Mono', monospace;
 
   --font-size-xs: 0.75rem;    // 12px
   --font-size-sm: 0.875rem;   // 14px
@@ -99,13 +116,35 @@
   --font-weight-extrabold: 800;
 }
 
-// Light Mode Tokens
+// Light Mode Tokens: Areia Calma & Verde Ciclo
 [data-theme='light'] {
-  // Superfícies & Backgrounds
-  --bg-app: #f8fafc;
+  // Ações e Marca (Light Mode)
+  --color-primary: #173F35;
+  --color-primary-hover: #102d26;
+  --color-primary-light: #173F35;
+  --color-primary-bg: rgba(23, 63, 53, 0.08);
+  --color-primary-border: rgba(23, 63, 53, 0.25);
+  --color-accent: #D9F99D;
+
+  // Botões de Destaque Primários (Light Mode)
+  --btn-primary-bg: linear-gradient(135deg, #173F35 0%, #1d4d41 100%);
+  --btn-primary-hover-bg: linear-gradient(135deg, #102d26 0%, #173F35 100%);
+  --btn-primary-text: #FFFFFF;
+  --btn-primary-border: rgba(23, 63, 53, 0.3);
+  --btn-primary-shadow: 0 4px 12px rgba(23, 63, 53, 0.25);
+
+  // Finanças: Superávit / Entrada / Sucesso
+  --color-success: #173F35;
+  --color-success-hover: #1f4f43;
+  --color-success-bg: rgba(168, 230, 207, 0.35);
+  --color-success-border: rgba(23, 63, 53, 0.25);
+  --color-success-light: #2a6e5d;
+
+  // Superfícies & Backgrounds (Areia Calma)
+  --bg-app: #f5f2e9;
   --bg-surface: #ffffff;
-  --bg-surface-elevated: #f1f5f9;
-  --bg-surface-hover: #e2e8f0;
+  --bg-surface-elevated: #ede8dc;
+  --bg-surface-hover: #e4dec9;
 
   --color-background: var(--bg-app);
   --color-surface: var(--bg-surface);
@@ -113,29 +152,107 @@
   --color-surface-hover: var(--bg-surface-hover);
 
   // Bordas e Divisores
-  --border-color: rgba(0, 0, 0, 0.08);
-  --border-color-focus: rgba(99, 102, 241, 0.5);
+  --border-color: rgba(23, 33, 28, 0.12);
+  --border-color-focus: rgba(23, 63, 53, 0.4);
 
   --color-border: var(--border-color);
   --color-border-focus: var(--border-color-focus);
 
-  // Tipografia com alto contraste
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #64748b;
+  // Tipografia com alto contraste (Tinta)
+  --text-primary: #17211c;
+  --text-secondary: #3d4a42;
+  --text-muted: #6b7c72;
 
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
   --color-text-muted: var(--text-muted);
 
   // Glassmorphism Light
-  --glass-bg: rgba(255, 255, 255, 0.85);
-  --glass-border: rgba(0, 0, 0, 0.08);
-  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.08);
+  --glass-bg: rgba(255, 255, 255, 0.9);
+  --glass-border: rgba(23, 33, 28, 0.08);
+  --glass-shadow: 0 8px 32px 0 rgba(23, 33, 28, 0.08);
 
   // Sombras Light
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 2px 0 rgba(23, 33, 28, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(23, 33, 28, 0.08), 0 2px 4px -1px rgba(23, 33, 28, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(23, 33, 28, 0.1), 0 4px 6px -2px rgba(23, 33, 28, 0.05);
+}
+
+// Modo Escuro Azul Noturno (Cores Originais do Projeto: Slate & Azul)
+[data-theme='dark-blue'] {
+  // Ações e Marca (Azul / Emerald)
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+  --color-primary-light: #93c5fd;
+  --color-primary-bg: rgba(59, 130, 246, 0.12);
+  --color-primary-border: rgba(59, 130, 246, 0.35);
+  --color-accent: #38bdf8;
+
+  // Botões de Destaque Primários (Dark Blue)
+  --btn-primary-bg: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  --btn-primary-hover-bg: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  --btn-primary-text: #FFFFFF;
+  --btn-primary-border: rgba(59, 130, 246, 0.4);
+  --btn-primary-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+
+  // Finanças: Superávit / Entrada / Sucesso
+  --color-success: #10b981;
+  --color-success-hover: #34d399;
+  --color-success-bg: rgba(16, 185, 129, 0.12);
+  --color-success-border: rgba(16, 185, 129, 0.28);
+  --color-success-light: #6ee7b7;
+
+  // Finanças: Déficit / Saída / Alerta
+  --color-danger: #ef4444;
+  --color-danger-hover: #dc2626;
+  --color-danger-bg: rgba(239, 68, 68, 0.12);
+  --color-danger-border: rgba(239, 68, 68, 0.28);
+  --color-danger-light: #f87171;
+
+  // Finanças: Atenção
+  --color-warning: #f59e0b;
+  --color-warning-hover: #d97706;
+  --color-warning-bg: rgba(245, 158, 11, 0.12);
+  --color-warning-border: rgba(245, 158, 11, 0.28);
+
+  // Superfícies & Backgrounds (Azul Noturno / Slate)
+  --bg-app: #0b0f17;
+  --bg-surface: #131b2e;
+  --bg-surface-elevated: #1e293b;
+  --bg-surface-hover: #26354d;
+
+  --color-background: var(--bg-app);
+  --color-surface: var(--bg-surface);
+  --color-surface-elevated: var(--bg-surface-elevated);
+  --color-surface-hover: var(--bg-surface-hover);
+
+  // Bordas e Divisores
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-color-focus: rgba(59, 130, 246, 0.5);
+
+  --color-border: var(--border-color);
+  --color-border-focus: var(--border-color-focus);
+
+  // Tipografia (Slate Light)
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+
+  // Glassmorphism Blue Dark
+  --glass-bg: rgba(19, 27, 46, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-blur: blur(16px);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+
+  // Sombras
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.25);
+  --shadow-glow-primary: 0 0 20px rgba(59, 130, 246, 0.25);
+  --shadow-glow-success: 0 0 20px rgba(16, 185, 129, 0.25);
 }
 

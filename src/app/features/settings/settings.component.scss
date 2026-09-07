@@ -239,30 +239,43 @@
 .btn-primary {
   @include flex-center;
   gap: 0.5rem;
-  padding: 0.625rem 1.25rem;
+  padding: 0.625rem 1.375rem;
   border-radius: $radius-md;
-  border: none;
-  background-color: var(--color-primary);
-  color: #fff;
+  border: 1px solid var(--btn-primary-border, rgba(255, 255, 255, 0.15));
+  background: var(--btn-primary-bg, var(--color-primary));
+  color: var(--btn-primary-text, #fff);
   font-size: $font-size-sm;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 0.01em;
   cursor: pointer;
+  box-shadow: var(--btn-primary-shadow, 0 4px 12px rgba(0, 0, 0, 0.2));
   transition: all $transition-fast;
 
   svg {
     width: 1rem;
     height: 1rem;
+    transition: transform $transition-fast;
   }
 
   &:hover:not(:disabled) {
-    background-color: var(--color-primary-hover);
+    background: var(--btn-primary-hover-bg, var(--color-primary-hover));
     transform: translateY(-1px);
-    box-shadow: $shadow-md;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+
+    svg {
+      transform: scale(1.1);
+    }
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
   }
 
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
   }
 }
 
@@ -318,17 +331,24 @@
     }
 
     &.dark-preview {
-      background: #0b0f19;
-      .preview-header { background: #1f2937; }
-      .preview-line { background: #374151; }
-      .preview-box { background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.4); }
+      background: #0e1512;
+      .preview-header { background: #17211c; }
+      .preview-line { background: #273a32; }
+      .preview-box { background: rgba(168, 230, 207, 0.2); border: 1px solid rgba(168, 230, 207, 0.4); }
+    }
+
+    &.dark-blue-preview {
+      background: #0b0f17;
+      .preview-header { background: #131b2e; }
+      .preview-line { background: #1e293b; }
+      .preview-box { background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); }
     }
 
     &.light-preview {
-      background: #f8fafc;
-      .preview-header { background: #e2e8f0; }
-      .preview-line { background: #cbd5e1; }
-      .preview-box { background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); }
+      background: #f5f2e9;
+      .preview-header { background: #ffffff; }
+      .preview-line { background: #ede8dc; }
+      .preview-box { background: rgba(23, 63, 53, 0.15); border: 1px solid rgba(23, 63, 53, 0.3); }
     }
   }
 
