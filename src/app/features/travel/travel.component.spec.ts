@@ -155,11 +155,37 @@ describe('TravelComponent', () => {
       expect.objectContaining({
         id: 'd1',
         descricao: 'Airbnb Atualizado',
-        valor: 850
+        valor: 850,
+        dividir: true
       }),
       trip
     );
     expect(mockNotificationService.success).toHaveBeenCalledWith('Gasto atualizado com sucesso!');
+  });
+
+  it('Cenário BDD: deve permitir cadastrar gasto como individual (não dividir)', async () => {
+    const trip = mockTrips[0];
+    component.openAddExpenseModal(trip);
+
+    component.expenseForm.patchValue({
+      descricao: 'Presente Pessoal',
+      valor: 150,
+      categoria: 'Compras & Lembranças',
+      dividir: false
+    });
+
+    await component.onSaveExpense();
+
+    expect(mockTravelService.addExpenseToTrip).toHaveBeenCalledWith(
+      'user-travel-1',
+      'trip-1',
+      expect.objectContaining({
+        descricao: 'Presente Pessoal',
+        valor: 150,
+        dividir: false
+      }),
+      trip
+    );
   });
 
   it('Cenário BDD: deve importar cota da viagem para o orçamento mensal na Quinzena 2', async () => {

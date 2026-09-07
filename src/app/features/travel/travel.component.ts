@@ -84,7 +84,8 @@ export class TravelComponent implements OnInit, OnDestroy {
   expenseForm: FormGroup = this.fb.group({
     descricao: ['', [Validators.required, Validators.maxLength(100)]],
     valor: [null, [Validators.required, Validators.min(0.01)]],
-    categoria: ['Hospedagem', [Validators.required]]
+    categoria: ['Hospedagem', [Validators.required]],
+    dividir: [true]
   });
 
   // Formulário de Importação para o Orçamento Mensal
@@ -233,7 +234,8 @@ export class TravelComponent implements OnInit, OnDestroy {
     this.expenseForm.reset({
       descricao: '',
       valor: null,
-      categoria: 'Hospedagem'
+      categoria: 'Hospedagem',
+      dividir: true
     });
     this.isExpenseModalOpen.set(true);
   }
@@ -245,7 +247,8 @@ export class TravelComponent implements OnInit, OnDestroy {
     this.expenseForm.patchValue({
       descricao: expense.descricao,
       valor: expense.valor,
-      categoria: expense.categoria
+      categoria: expense.categoria,
+      dividir: expense.dividir !== false
     });
     this.isExpenseModalOpen.set(true);
   }
@@ -262,6 +265,7 @@ export class TravelComponent implements OnInit, OnDestroy {
 
     const val = this.expenseForm.value;
     const editing = this.expenseToEdit();
+    const shouldDivide = val.dividir !== false;
 
     try {
       if (editing && editing.id) {
@@ -269,7 +273,8 @@ export class TravelComponent implements OnInit, OnDestroy {
           ...editing,
           descricao: val.descricao.trim(),
           valor: parseFloat(val.valor),
-          categoria: val.categoria
+          categoria: val.categoria,
+          dividir: shouldDivide
         };
         await this.travelService.updateExpenseInTrip(user.uid, trip.id, updatedItem, trip);
         this.notificationService.success('Gasto atualizado com sucesso!');
@@ -278,7 +283,7 @@ export class TravelComponent implements OnInit, OnDestroy {
           descricao: val.descricao.trim(),
           valor: parseFloat(val.valor),
           categoria: val.categoria,
-          dividir: true
+          dividir: shouldDivide
         };
         await this.travelService.addExpenseToTrip(user.uid, trip.id, newItem, trip);
         this.notificationService.success('Gasto adicionado à viagem!');

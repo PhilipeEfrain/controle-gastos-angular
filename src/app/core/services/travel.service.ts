@@ -83,8 +83,11 @@ export class TravelService {
       const despesas = trip.despesas || [];
       const count = Math.max(1, trip.quantidade_participantes || 1);
       const total = roundBRL(despesas.reduce((acc, curr) => acc + (curr.valor || 0), 0));
+      const totalDividido = roundBRL(
+        despesas.filter(d => d.dividir !== false).reduce((acc, curr) => acc + (curr.valor || 0), 0)
+      );
       updateData.total_gastos = total;
-      updateData.valor_por_pessoa = roundBRL(total / count);
+      updateData.valor_por_pessoa = roundBRL(totalDividido / count);
     }
 
     await updateDoc(tripDocRef, updateData);
@@ -111,13 +114,17 @@ export class TravelService {
       ...expense,
       id: expense.id || `exp_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       valor: roundBRL(expense.valor),
+      dividir: expense.dividir !== false,
       createdAt: new Date().toISOString()
     };
 
     const updatedDespesas = [...(currentTrip.despesas || []), newExpense];
     const count = Math.max(1, currentTrip.quantidade_participantes || 1);
     const total = roundBRL(updatedDespesas.reduce((acc, curr) => acc + (curr.valor || 0), 0));
-    const perPerson = roundBRL(total / count);
+    const totalDividido = roundBRL(
+      updatedDespesas.filter(d => d.dividir !== false).reduce((acc, curr) => acc + (curr.valor || 0), 0)
+    );
+    const perPerson = roundBRL(totalDividido / count);
 
     const tripDocRef = doc(this.firestore, `users/${userId}/viagens/${tripId}`);
     await updateDoc(tripDocRef, {
@@ -139,12 +146,15 @@ export class TravelService {
   ): Promise<void> {
     const updatedDespesas = (currentTrip.despesas || []).map(e =>
       e.id === updatedExpense.id
-        ? { ...e, ...updatedExpense, valor: roundBRL(updatedExpense.valor) }
+        ? { ...e, ...updatedExpense, valor: roundBRL(updatedExpense.valor), dividir: updatedExpense.dividir !== false }
         : e
     );
     const count = Math.max(1, currentTrip.quantidade_participantes || 1);
     const total = roundBRL(updatedDespesas.reduce((acc, curr) => acc + (curr.valor || 0), 0));
-    const perPerson = roundBRL(total / count);
+    const totalDividido = roundBRL(
+      updatedDespesas.filter(d => d.dividir !== false).reduce((acc, curr) => acc + (curr.valor || 0), 0)
+    );
+    const perPerson = roundBRL(totalDividido / count);
 
     const tripDocRef = doc(this.firestore, `users/${userId}/viagens/${tripId}`);
     await updateDoc(tripDocRef, {
@@ -167,7 +177,10 @@ export class TravelService {
     const updatedDespesas = (currentTrip.despesas || []).filter(e => e.id !== expenseId);
     const count = Math.max(1, currentTrip.quantidade_participantes || 1);
     const total = roundBRL(updatedDespesas.reduce((acc, curr) => acc + (curr.valor || 0), 0));
-    const perPerson = roundBRL(total / count);
+    const totalDividido = roundBRL(
+      updatedDespesas.filter(d => d.dividir !== false).reduce((acc, curr) => acc + (curr.valor || 0), 0)
+    );
+    const perPerson = roundBRL(totalDividido / count);
 
     const tripDocRef = doc(this.firestore, `users/${userId}/viagens/${tripId}`);
     await updateDoc(tripDocRef, {

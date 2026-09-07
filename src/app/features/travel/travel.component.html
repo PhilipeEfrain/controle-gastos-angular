@@ -186,7 +186,14 @@
                     <div class="trip-expense-row">
                       <div class="item-info">
                         <span class="item-desc">{{ item.descricao }}</span>
-                        <span class="item-category">{{ item.categoria }}</span>
+                        <div class="item-meta">
+                          <span class="item-category">{{ item.categoria }}</span>
+                          @if (item.dividir !== false) {
+                            <span class="split-badge shared" title="Item compartilhado e dividido entre todos os participantes">Dividido ({{ trip.quantidade_participantes }}x)</span>
+                          } @else {
+                            <span class="split-badge individual" title="Gasto individual (não entra no rateio por pessoa)">Individual (Não Dividir)</span>
+                          }
+                        </div>
                       </div>
                       <div class="item-right">
                         <span class="item-value">{{ formatCurrency(item.valor) }}</span>
@@ -349,6 +356,19 @@
               }
             </select>
           </div>
+        </div>
+
+        <div class="form-checkbox-group">
+          <label class="checkbox-label" for="exp-dividir">
+            <input
+              id="exp-dividir"
+              type="checkbox"
+              formControlName="dividir"
+              class="form-checkbox"
+            />
+            <span class="checkbox-text">Dividir este gasto entre os participantes da viagem ({{ targetTripForExpense()?.quantidade_participantes || 2 }} pessoas)</span>
+          </label>
+          <span class="checkbox-hint">Se desmarcado, o valor será contabilizado como gasto individual e não entrará no cálculo da cota dividida por pessoa.</span>
         </div>
 
         <div class="modal-footer">
