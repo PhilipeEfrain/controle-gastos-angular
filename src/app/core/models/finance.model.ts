@@ -6,6 +6,7 @@ export interface Expense {
   valor: number;
   quinzena: FortnightNumber;
   status_pagamento: boolean;
+  tipo?: 'despesa' | 'renda_extra';
   codigo_comprovante?: string;
   categoria: string;
   recorrente?: boolean;

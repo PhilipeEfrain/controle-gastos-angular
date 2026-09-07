@@ -11,32 +11,48 @@ export function roundBRL(num: number | null | undefined): number {
 }
 
 /**
- * Soma valores de uma coleção de despesas
+ * Soma valores de uma coleção de despesas (itens onde tipo !== 'renda_extra')
  */
-export function sumExpenses(expenses: Expense[]): number {
-  if (!expenses || expenses.length === 0) {
+export function sumExpenses(items: Expense[]): number {
+  if (!items || items.length === 0) {
     return 0;
   }
-  const total = expenses.reduce((acc, curr) => acc + (curr.valor || 0), 0);
+  const total = items
+    .filter(item => item.tipo !== 'renda_extra')
+    .reduce((acc, curr) => acc + (curr.valor || 0), 0);
   return roundBRL(total);
 }
 
 /**
- * Filtra despesas pertencentes a uma quinzena específica
+ * Soma valores de entradas/rendas extras (itens onde tipo === 'renda_extra')
  */
-export function filterExpensesByFortnight(expenses: Expense[], quinzena: FortnightNumber): Expense[] {
-  if (!expenses || expenses.length === 0) {
-    return [];
+export function sumExtraIncomes(items: Expense[]): number {
+  if (!items || items.length === 0) {
+    return 0;
   }
-  return expenses.filter(e => e.quinzena === quinzena);
+  const total = items
+    .filter(item => item.tipo === 'renda_extra')
+    .reduce((acc, curr) => acc + (curr.valor || 0), 0);
+  return roundBRL(total);
 }
 
 /**
- * Calcula o saldo da quinzena (Renda - Gastos)
+ * Filtra despesas/itens pertencentes a uma quinzena específica
  */
-export function calculateFortnightBalance(income: number, expenses: Expense[]): number {
-  const totalExpenses = sumExpenses(expenses);
-  return roundBRL((income || 0) - totalExpenses);
+export function filterExpensesByFortnight(items: Expense[], quinzena: FortnightNumber): Expense[] {
+  if (!items || items.length === 0) {
+    return [];
+  }
+  return items.filter(e => e.quinzena === quinzena);
+}
+
+/**
+ * Calcula o saldo da quinzena (Renda Base + Rendas Extras - Gastos)
+ */
+export function calculateFortnightBalance(income: number, items: Expense[]): number {
+  const extraIncome = sumExtraIncomes(items);
+  const totalExpenses = sumExpenses(items);
+  return roundBRL((income || 0) + extraIncome - totalExpenses);
 }
 
 /**
@@ -45,16 +61,19 @@ export function calculateFortnightBalance(income: number, expenses: Expense[]): 
 export function calculateGlobalBalance(
   rendaQ1: number,
   rendaQ2: number,
-  expenses: Expense[]
+  items: Expense[]
 ): MonthBalanceSummary {
-  const q1Expenses = filterExpensesByFortnight(expenses, 1);
-  const q2Expenses = filterExpensesByFortnight(expenses, 2);
+  const q1Items = filterExpensesByFortnight(items, 1);
+  const q2Items = filterExpensesByFortnight(items, 2);
 
-  const safeRendaQ1 = roundBRL(rendaQ1 || 0);
-  const safeRendaQ2 = roundBRL(rendaQ2 || 0);
+  const extraQ1 = sumExtraIncomes(q1Items);
+  const extraQ2 = sumExtraIncomes(q2Items);
 
-  const totalGastosQ1 = sumExpenses(q1Expenses);
-  const totalGastosQ2 = sumExpenses(q2Expenses);
+  const safeRendaQ1 = roundBRL((rendaQ1 || 0) + extraQ1);
+  const safeRendaQ2 = roundBRL((rendaQ2 || 0) + extraQ2);
+
+  const totalGastosQ1 = sumExpenses(q1Items);
+  const totalGastosQ2 = sumExpenses(q2Items);
 
   const saldoQ1 = roundBRL(safeRendaQ1 - totalGastosQ1);
   const saldoQ2 = roundBRL(safeRendaQ2 - totalGastosQ2);

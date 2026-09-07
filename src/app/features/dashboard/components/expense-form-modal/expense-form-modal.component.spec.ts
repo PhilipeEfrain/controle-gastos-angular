@@ -127,4 +127,29 @@ describe('ExpenseFormModalComponent', () => {
       })
     );
   });
+
+  it('Cenário BDD: deve cadastrar Renda Extra com tipo renda_extra', async () => {
+    component.setTipo('renda_extra');
+
+    component.form.patchValue({
+      descricao: 'Freelance Design',
+      valor: 850,
+      quinzena: 2,
+      categoria: 'Freelance / Serviços'
+    });
+
+    await component.onSubmit();
+
+    expect(mockExpenseService.addExpense).toHaveBeenCalledWith(
+      'user-123',
+      '2025-03',
+      expect.objectContaining({
+        tipo: 'renda_extra',
+        descricao: 'Freelance Design',
+        valor: 850,
+        quinzena: 2,
+        categoria: 'Freelance / Serviços'
+      })
+    );
+  });
 });
