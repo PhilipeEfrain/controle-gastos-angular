@@ -1,0 +1,232 @@
+<div class="taxes-wrapper">
+  <div class="app-container">
+    <!-- Toast Feedback -->
+    @if (actionMessage()) {
+      <div class="action-toast">
+        <span>{{ actionMessage() }}</span>
+      </div>
+    }
+
+    <!-- Header da Página -->
+    <header class="taxes-header">
+      <div class="header-left">
+        <h1 class="page-title">Tributos & Gastos Sazonais</h1>
+        <p class="page-subtitle">Acompanhamento e provisionamento anual de impostos e taxas</p>
+      </div>
+
+      <div class="header-controls">
+        <button
+          type="button"
+          class="btn-nav"
+          (click)="goToDashboard()"
+          title="Voltar ao Dashboard"
+        >
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path
+              fill-rule="evenodd"
+              d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <span>Dashboard</span>
+        </button>
+
+        <button
+          type="button"
+          class="btn-primary-action"
+          (click)="openNewTaxModal()"
+        >
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path
+              fill-rule="evenodd"
+              d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <span>Novo Tributo</span>
+        </button>
+
+        <button
+          type="button"
+          class="logout-btn"
+          (click)="onLogout()"
+          title="Sair"
+        >
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path
+              fill-rule="evenodd"
+              d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Card Comparativo Anual -->
+    <section class="comparison-section">
+      <app-tax-comparison-card
+        [totalBudget]="financeStore.totalTaxesBudget()"
+        [totalPaid]="financeStore.totalTaxesPaid()"
+        [taxesCount]="totalCount()"
+        [paidCount]="paidCount()"
+      />
+    </section>
+
+    <!-- Barra de Filtros e Controles -->
+    <section class="taxes-control-bar">
+      <div class="filters-group">
+        <button
+          type="button"
+          class="filter-pill"
+          [class.active]="statusFilter() === 'Todos'"
+          (click)="setFilter('Todos')"
+        >
+          Todos ({{ totalCount() }})
+        </button>
+
+        <button
+          type="button"
+          class="filter-pill"
+          [class.active]="statusFilter() === 'Pendente'"
+          (click)="setFilter('Pendente')"
+        >
+          Pendentes ({{ totalCount() - paidCount() }})
+        </button>
+
+        <button
+          type="button"
+          class="filter-pill"
+          [class.active]="statusFilter() === 'Pago'"
+          (click)="setFilter('Pago')"
+        >
+          Pagos ({{ paidCount() }})
+        </button>
+      </div>
+    </section>
+
+    <!-- Lista / Tabela de Tributos -->
+    <section class="taxes-list-section">
+      @if (filteredTaxes().length > 0) {
+        <div class="taxes-grid">
+          @for (tax of filteredTaxes(); track tax.id) {
+            <app-card [variant]="tax.status === 'Pago' ? 'default' : 'warning'">
+              <div class="tax-card-content">
+                <div class="tax-card-header">
+                  <div class="tax-title-box">
+                    <h3 class="tax-title">{{ tax.titulo }}</h3>
+                    <span class="tax-year">Ano {{ tax.ano_referencia || '2025' }}</span>
+                  </div>
+
+                  <span
+                    class="status-chip"
+                    [class.is-paid]="tax.status === 'Pago'"
+                    [class.is-pending]="tax.status === 'Pendente'"
+                  >
+                    {{ tax.status === 'Pago' ? 'Pago' : 'Pendente' }}
+                  </span>
+                </div>
+
+                <div class="tax-card-body">
+                  <div class="info-item">
+                    <span class="info-label">Vencimento</span>
+                    <span class="info-val">{{ tax.data_vencimento }}</span>
+                  </div>
+
+                  <div class="info-item">
+                    <span class="info-label">Valor Orçado</span>
+                    <span class="info-val">{{ formatAmount(tax.valor_orcado) }}</span>
+                  </div>
+
+                  <div class="info-item">
+                    <span class="info-label">Valor Pago</span>
+                    <strong class="info-val" [class.text-emerald]="tax.status === 'Pago'">
+                      {{ formatAmount(tax.valor_pago) }}
+                    </strong>
+                  </div>
+                </div>
+
+                <!-- Ações do Card -->
+                <div class="tax-card-footer">
+                  @if (tax.status === 'Pendente') {
+                    <button
+                      type="button"
+                      class="btn-pay-action"
+                      (click)="onQuickPay(tax)"
+                    >
+                      <svg viewBox="0 0 20 20" fill="currentColor">
+                        <path
+                          fill-rule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                      <span>Liquidar</span>
+                    </button>
+                  }
+
+                  <div class="actions-group">
+                    <button
+                      type="button"
+                      class="action-btn"
+                      (click)="openEditTaxModal(tax)"
+                      title="Editar"
+                    >
+                      <svg viewBox="0 0 20 20" fill="currentColor">
+                        <path
+                          d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"
+                        />
+                      </svg>
+                    </button>
+
+                    <button
+                      type="button"
+                      class="action-btn delete-btn"
+                      (click)="onDeleteTax(tax)"
+                      title="Excluir"
+                    >
+                      <svg viewBox="0 0 20 20" fill="currentColor">
+                        <path
+                          fill-rule="evenodd"
+                          d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </app-card>
+          }
+        </div>
+      } @else {
+        <div class="empty-state">
+          <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.5"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+          <p class="empty-text">Nenhum tributo encontrado para este filtro.</p>
+          <button
+            type="button"
+            class="empty-btn"
+            (click)="openNewTaxModal()"
+          >
+            Cadastrar primeiro tributo
+          </button>
+        </div>
+      }
+    </section>
+  </div>
+</div>
+
+<!-- Modal: Criar / Editar Tributo -->
+<app-tax-form-modal
+  [isOpen]="isTaxModalOpen()"
+  [taxToEdit]="taxToEdit()"
+  (close)="isTaxModalOpen.set(false)"
+  (saved)="onTaxSaved()"
+/>

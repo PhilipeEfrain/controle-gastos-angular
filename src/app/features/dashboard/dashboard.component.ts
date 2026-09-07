@@ -201,6 +201,10 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  goToTaxes(): void {
+    this.router.navigate(['/tributos']);
+  }
+
   async onLogout(): Promise<void> {
     await this.authStore.logout();
     this.router.navigate(['/auth']);
