@@ -207,8 +207,9 @@ export class TravelComponent implements OnInit, OnDestroy {
         this.notificationService.success('Nova viagem criada com sucesso!');
       }
       this.isTripModalOpen.set(false);
-    } catch {
-      this.notificationService.error('Erro ao salvar informações da viagem.');
+    } catch (err: any) {
+      console.error('[TravelComponent] Erro ao salvar viagem:', err);
+      this.notificationService.error('Erro ao salvar informações da viagem: ' + (err.message || 'Tente novamente.'));
     }
   }
 
@@ -246,8 +247,9 @@ export class TravelComponent implements OnInit, OnDestroy {
       await this.travelService.addExpenseToTrip(user.uid, trip.id, item, trip);
       this.notificationService.success('Gasto adicionado à viagem!');
       this.isExpenseModalOpen.set(false);
-    } catch {
-      this.notificationService.error('Erro ao adicionar gasto.');
+    } catch (err: any) {
+      console.error('[TravelComponent] Erro ao adicionar gasto:', err);
+      this.notificationService.error('Erro ao adicionar gasto: ' + (err.message || 'Tente novamente.'));
     }
   }
 
@@ -259,8 +261,9 @@ export class TravelComponent implements OnInit, OnDestroy {
     try {
       await this.travelService.removeExpenseFromTrip(user.uid, trip.id, expenseId, trip);
       this.notificationService.info('Gasto removido da viagem.');
-    } catch {
-      this.notificationService.error('Erro ao remover gasto.');
+    } catch (err: any) {
+      console.error('[TravelComponent] Erro ao remover gasto:', err);
+      this.notificationService.error('Erro ao remover gasto: ' + (err.message || 'Tente novamente.'));
     }
   }
 
