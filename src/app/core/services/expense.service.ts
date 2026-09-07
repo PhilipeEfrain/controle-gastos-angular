@@ -44,6 +44,19 @@ export class ExpenseService {
   }
 
   /**
+   * Remove chaves com valor undefined para compatibilidade com o Firestore
+   */
+  private sanitizeData<T extends Record<string, any>>(obj: T): T {
+    const clean: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (value !== undefined) {
+        clean[key] = value;
+      }
+    }
+    return clean;
+  }
+
+  /**
    * Cadastra uma nova despesa simples
    */
   async addExpense(userId: string, mesAno: string, expense: Expense): Promise<string> {
@@ -52,11 +65,11 @@ export class ExpenseService {
       `users/${userId}/ciclos_mensais/${mesAno}/despesas`
     );
 
-    const expenseData = {
+    const expenseData = this.sanitizeData({
       ...expense,
       valor: roundBRL(expense.valor),
       createdAt: expense.createdAt || new Date().toISOString()
-    };
+    });
 
     const docRef = await addDoc(expensesColRef, expenseData);
     return docRef.id;
@@ -75,7 +88,7 @@ export class ExpenseService {
       this.firestore,
       `users/${userId}/ciclos_mensais/${mesAno}/despesas/${expenseId}`
     );
-    const updatePayload = { ...data };
+    const updatePayload = this.sanitizeData({ ...data });
     if (updatePayload.valor !== undefined) {
       updatePayload.valor = roundBRL(updatePayload.valor);
     }
@@ -148,7 +161,7 @@ export class ExpenseService {
         collection(this.firestore, `users/${userId}/ciclos_mensais/${targetMonth}/despesas`)
       );
 
-      const installmentData: Expense = {
+      const installmentData: Expense = this.sanitizeData({
         ...baseExpense,
         descricao: `${baseExpense.descricao} (${i + 1}/${installmentsCount})`,
         valor: valorParcela,
@@ -157,7 +170,7 @@ export class ExpenseService {
         grupo_parcela_id: grupoParcelaId,
         status_pagamento: false,
         createdAt: new Date().toISOString()
-      };
+      });
 
       batch.set(expenseRef, installmentData);
     }

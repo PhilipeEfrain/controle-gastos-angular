@@ -6,6 +6,7 @@ import { FinanceStore } from '../../core/state/finance.store';
 import { AuthStore } from '../../core/state/auth.store';
 import { ExpenseService } from '../../core/services/expense.service';
 import { MonthlyCycleService } from '../../core/services/monthly-cycle.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { UserProfile } from '../../core/models/user.model';
 import { Expense } from '../../core/models/finance.model';
 
@@ -97,6 +98,12 @@ describe('DashboardComponent', () => {
       navigate: vi.fn()
     };
 
+    const mockNotificationService = {
+      success: vi.fn(),
+      error: vi.fn(),
+      info: vi.fn()
+    };
+
     await TestBed.configureTestingModule({
       imports: [DashboardComponent],
       providers: [
@@ -104,6 +111,7 @@ describe('DashboardComponent', () => {
         { provide: AuthStore, useValue: mockAuthStore },
         { provide: ExpenseService, useValue: mockExpenseService },
         { provide: MonthlyCycleService, useValue: mockCycleService },
+        { provide: NotificationService, useValue: mockNotificationService },
         { provide: Router, useValue: mockRouter }
       ]
     }).compileComponents();

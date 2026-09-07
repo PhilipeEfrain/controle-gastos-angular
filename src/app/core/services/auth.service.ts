@@ -87,24 +87,34 @@ export class AuthService {
    * Sincroniza os dados do usuário autenticado no documento Firestore users/{userId}
    */
   async syncUserProfile(user: User, fallbackName?: string): Promise<UserProfile> {
-    const userDocRef = doc(this.firestore, `users/${user.uid}`);
-    const existingSnap = await getDoc(userDocRef);
-
     const userProfile: UserProfile = {
       uid: user.uid,
       email: user.email,
       displayName: user.displayName || fallbackName || 'Usuário',
       photoURL: user.photoURL,
-      preferences: existingSnap.exists()
-        ? existingSnap.data()['preferences']
-        : { theme: 'dark', currency: 'BRL' },
-      createdAt: existingSnap.exists()
-        ? existingSnap.data()['createdAt']
-        : new Date().toISOString()
+      preferences: { theme: 'dark', currency: 'BRL' },
+      createdAt: new Date().toISOString()
     };
 
-    // Salva ou atualiza os dados no Firestore com merge
-    await setDoc(userDocRef, userProfile, { merge: true });
+    try {
+      const userDocRef = doc(this.firestore, `users/${user.uid}`);
+      const existingSnap = await getDoc(userDocRef);
+
+      if (existingSnap.exists()) {
+        const data = existingSnap.data();
+        if (data['preferences']) {
+          userProfile.preferences = data['preferences'];
+        }
+        if (data['createdAt']) {
+          userProfile.createdAt = data['createdAt'];
+        }
+      }
+
+      // Salva ou atualiza os dados no Firestore com merge
+      await setDoc(userDocRef, userProfile, { merge: true });
+    } catch (firestoreError) {
+      console.warn('Aviso: Não foi possível sincronizar o perfil no Firestore (banco pode não estar criado ou regras pendentes). Prosseguindo com login:', firestoreError);
+    }
 
     return userProfile;
   }

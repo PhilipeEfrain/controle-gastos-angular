@@ -1,0 +1,151 @@
+<header class="app-header">
+  <div class="header-container">
+    <!-- Brand / Logo -->
+    <div class="header-brand">
+      <a routerLink="/dashboard" (click)="closeMobileMenu()" class="brand-link">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">Controle Financeiro</span>
+          <span class="brand-badge">Quinzenal</span>
+        </div>
+      </a>
+    </div>
+
+    <!-- Desktop Navigation Links -->
+    <nav class="desktop-nav" aria-label="Navegação principal">
+      <a
+        routerLink="/dashboard"
+        routerLinkActive="active"
+        class="nav-link"
+        id="nav-dashboard"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="nav-icon">
+          <rect width="7" height="9" x="3" y="3" rx="1" />
+          <rect width="7" height="5" x="14" y="3" rx="1" />
+          <rect width="7" height="9" x="14" y="12" rx="1" />
+          <rect width="7" height="5" x="3" y="16" rx="1" />
+        </svg>
+        <span>Dashboard</span>
+      </a>
+
+      <a
+        routerLink="/tributos"
+        routerLinkActive="active"
+        class="nav-link"
+        id="nav-tributos"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="nav-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <span>Tributos & Anuais</span>
+      </a>
+    </nav>
+
+    <!-- User Profile & Actions -->
+    <div class="header-actions">
+      @if (user(); as currentUser) {
+        <div class="user-profile-badge">
+          <div class="user-avatar">
+            @if (currentUser.photoURL) {
+              <img [src]="currentUser.photoURL" [alt]="currentUser.displayName" class="avatar-img" />
+            } @else {
+              <span class="avatar-initials">{{ userInitials() }}</span>
+            }
+          </div>
+          <div class="user-info">
+            <span class="user-name">{{ currentUser.displayName }}</span>
+            <span class="user-email">{{ currentUser.email }}</span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="btn-logout"
+          (click)="logout()"
+          [disabled]="isLoggingOut()"
+          title="Sair da conta"
+          aria-label="Sair da conta"
+          id="btn-navbar-logout"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="logout-icon">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+          </svg>
+          <span class="logout-text">Sair</span>
+        </button>
+      }
+
+      <!-- Mobile Hamburger Toggle -->
+      <button
+        type="button"
+        class="mobile-toggle"
+        (click)="toggleMobileMenu()"
+        [attr.aria-expanded]="isMobileMenuOpen()"
+        aria-label="Abrir menu de navegação"
+      >
+        @if (isMobileMenuOpen()) {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="toggle-icon">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        } @else {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="toggle-icon">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+          </svg>
+        }
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Drawer Menu -->
+  @if (isMobileMenuOpen()) {
+    <div class="mobile-menu" role="menu">
+      <nav class="mobile-nav">
+        <a
+          routerLink="/dashboard"
+          routerLinkActive="active"
+          (click)="closeMobileMenu()"
+          class="mobile-nav-link"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="nav-icon">
+            <rect width="7" height="9" x="3" y="3" rx="1" />
+            <rect width="7" height="5" x="14" y="3" rx="1" />
+            <rect width="7" height="9" x="14" y="12" rx="1" />
+            <rect width="7" height="5" x="3" y="16" rx="1" />
+          </svg>
+          <span>Dashboard</span>
+        </a>
+
+        <a
+          routerLink="/tributos"
+          routerLinkActive="active"
+          (click)="closeMobileMenu()"
+          class="mobile-nav-link"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="nav-icon">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <span>Tributos & Anuais</span>
+        </a>
+
+        @if (user()) {
+          <div class="mobile-user-actions">
+            <button
+              type="button"
+              class="mobile-btn-logout"
+              (click)="logout()"
+              [disabled]="isLoggingOut()"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="logout-icon">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+              </svg>
+              <span>Sair da conta</span>
+            </button>
+          </div>
+        }
+      </nav>
+    </div>
+  }
+</header>
