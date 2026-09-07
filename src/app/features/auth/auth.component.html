@@ -1,0 +1,271 @@
+<div class="auth-page">
+  <div class="auth-page__container">
+    <!-- Brand Header -->
+    <div class="auth-brand">
+      <div class="auth-brand__logo">
+        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+        </svg>
+      </div>
+      <h1 class="auth-brand__title">Controle de Gastos</h1>
+      <p class="auth-brand__tagline">Gestão orçamentária quinzenal e controle tributário</p>
+    </div>
+
+    <!-- Auth Card -->
+    <app-card [padding]="'lg'">
+      <!-- Tab Navigation -->
+      @if (activeTab() !== 'forgot') {
+        <div class="auth-tabs">
+          <button
+            type="button"
+            class="auth-tab"
+            [class.auth-tab--active]="activeTab() === 'login'"
+            (click)="setTab('login')"
+          >
+            Entrar
+          </button>
+          <button
+            type="button"
+            class="auth-tab"
+            [class.auth-tab--active]="activeTab() === 'register'"
+            (click)="setTab('register')"
+          >
+            Criar Conta
+          </button>
+        </div>
+      } @else {
+        <div class="auth-tabs-header">
+          <button type="button" class="back-link" (click)="setTab('login')">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Voltar para o Login
+          </button>
+          <h2 class="auth-form-title">Recuperar Senha</h2>
+        </div>
+      }
+
+      <!-- Feedback Messages -->
+      @if (errorMessage()) {
+        <div class="auth-alert auth-alert--danger">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+
+      @if (successMessage()) {
+        <div class="auth-alert auth-alert--success">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          <span>{{ successMessage() }}</span>
+        </div>
+      }
+
+      <!-- Google Sign In Button -->
+      @if (activeTab() !== 'forgot') {
+        <button
+          type="button"
+          class="btn-google"
+          [disabled]="isLoading()"
+          (click)="handleGoogleLogin()"
+        >
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z"/>
+            <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.7-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"/>
+            <path fill="#FBBC05" d="M5.6 14.8c-.3-.8-.4-1.8-.4-2.8 0-1 .1-2 .4-2.8L1.9 6.3C.7 8.7 0 10.3 0 12s.7 3.3 1.9 5.7l3.7-2.9z"/>
+            <path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2-6.4-4.8L1.9 16.4C3.7 20.1 7.5 23 12 23z"/>
+          </svg>
+          <span>Continuar com o Google</span>
+        </button>
+
+        <div class="auth-divider">
+          <span>ou continue com e-mail</span>
+        </div>
+      }
+
+      <!-- Form: Login -->
+      @if (activeTab() === 'login') {
+        <form [formGroup]="loginForm" (ngSubmit)="handleEmailLogin()" class="auth-form">
+          <div class="form-group">
+            <label for="login-email" class="form-label">E-mail</label>
+            <input
+              id="login-email"
+              type="email"
+              formControlName="email"
+              placeholder="seu.email@exemplo.com"
+              class="form-input"
+              [class.form-input--error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+            />
+            @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
+              <span class="form-error">Informe um e-mail válido.</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <div class="form-label-row">
+              <label for="login-password" class="form-label">Senha</label>
+              <button type="button" class="form-forgot-link" (click)="setTab('forgot')">
+                Esqueci minha senha
+              </button>
+            </div>
+            <div class="input-password-wrapper">
+              <input
+                id="login-password"
+                [type]="showPassword() ? 'text' : 'password'"
+                formControlName="password"
+                placeholder="Sua senha secreta"
+                class="form-input"
+                [class.form-input--error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+              />
+              <button
+                type="button"
+                class="btn-toggle-password"
+                (click)="togglePasswordVisibility()"
+                title="Mostrar/ocultar senha"
+              >
+                @if (showPassword()) {
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22"/>
+                  </svg>
+                } @else {
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                }
+              </button>
+            </div>
+            @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
+              <span class="form-error">A senha deve ter pelo menos 6 caracteres.</span>
+            }
+          </div>
+
+          <button type="submit" class="btn-submit" [disabled]="isLoading()">
+            @if (isLoading()) {
+              <span class="spinner"></span>
+              <span>Entrando...</span>
+            } @else {
+              <span>Acessar Meu Painel</span>
+            }
+          </button>
+        </form>
+      }
+
+      <!-- Form: Register -->
+      @if (activeTab() === 'register') {
+        <form [formGroup]="registerForm" (ngSubmit)="handleRegister()" class="auth-form">
+          <div class="form-group">
+            <label for="register-name" class="form-label">Nome Completo</label>
+            <input
+              id="register-name"
+              type="text"
+              formControlName="name"
+              placeholder="Como quer ser chamado?"
+              class="form-input"
+              [class.form-input--error]="registerForm.get('name')?.invalid && registerForm.get('name')?.touched"
+            />
+            @if (registerForm.get('name')?.invalid && registerForm.get('name')?.touched) {
+              <span class="form-error">Informe seu nome (mínimo 2 caracteres).</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="register-email" class="form-label">E-mail</label>
+            <input
+              id="register-email"
+              type="email"
+              formControlName="email"
+              placeholder="seu.email@exemplo.com"
+              class="form-input"
+              [class.form-input--error]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
+            />
+            @if (registerForm.get('email')?.invalid && registerForm.get('email')?.touched) {
+              <span class="form-error">Informe um e-mail válido.</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="register-password" class="form-label">Senha</label>
+            <div class="input-password-wrapper">
+              <input
+                id="register-password"
+                [type]="showPassword() ? 'text' : 'password'"
+                formControlName="password"
+                placeholder="Crie uma senha forte (mín. 6 dígitos)"
+                class="form-input"
+                [class.form-input--error]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
+              />
+              <button
+                type="button"
+                class="btn-toggle-password"
+                (click)="togglePasswordVisibility()"
+              >
+                @if (showPassword()) {
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22"/>
+                  </svg>
+                } @else {
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                }
+              </button>
+            </div>
+            @if (registerForm.get('password')?.invalid && registerForm.get('password')?.touched) {
+              <span class="form-error">A senha deve ter pelo menos 6 caracteres.</span>
+            }
+          </div>
+
+          <button type="submit" class="btn-submit btn-submit--success" [disabled]="isLoading()">
+            @if (isLoading()) {
+              <span class="spinner"></span>
+              <span>Cadastrando...</span>
+            } @else {
+              <span>Criar Minha Conta Grátis</span>
+            }
+          </button>
+        </form>
+      }
+
+      <!-- Form: Forgot Password -->
+      @if (activeTab() === 'forgot') {
+        <form [formGroup]="forgotForm" (ngSubmit)="handleForgotPassword()" class="auth-form">
+          <p class="forgot-instructions">
+            Digite seu e-mail cadastrado e enviaremos um link para você redefinir sua senha com segurança.
+          </p>
+
+          <div class="form-group">
+            <label for="forgot-email" class="form-label">E-mail Cadastrado</label>
+            <input
+              id="forgot-email"
+              type="email"
+              formControlName="email"
+              placeholder="seu.email@exemplo.com"
+              class="form-input"
+              [class.form-input--error]="forgotForm.get('email')?.invalid && forgotForm.get('email')?.touched"
+            />
+            @if (forgotForm.get('email')?.invalid && forgotForm.get('email')?.touched) {
+              <span class="form-error">Informe um e-mail válido.</span>
+            }
+          </div>
+
+          <button type="submit" class="btn-submit" [disabled]="isLoading()">
+            @if (isLoading()) {
+              <span class="spinner"></span>
+              <span>Enviando link...</span>
+            } @else {
+              <span>Enviar Link de Recuperação</span>
+            }
+          </button>
+        </form>
+      }
+    </app-card>
+  </div>
+</div>
