@@ -4,12 +4,20 @@ import { App } from './app.component';
 import { AuthStore } from './core/state/auth.store';
 import { AuthService } from './core/services/auth.service';
 import { NotificationService } from './core/services/notification.service';
+import { PwaService } from './core/services/pwa.service';
 import { signal, WritableSignal } from '@angular/core';
 
 describe('App', () => {
   let mockAuthStore: Partial<AuthStore>;
   let mockAuthService: Partial<AuthService>;
   let mockNotificationService: Partial<NotificationService>;
+  let mockPwaService: {
+    isOnline: WritableSignal<boolean>;
+    canInstall: WritableSignal<boolean>;
+    updateAvailable: WritableSignal<boolean>;
+    activateUpdate: ReturnType<typeof vi.fn>;
+    installApp: ReturnType<typeof vi.fn>;
+  };
   let isAuthenticatedSignal: WritableSignal<boolean>;
   let router: Router;
 
@@ -34,6 +42,14 @@ describe('App', () => {
       error: vi.fn()
     };
 
+    mockPwaService = {
+      isOnline: signal(true),
+      canInstall: signal(false),
+      updateAvailable: signal(false),
+      activateUpdate: vi.fn(),
+      installApp: vi.fn()
+    };
+
     await TestBed.configureTestingModule({
       imports: [App],
       providers: [
@@ -43,7 +59,8 @@ describe('App', () => {
         ]),
         { provide: AuthStore, useValue: mockAuthStore },
         { provide: AuthService, useValue: mockAuthService },
-        { provide: NotificationService, useValue: mockNotificationService }
+        { provide: NotificationService, useValue: mockNotificationService },
+        { provide: PwaService, useValue: mockPwaService }
       ]
     }).compileComponents();
 

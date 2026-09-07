@@ -10,6 +10,7 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthStore } from '../../state/auth.store';
 import { AuthService } from '../../services/auth.service';
 import { NotificationService } from '../../services/notification.service';
+import { PwaService } from '../../services/pwa.service';
 
 @Component({
   selector: 'app-navbar',
@@ -24,12 +25,19 @@ export class NavbarComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
   private notificationService = inject(NotificationService);
+  private pwaService = inject(PwaService);
 
   readonly isMobileMenuOpen = signal<boolean>(false);
   readonly isLoggingOut = signal<boolean>(false);
 
   readonly user = this.authStore.currentUser;
   readonly isAuthenticated = this.authStore.isAuthenticated;
+  readonly isOnline = this.pwaService.isOnline;
+  readonly canInstall = this.pwaService.canInstall;
+
+  async installPwa(): Promise<void> {
+    await this.pwaService.installApp();
+  }
 
   readonly userInitials = computed(() => {
     const user = this.user();

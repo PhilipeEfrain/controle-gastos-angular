@@ -52,6 +52,7 @@
 | `InstallmentService` | `src/app/core/services/installment.service.ts` | Agrupamento de parcelamentos ativos nos ciclos do usuário e quitação/cancelamento em lote via `writeBatch`. |
 | `ExportService` | `src/app/core/services/export.service.ts` | Exportação de balanço e relatórios em CSV (UTF-8 com BOM para Excel) e PDF estruturado A4 client-side para impressão. |
 | `ThemeService` | `src/app/core/services/theme.service.ts` | Gerenciamento reativo de tema (Dark / Light) com persistência em localStorage e sincronização com DOM. |
+| `PwaService` | `src/app/core/services/pwa.service.ts` | Monitoramento reativo de conectividade (online/offline), captura de beforeinstallprompt, instalação de PWA e controle de Service Worker. |
 | `NotificationService` | `src/app/core/services/notification.service.ts` | Notificações reativas do tipo Toast com Signals (`success`, `error`, `warning`, `info`). |
 
 ---
@@ -73,6 +74,7 @@
 | `AppCardComponent` | `app-card` | Contêiner estilizado com suporte a glassmorphism, bordas suaves e variantes de destaque. |
 | `BalanceBadgeComponent` | `app-balance-badge` | Badge financeiro automático (Verde = superávit / Vermelho = déficit). |
 | `DeficitAlertBannerComponent` | `app-deficit-alert-banner` | Banner de alerta condicional disparado quando a Q2 está deficitária ou o mês está no vermelho. |
+| `OfflineBannerComponent` | `app-offline-banner` | Banner de aviso de modo offline ativo e diálogo para atualização de versão PWA. |
 | `ProgressBarComponent` | `app-progress-bar` | Barra de progresso visual demonstrando percentual gasto em relação à renda prevista. |
 | `ToastContainerComponent` | `app-toast-container` | Contêiner flutuante com animações para renderização de alertas Toast. |
 | `ConfirmationModalComponent` | `app-confirmation-modal` | Modal de confirmação reutilizável para exclusão ou ações irreversíveis. |
