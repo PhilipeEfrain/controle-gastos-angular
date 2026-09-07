@@ -1,0 +1,96 @@
+@if (isOpen()) {
+  <div class="modal-backdrop" (click)="onBackdropClick($event)">
+    <div class="modal-container" role="dialog" aria-modal="true" aria-labelledby="export-modal-title">
+      <!-- Cabeçalho do Modal -->
+      <div class="modal-header">
+        <div class="header-titles">
+          <h2 id="export-modal-title" class="modal-title">Exportar Balanço</h2>
+          <p class="modal-subtitle">Ciclo {{ mesAno() }} • {{ totalLancamentos() }} lançamentos</p>
+        </div>
+        <button
+          type="button"
+          class="close-btn"
+          (click)="close.emit()"
+          title="Fechar"
+          aria-label="Fechar"
+        >
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path
+              fill-rule="evenodd"
+              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Resumo do Balanço a Ser Exportado -->
+      <div class="summary-preview">
+        <div class="summary-item">
+          <span class="summary-label">Renda Total</span>
+          <span class="summary-val text-success">{{ formattedRendaTotal() }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Gastos</span>
+          <span class="summary-val">{{ formattedGastosTotal() }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Saldo Final</span>
+          <span class="summary-val" [class.text-danger]="summary().temDeficitGlobal" [class.text-success]="!summary().temDeficitGlobal">
+            {{ formattedSaldoFinal() }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Opções de Formato de Exportação -->
+      <div class="export-options-grid">
+        <!-- Opção 1: Planilha Excel / CSV -->
+        <button
+          type="button"
+          class="export-option-card csv-card"
+          (click)="onExportCSV()"
+        >
+          <div class="option-icon bg-emerald">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <div class="option-content">
+            <div class="option-title">Planilha Excel / CSV</div>
+            <div class="option-desc">Compatível com Excel, Google Sheets e LibreOffice (UTF-8 com BOM).</div>
+          </div>
+          <span class="download-badge">Baixar .csv</span>
+        </button>
+
+        <!-- Opção 2: Relatório Executivo PDF -->
+        <button
+          type="button"
+          class="export-option-card pdf-card"
+          (click)="onExportPDF()"
+        >
+          <div class="option-icon bg-indigo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+          </div>
+          <div class="option-content">
+            <div class="option-title">Relatório PDF / Impressão</div>
+            <div class="option-desc">Layout A4 executivo pronto para salvar em PDF ou imprimir.</div>
+          </div>
+          <span class="download-badge pdf-badge">Gerar PDF</span>
+        </button>
+      </div>
+
+      <!-- Rodapé do Modal -->
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn-cancel"
+          (click)="close.emit()"
+        >
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+}

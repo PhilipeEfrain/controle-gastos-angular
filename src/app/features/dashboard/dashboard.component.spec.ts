@@ -156,6 +156,11 @@ describe('DashboardComponent', () => {
     expect(component.selectedExpenseForReceipt()).toEqual(mockExpense);
   });
 
+  it('deve abrir o modal de exportação', () => {
+    component.openExportModal();
+    expect(component.isExportModalOpen()).toBe(true);
+  });
+
   it('deve chamar togglePaymentStatus ao alternar status de despesa', async () => {
     await component.onTogglePaid(mockExpense);
     expect(mockExpenseService.togglePaymentStatus).toHaveBeenCalledWith('user-777', '2025-03', 'exp-1', false);
