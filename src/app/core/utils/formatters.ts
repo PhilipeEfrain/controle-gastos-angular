@@ -4,15 +4,18 @@
  */
 export function formatBRL(value: number | null | undefined): string {
   if (value === null || value === undefined || isNaN(value)) {
-    return 'R$ 0,00';
+    return 'R$\u00A00,00';
   }
 
-  return new Intl.NumberFormat('pt-BR', {
+  const formatted = new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL',
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   }).format(value);
+
+  // Garante espaços sem quebra (non-breaking space \u00A0) em toda a formatação monetária
+  return formatted.replace(/\s/g, '\u00A0');
 }
 
 /**

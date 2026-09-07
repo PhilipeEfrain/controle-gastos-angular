@@ -265,6 +265,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  min-width: 0;
 }
 
 .summary-label {
@@ -273,6 +274,7 @@
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.03em;
+  white-space: nowrap;
 }
 
 .summary-value {
@@ -281,6 +283,7 @@
   color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
+  white-space: nowrap;
 
   &.text-emerald {
     color: var(--color-success-light);
@@ -298,6 +301,7 @@
   border-radius: $radius-full;
   display: inline-block;
   width: fit-content;
+  white-space: nowrap;
 
   &.is-ok {
     background-color: rgba(16, 185, 129, 0.15);
@@ -328,6 +332,12 @@
     background-color: rgba(16, 185, 129, 0.1);
     color: var(--color-success-light);
     border: 1px solid rgba(16, 185, 129, 0.2);
+  }
+
+  &.bg-danger-light {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--color-danger-light);
+    border: 1px solid rgba(239, 68, 68, 0.2);
   }
 
   &.bg-blue-light {

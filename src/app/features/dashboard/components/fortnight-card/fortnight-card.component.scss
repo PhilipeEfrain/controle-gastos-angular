@@ -110,12 +110,14 @@
   text-transform: uppercase;
   letter-spacing: 0.03em;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .metric-value {
   font-size: $font-size-sm;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 
   &.income {
     color: var(--color-success-light);

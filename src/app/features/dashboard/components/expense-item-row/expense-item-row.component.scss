@@ -204,6 +204,7 @@
   font-weight: 600;
   color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 
   &.is-income-amount {
     color: #34d399;

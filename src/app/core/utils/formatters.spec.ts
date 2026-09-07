@@ -12,6 +12,12 @@ describe('Formatters Utility', () => {
       expect(formatBRL(null)).toContain('0,00');
       expect(formatBRL(undefined)).toContain('0,00');
     });
+
+    it('deve formatar valores negativos mantendo o sinal e o símbolo BRL coesos', () => {
+      const negativeFormatted = formatBRL(-1500.5);
+      expect(negativeFormatted).toContain('1.500,50');
+      expect(negativeFormatted).toMatch(/-.*R\$.*1\.500,50/);
+    });
   });
 
   describe('parseBRL', () => {

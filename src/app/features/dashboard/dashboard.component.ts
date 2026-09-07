@@ -19,7 +19,6 @@ import { formatBRL } from '../../core/utils/formatters';
 import { addMonthsToYearMonth } from '../../core/utils/calculations';
 import { getCurrentYearMonth } from '../../core/utils/date';
 import { AppCardComponent } from '../../shared/components/app-card/app-card.component';
-import { BalanceBadgeComponent } from '../../shared/components/balance-badge/balance-badge.component';
 import { DeficitAlertBannerComponent } from '../../shared/components/deficit-alert-banner/deficit-alert-banner.component';
 import { FortnightCardComponent } from './components/fortnight-card/fortnight-card.component';
 import { ExpenseFormModalComponent } from './components/expense-form-modal/expense-form-modal.component';
@@ -35,7 +34,6 @@ import { ExportModalComponent } from './components/export-modal/export-modal.com
   imports: [
     CommonModule,
     AppCardComponent,
-    BalanceBadgeComponent,
     DeficitAlertBannerComponent,
     FortnightCardComponent,
     ExpenseFormModalComponent,
