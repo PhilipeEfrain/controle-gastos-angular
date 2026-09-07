@@ -7,11 +7,20 @@
   --brand-areia-calma: #F5F2E9;
   --brand-tinta: #17211C;
 
-  // Ações e Marca (Dark Mode Padrão)
+  // Ações e Marca (Dark Mode Padrão - Verde Quinzena)
   --color-primary: #10b981;
-  --color-primary-hover: #34d399;
-  --color-primary-light: rgba(168, 230, 207, 0.15);
+  --color-primary-hover: #059669;
+  --color-primary-light: #A8E6CF;
+  --color-primary-bg: rgba(168, 230, 207, 0.12);
+  --color-primary-border: rgba(168, 230, 207, 0.35);
   --color-accent: #D9F99D;
+
+  // Botões de Destaque Primários (Dark Mode)
+  --btn-primary-bg: linear-gradient(135deg, #173F35 0%, #1a5446 60%, #10b981 100%);
+  --btn-primary-hover-bg: linear-gradient(135deg, #1f4f43 0%, #216a58 60%, #34d399 100%);
+  --btn-primary-text: #F5F2E9;
+  --btn-primary-border: rgba(168, 230, 207, 0.4);
+  --btn-primary-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
 
   // Finanças: Superávit / Entrada / Sucesso (Menta Fluxo / Lima Sinal)
   --color-success: #34d399;
@@ -111,9 +120,18 @@
 [data-theme='light'] {
   // Ações e Marca (Light Mode)
   --color-primary: #173F35;
-  --color-primary-hover: #1f4f43;
-  --color-primary-light: rgba(23, 63, 53, 0.1);
+  --color-primary-hover: #102d26;
+  --color-primary-light: #173F35;
+  --color-primary-bg: rgba(23, 63, 53, 0.08);
+  --color-primary-border: rgba(23, 63, 53, 0.25);
   --color-accent: #D9F99D;
+
+  // Botões de Destaque Primários (Light Mode)
+  --btn-primary-bg: linear-gradient(135deg, #173F35 0%, #1d4d41 100%);
+  --btn-primary-hover-bg: linear-gradient(135deg, #102d26 0%, #173F35 100%);
+  --btn-primary-text: #FFFFFF;
+  --btn-primary-border: rgba(23, 63, 53, 0.3);
+  --btn-primary-shadow: 0 4px 12px rgba(23, 63, 53, 0.25);
 
   // Finanças: Superávit / Entrada / Sucesso
   --color-success: #173F35;
@@ -164,9 +182,18 @@
 [data-theme='dark-blue'] {
   // Ações e Marca (Azul / Emerald)
   --color-primary: #3b82f6;
-  --color-primary-hover: #60a5fa;
-  --color-primary-light: rgba(59, 130, 246, 0.15);
+  --color-primary-hover: #2563eb;
+  --color-primary-light: #93c5fd;
+  --color-primary-bg: rgba(59, 130, 246, 0.12);
+  --color-primary-border: rgba(59, 130, 246, 0.35);
   --color-accent: #38bdf8;
+
+  // Botões de Destaque Primários (Dark Blue)
+  --btn-primary-bg: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  --btn-primary-hover-bg: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  --btn-primary-text: #FFFFFF;
+  --btn-primary-border: rgba(59, 130, 246, 0.4);
+  --btn-primary-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
 
   // Finanças: Superávit / Entrada / Sucesso
   --color-success: #10b981;
