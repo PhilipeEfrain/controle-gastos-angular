@@ -69,6 +69,19 @@ describe('AuthStore (Signals State)', () => {
     expect(mockFinanceStore.resetState).toHaveBeenCalled();
   });
 
+  it('Cenário BDD: deve invocar deleteAccountAndData e resetar o estado ao excluir conta', async () => {
+    mockAuthService.deleteAccountAndData = vi.fn(async () => {});
+    store.setUser(mockUser);
+    expect(store.isAuthenticated()).toBe(true);
+
+    await store.deleteAccount();
+
+    expect(mockAuthService.deleteAccountAndData).toHaveBeenCalledWith('user-123');
+    expect(store.isAuthenticated()).toBe(false);
+    expect(store.currentUser()).toBeNull();
+    expect(mockFinanceStore.resetState).toHaveBeenCalled();
+  });
+
   it('Cenário BDD: deve resolver ensureInitialized() quando o primeiro evento de auth for emitido', async () => {
     const promise = store.ensureInitialized();
 

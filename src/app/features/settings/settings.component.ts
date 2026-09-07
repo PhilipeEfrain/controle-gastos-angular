@@ -14,13 +14,14 @@ import { AuthService } from '../../core/services/auth.service';
 import { ThemeService, AppTheme } from '../../core/services/theme.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { AppCardComponent } from '../../shared/components/app-card/app-card.component';
+import { ConfirmationModalComponent } from '../../shared/components/confirmation-modal/confirmation-modal.component';
 
 export type SettingsTab = 'profile' | 'appearance' | 'security';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, AppCardComponent],
+  imports: [CommonModule, ReactiveFormsModule, AppCardComponent, ConfirmationModalComponent],
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -36,9 +37,11 @@ export class SettingsComponent implements OnInit {
   // Aba ativa
   readonly activeTab = signal<SettingsTab>('profile');
 
-  // Estados de salvamento
+  // Estados de salvamento e modais
   readonly isSavingProfile = signal<boolean>(false);
   readonly isSendingPasswordReset = signal<boolean>(false);
+  readonly isDeleteAccountModalOpen = signal<boolean>(false);
+  readonly isDeletingAccount = signal<boolean>(false);
 
   // Formulário de Perfil
   profileForm!: FormGroup;
@@ -141,5 +144,32 @@ export class SettingsComponent implements OnInit {
   async onLogout(): Promise<void> {
     await this.authStore.logout();
     this.router.navigate(['/auth']);
+  }
+
+  openDeleteAccountModal(): void {
+    this.isDeleteAccountModalOpen.set(true);
+  }
+
+  closeDeleteAccountModal(): void {
+    if (!this.isDeletingAccount()) {
+      this.isDeleteAccountModalOpen.set(false);
+    }
+  }
+
+  async onConfirmDeleteAccount(): Promise<void> {
+    const user = this.authStore.currentUser();
+    if (!user) return;
+
+    this.isDeletingAccount.set(true);
+    try {
+      await this.authStore.deleteAccount();
+      this.notificationService.info('Sua conta e todos os dados foram excluídos definitivamente.');
+      this.isDeleteAccountModalOpen.set(false);
+      this.router.navigate(['/auth']);
+    } catch (err: any) {
+      this.notificationService.error('Erro ao excluir conta: ' + (err.message || 'Tente novamente.'));
+    } finally {
+      this.isDeletingAccount.set(false);
+    }
   }
 }

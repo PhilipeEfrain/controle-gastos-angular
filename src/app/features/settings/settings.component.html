@@ -281,14 +281,14 @@
               </div>
 
               <!-- Encerramento de Sessão -->
-              <div class="security-action-box danger-box">
+              <div class="security-action-box">
                 <div class="action-info">
-                  <span class="action-title text-danger">Encerrar Sessão</span>
+                  <span class="action-title">Encerrar Sessão</span>
                   <span class="action-desc">Desconectar sua conta com segurança deste dispositivo.</span>
                 </div>
                 <button
                   type="button"
-                  class="btn-danger"
+                  class="btn-secondary"
                   (click)="onLogout()"
                   id="btn-settings-logout"
                 >
@@ -298,10 +298,42 @@
                   <span>Sair da Conta</span>
                 </button>
               </div>
+
+              <!-- Exclusão Definitiva da Conta (LGPD) -->
+              <div class="security-action-box danger-box">
+                <div class="action-info">
+                  <span class="action-title text-danger">Excluir Conta e Dados (LGPD)</span>
+                  <span class="action-desc">Exclusão permanente e definitiva de todos os seus dados financeiros, ciclos e viagens deste banco de dados. Esta ação é irreversível.</span>
+                </div>
+                <button
+                  type="button"
+                  class="btn-danger"
+                  (click)="openDeleteAccountModal()"
+                  id="btn-delete-account"
+                >
+                  <svg viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                  </svg>
+                  <span>Excluir Conta Definitivamente</span>
+                </button>
+              </div>
             </div>
           </app-card>
         }
       </main>
     </div>
   </div>
+
+  <!-- Modal de Confirmação de Exclusão de Conta -->
+  @if (isDeleteAccountModalOpen()) {
+    <app-confirmation-modal
+      title="Excluir Conta Permanentemente"
+      message="Tem certeza absoluta que deseja excluir sua conta? Todos os ciclos mensais, despesas, tributos e viagens serão apagados permanentemente do Firestore conforme os termos da LGPD. Esta operação não pode ser desfeita."
+      confirmText="Sim, Excluir Meus Dados"
+      cancelText="Cancelar"
+      variant="danger"
+      (confirm)="onConfirmDeleteAccount()"
+      (cancel)="closeDeleteAccountModal()"
+    />
+  }
 </div>

@@ -54,6 +54,7 @@
 | `ThemeService` | `src/app/core/services/theme.service.ts` | Gerenciamento reativo de tema (Dark / Light) com persistência em localStorage e sincronização com DOM. |
 | `PwaService` | `src/app/core/services/pwa.service.ts` | Monitoramento reativo de conectividade (online/offline), captura de beforeinstallprompt, instalação de PWA e controle de Service Worker. |
 | `NotificationService` | `src/app/core/services/notification.service.ts` | Notificações reativas do tipo Toast com Signals (`success`, `error`, `warning`, `info`). |
+| `LoggerService` | `src/app/core/services/logger.service.ts` | Logging seguro com supressão de stacktraces e dados de exceção em ambiente de produção (CWE-532). |
 
 ---
 
@@ -155,12 +156,15 @@
 
 | Artefato | Arquivo | Descrição |
 | :--- | :--- | :--- |
-| `Firestore Security Rules` | `firestore.rules` | Regras com isolamento estrito por `isOwner(userId)` e validação profunda de tipos, schemas, tamanhos de string e limites numéricos (`isValidExpense`, `isValidUserProfile`, `isValidMonthlyCycle`, `isValidTax`, `isValidTravel`). |
+| `Firestore Security Rules` | `firestore.rules` | Regras com isolamento estrito por `isOwner(userId)`, validação estrita de whitelisting de chaves (`keys().hasOnly([...])`), fechamento de catch-all de subcoleções e restrições de limites de dados. |
 | `CSV Formula Sanitizer` | `src/app/core/services/export.service.ts` | Sanitização preventiva contra CWE-1236 (CSV Formula Injection) neutralizando operadores (`=`, `+`, `-`, `@`, `\t`, `\r`, `%`) com apóstrofo antes da exportação. |
+| `HTML Sanitizer & XSS Escape` | `src/app/core/services/export.service.ts` | Função `escapeHTML()` para prevenção de DOM XSS (CWE-79) em relatórios gerados e impressos em PDF. |
 | `HTTPS URL Validator` | `src/app/features/settings/settings.component.ts` | Validação estrita de URLs seguras (`https://`) para imagens de perfil (prevenção contra CWE-79 / XSS via esquemas `javascript:` ou `http:`). |
+| `LGPD Right to be Forgotten` | `src/app/core/services/auth.service.ts` / `settings.component.ts` | Exclusão definitiva de conta em cascata (`deleteAccountAndData`) com expurgo total no Firestore e encerramento no Firebase Auth (CWE-404 / LGPD). |
 | `Rate Limit Handler` | `src/app/features/auth/auth.component.ts` | Tratamento amigável e bloqueio preventivo para `auth/too-many-requests`. |
 | `Hosting Security Headers & CSP` | `firebase.json` | Hardening HTTP com `Content-Security-Policy`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin` e `Permissions-Policy`. |
 | `Session & State Cleanup` | `src/app/core/state/auth.store.ts` / `finance.store.ts` | Expurgamento total de dados em memória e cancelamento de streams via `FinanceStore.resetState()` no logout. |
+| `Production Logger` | `src/app/core/services/logger.service.ts` | Supressão de stacktraces e vazamento de dados sensíveis no console do cliente em produção (CWE-532). |
 
 ---
 

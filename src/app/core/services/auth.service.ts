@@ -9,11 +9,21 @@ import {
   onAuthStateChanged,
   User,
   UserCredential,
-  updateProfile
+  updateProfile,
+  deleteUser
 } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import {
+  doc,
+  getDoc,
+  setDoc,
+  deleteDoc,
+  collection,
+  getDocs,
+  writeBatch
+} from 'firebase/firestore';
 import { Observable } from 'rxjs';
 import { FirebaseService } from './firebase.service';
+import { LoggerService } from './logger.service';
 import { UserProfile } from '../models/user.model';
 
 @Injectable({
@@ -21,6 +31,7 @@ import { UserProfile } from '../models/user.model';
 })
 export class AuthService {
   private firebaseService = inject(FirebaseService);
+  private logger = inject(LoggerService);
   private auth = this.firebaseService.auth;
   private firestore = this.firebaseService.firestore;
 
@@ -159,5 +170,62 @@ export class AuthService {
       photoURL: data.photoURL ?? currentUser?.photoURL ?? null,
       preferences: data.preferences ?? { theme: 'dark', currency: 'BRL' }
     };
+  }
+
+  /**
+   * Exclusão Definitiva de Conta e Dados em Cascata (Direito ao Esquecimento - LGPD / Art. 18)
+   */
+  async deleteAccountAndData(userId: string): Promise<void> {
+    const currentUser = this.auth.currentUser;
+    if (!currentUser || currentUser.uid !== userId) {
+      throw new Error('Usuário não autenticado ou sessão inválida para exclusão.');
+    }
+
+    try {
+      // 1. Exclui ciclos mensais e subcoleções de despesas
+      const ciclosRef = collection(this.firestore, `users/${userId}/ciclos_mensais`);
+      const ciclosSnap = await getDocs(ciclosRef);
+      for (const cicloDoc of ciclosSnap.docs) {
+        const despesasRef = collection(this.firestore, `users/${userId}/ciclos_mensais/${cicloDoc.id}/despesas`);
+        const despesasSnap = await getDocs(despesasRef);
+        const batch = writeBatch(this.firestore);
+        for (const desp of despesasSnap.docs) {
+          batch.delete(desp.ref);
+        }
+        batch.delete(cicloDoc.ref);
+        await batch.commit();
+      }
+
+      // 2. Exclui tributos e parcelas
+      const tributosRef = collection(this.firestore, `users/${userId}/tributos_e_parcelas`);
+      const tributosSnap = await getDocs(tributosRef);
+      if (!tributosSnap.empty) {
+        const batch = writeBatch(this.firestore);
+        for (const t of tributosSnap.docs) {
+          batch.delete(t.ref);
+        }
+        await batch.commit();
+      }
+
+      // 3. Exclui viagens
+      const viagensRef = collection(this.firestore, `users/${userId}/viagens`);
+      const viagensSnap = await getDocs(viagensRef);
+      if (!viagensSnap.empty) {
+        const batch = writeBatch(this.firestore);
+        for (const v of viagensSnap.docs) {
+          batch.delete(v.ref);
+        }
+        await batch.commit();
+      }
+
+      // 4. Exclui documento de perfil
+      const userDocRef = doc(this.firestore, `users/${userId}`);
+      await deleteDoc(userDocRef);
+    } catch (dbErr) {
+      this.logger.error('Erro ao expurgar dados no Firestore durante exclusão de conta:', dbErr);
+    }
+
+    // 5. Exclui credencial no Firebase Auth
+    await deleteUser(currentUser);
   }
 }
