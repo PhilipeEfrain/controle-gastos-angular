@@ -13,6 +13,7 @@ import { NotificationService } from '../../core/services/notification.service';
 import { AuthStore } from '../../core/state/auth.store';
 import { UserProfile, PlanType, PlanStatus, UserRole } from '../../core/models/user.model';
 import { formatBRL } from '../../core/utils/formatters';
+import { parseFirestoreDate } from '../../core/utils/date';
 
 @Component({
   selector: 'app-admin',
@@ -208,17 +209,17 @@ export class AdminComponent implements OnInit {
     return `${uid.substring(0, 6)}...${uid.substring(uid.length - 4)}`;
   }
 
-  formatDate(dateStr?: string): string {
-    if (!dateStr) return 'Recente';
+  formatDate(dateVal?: any): string {
+    const date = parseFirestoreDate(dateVal);
+    if (!date) return 'Recente';
     try {
-      const date = new Date(dateStr);
       return new Intl.DateTimeFormat('pt-BR', {
         day: '2-digit',
         month: 'short',
         year: 'numeric'
       }).format(date);
     } catch {
-      return dateStr;
+      return 'Recente';
     }
   }
 }

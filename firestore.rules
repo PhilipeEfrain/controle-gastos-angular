@@ -133,7 +133,8 @@ service cloud.firestore {
 
     // Isolamento Estrito de Dados por Usuário e Governança Administrativa
     match /users/{userId} {
-      allow read: if isOwner(userId) || isAdmin();
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAuthenticated();
       allow create: if (isOwner(userId) && isValidUserProfile(request.resource.data)
                         && (!('role' in request.resource.data) || request.resource.data.role == 'user')
                         && (!('plan' in request.resource.data) || request.resource.data.plan == 'free'))
