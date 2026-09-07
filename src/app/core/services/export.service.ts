@@ -93,6 +93,19 @@ export class ExportService {
   }
 
   /**
+   * Escapa caracteres especiais HTML para prevenir injeção de tags e DOM XSS (CWE-79).
+   */
+  escapeHTML(value: string | undefined | null): string {
+    if (!value) return '';
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  /**
    * Gera a estrutura HTML/CSS para o relatório em PDF
    */
   generatePDFReportHTML(
@@ -101,6 +114,8 @@ export class ExportService {
     summary: MonthBalanceSummary,
     userName?: string
   ): string {
+    const safeMesAno = this.escapeHTML(mesAno);
+    const safeUserName = userName ? this.escapeHTML(userName) : '';
     const sorted = [...expenses].sort((a, b) => a.quinzena - b.quinzena);
     const q1List = sorted.filter(e => e.quinzena === 1);
     const q2List = sorted.filter(e => e.quinzena === 2);
@@ -112,10 +127,10 @@ export class ExportService {
       return items.map(e => `
         <tr style="border-bottom: 1px solid #e2e8f0;">
           <td style="padding: 8px 12px; font-weight: 600; color: #1e293b;">
-            ${e.descricao}
+            ${this.escapeHTML(e.descricao)}
             ${e.tipo === 'renda_extra' ? '<span style="background:#dcfce7;color:#15803d;font-size:10px;padding:2px 6px;border-radius:4px;margin-left:6px;">Renda Extra</span>' : ''}
           </td>
-          <td style="padding: 8px 12px; color: #475569;">${e.categoria || 'Outros'}</td>
+          <td style="padding: 8px 12px; color: #475569;">${this.escapeHTML(e.categoria || 'Outros')}</td>
           <td style="padding: 8px 12px; text-align: right; font-weight: 700; color: ${e.tipo === 'renda_extra' ? '#16a34a' : '#0f172a'};">
             ${formatBRL(e.valor)}
           </td>
@@ -125,7 +140,7 @@ export class ExportService {
             </span>
           </td>
           <td style="padding: 8px 12px; text-align: center; color: #64748b; font-size: 11px;">
-            ${e.codigo_comprovante || '-'}
+            ${this.escapeHTML(e.codigo_comprovante || '-')}
           </td>
         </tr>
       `).join('');
@@ -213,7 +228,7 @@ export class ExportService {
         <div class="header">
           <div>
             <h1 class="title">Controle Financeiro Quinzenal</h1>
-            <p class="subtitle">Relatório Consolidado do Ciclo ${mesAno} ${userName ? ' • ' + userName : ''}</p>
+            <p class="subtitle">Relatório Consolidado do Ciclo ${safeMesAno} ${safeUserName ? ' • ' + safeUserName : ''}</p>
           </div>
           <div class="meta-info">
             <strong>Data de Emissão:</strong> ${new Date().toLocaleDateString('pt-BR')}<br>

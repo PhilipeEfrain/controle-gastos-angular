@@ -27,23 +27,26 @@ service cloud.firestore {
       return val is number && (val == 1 || val == 2);
     }
 
-    // Validador de Perfil do Usuário
+    // Validador de Perfil do Usuário com Restrição Estrita de Campos (hasOnly)
     function isValidUserProfile(data) {
-      return (!('displayName' in data) || isValidString(data.displayName, 1, 100))
+      return data.keys().hasOnly(['uid', 'email', 'displayName', 'photoURL', 'preferences', 'createdAt', 'updatedAt'])
+        && (!('displayName' in data) || isValidString(data.displayName, 1, 100))
         && (!('photoURL' in data) || data.photoURL == null || (data.photoURL is string && data.photoURL.size() <= 1500))
         && (!('email' in data) || data.email == null || (data.email is string && data.email.size() <= 200));
     }
 
-    // Validador de Ciclo Mensal
+    // Validador de Ciclo Mensal com Restrição Estrita de Campos (hasOnly)
     function isValidMonthlyCycle(data) {
-      return (!('renda_quinzena_1' in data) || isValidPositiveNumber(data.renda_quinzena_1))
+      return data.keys().hasOnly(['mesAno', 'renda_quinzena_1', 'renda_quinzena_2', 'total_renda', 'total_gastos', 'saldo_final', 'createdAt', 'updatedAt'])
+        && (!('renda_quinzena_1' in data) || isValidPositiveNumber(data.renda_quinzena_1))
         && (!('renda_quinzena_2' in data) || isValidPositiveNumber(data.renda_quinzena_2))
         && (!('mesAno' in data) || isValidYearMonth(data.mesAno));
     }
 
-    // Validador de Despesa / Renda Extra
+    // Validador de Despesa / Renda Extra com Restrição Estrita de Campos (hasOnly)
     function isValidExpense(data) {
-      return isValidPositiveNumber(data.valor)
+      return data.keys().hasOnly(['id', 'descricao', 'valor', 'categoria', 'quinzena', 'mesAno', 'status_pagamento', 'tipo', 'codigo_comprovante', 'data_vencimento', 'isParcelado', 'grupoParcelamentoId', 'numeroParcela', 'totalParcelas', 'observacao', 'createdAt', 'updatedAt'])
+        && isValidPositiveNumber(data.valor)
         && isValidString(data.descricao, 1, 100)
         && (!('categoria' in data) || (data.categoria is string && data.categoria.size() <= 50))
         && (!('quinzena' in data) || isValidFortnight(data.quinzena))
@@ -53,19 +56,24 @@ service cloud.firestore {
         && (!('codigo_comprovante' in data) || data.codigo_comprovante == null || (data.codigo_comprovante is string && data.codigo_comprovante.size() <= 100));
     }
 
-    // Validador de Tributos Anuais
+    // Validador de Tributos Anuais com Restrição Estrita de Campos (hasOnly)
     function isValidTax(data) {
-      return (!('nome' in data) || isValidString(data.nome, 1, 100))
+      return data.keys().hasOnly(['id', 'titulo', 'nome', 'ano', 'valor_orcado', 'valor_pago', 'data_vencimento', 'status', 'observacoes', 'createdAt', 'updatedAt'])
+        && (!('titulo' in data) || isValidString(data.titulo, 1, 100))
+        && (!('nome' in data) || isValidString(data.nome, 1, 100))
         && (!('valor_orcado' in data) || isValidPositiveNumber(data.valor_orcado))
         && (!('valor_pago' in data) || isValidPositiveNumber(data.valor_pago))
         && (!('ano' in data) || (data.ano is number && data.ano >= 2000 && data.ano <= 2100));
     }
 
-    // Validador de Viagens e Gastos Coletivos
+    // Validador de Viagens e Gastos Coletivos com Restrição Estrita de Campos (hasOnly)
     function isValidTravel(data) {
-      return (!('nome' in data) || isValidString(data.nome, 1, 100))
+      return data.keys().hasOnly(['id', 'titulo', 'nome', 'destino', 'numPessoas', 'quantidade_participantes', 'data_inicio', 'data_fim', 'moeda', 'total', 'total_gastos', 'valor_por_pessoa', 'itens', 'despesas', 'participantes', 'createdAt', 'updatedAt'])
+        && (!('titulo' in data) || isValidString(data.titulo, 1, 100))
+        && (!('nome' in data) || isValidString(data.nome, 1, 100))
         && (!('total' in data) || isValidPositiveNumber(data.total))
-        && (!('numPessoas' in data) || (data.numPessoas is number && data.numPessoas >= 1 && data.numPessoas <= 100));
+        && (!('total_gastos' in data) || isValidPositiveNumber(data.total_gastos))
+        && (!('quantidade_participantes' in data) || (data.quantidade_participantes is number && data.quantidade_participantes >= 1 && data.quantidade_participantes <= 100));
     }
 
     // Isolamento Estrito de Dados por Usuário
@@ -102,9 +110,9 @@ service cloud.firestore {
         allow delete: if isOwner(userId);
       }
 
-      // Qualquer subcoleção adicional isolada pelo userId
+      // Bloqueio de subcoleções não modeladas (Fechamento do Catch-all de segurança)
       match /{allSubcollections=**} {
-        allow read, write: if isOwner(userId);
+        allow read, write: if false;
       }
     }
   }

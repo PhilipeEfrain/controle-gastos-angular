@@ -124,4 +124,18 @@ export class AuthStore {
       this._isLoading.set(false);
     }
   }
+
+  async deleteAccount(): Promise<void> {
+    const user = this._currentUser();
+    if (!user) return;
+
+    this._isLoading.set(true);
+    try {
+      await this.authService.deleteAccountAndData(user.uid);
+      this._currentUser.set(null);
+      this.financeStore.resetState();
+    } finally {
+      this._isLoading.set(false);
+    }
+  }
 }

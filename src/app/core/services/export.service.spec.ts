@@ -144,6 +144,17 @@ describe('ExportService', () => {
     });
   });
 
+  describe('escapeHTML', () => {
+    it('deve escapar caracteres especiais HTML (&, <, >, ", \')', () => {
+      expect(service.escapeHTML('<script>alert("xss")</script>')).toBe('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;');
+      expect(service.escapeHTML('<img src=x onerror=\'alert(1)\'>')).toBe('&lt;img src=x onerror=&#39;alert(1)&#39;&gt;');
+      expect(service.escapeHTML('Básico & Simples')).toBe('Básico &amp; Simples');
+      expect(service.escapeHTML('')).toBe('');
+      expect(service.escapeHTML(null)).toBe('');
+      expect(service.escapeHTML(undefined)).toBe('');
+    });
+  });
+
   describe('generatePDFReportHTML', () => {
     it('deve gerar string HTML contendo cabeçalho, resumo consolidado e tabelas de Q1 e Q2', () => {
       const html = service.generatePDFReportHTML('09-2026', mockExpenses, mockSummary, 'Philipe Efrain');
@@ -156,6 +167,29 @@ describe('ExportService', () => {
       expect(html).toContain('Freelance Design');
       expect(html).toContain('Renda Extra');
       expect(html).toContain('COMP-123');
+    });
+
+    it('deve escapar tags HTML e prevenir injeção de script (CWE-79) no relatório PDF', () => {
+      const xssExpenses: Expense[] = [
+        {
+          id: 'exp-xss',
+          descricao: '<script>alert("xss")</script>',
+          valor: 100,
+          categoria: '<b onmouseover="alert(1)">Lazer</b>',
+          quinzena: 1,
+          status_pagamento: true,
+          codigo_comprovante: '<img src=x onerror=alert(1)>',
+          tipo: 'despesa'
+        }
+      ];
+
+      const html = service.generatePDFReportHTML('09-2026', xssExpenses, mockSummary, '<script>evil()</script>');
+
+      expect(html).not.toContain('<script>alert("xss")</script>');
+      expect(html).toContain('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;');
+      expect(html).toContain('&lt;b onmouseover=&quot;alert(1)&quot;&gt;Lazer&lt;/b&gt;');
+      expect(html).toContain('&lt;img src=x onerror=alert(1)&gt;');
+      expect(html).toContain('&lt;script&gt;evil()&lt;/script&gt;');
     });
 
     it('deve renderizar mensagem de ausência se uma quinzena não tiver lançamentos', () => {

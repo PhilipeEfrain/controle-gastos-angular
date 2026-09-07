@@ -176,5 +176,21 @@ describe('SettingsComponent', () => {
       expect(mockAuthStore.logout).toHaveBeenCalled();
       expect(mockRouter.navigate).toHaveBeenCalledWith(['/auth']);
     });
+
+    it('Cenário BDD: deve abrir modal de exclusão e excluir conta definitivamente com feedback', async () => {
+      mockAuthStore.deleteAccount = vi.fn().mockResolvedValue(undefined);
+
+      component.openDeleteAccountModal();
+      expect(component.isDeleteAccountModalOpen()).toBe(true);
+
+      await component.onConfirmDeleteAccount();
+
+      expect(mockAuthStore.deleteAccount).toHaveBeenCalled();
+      expect(mockNotificationService.info).toHaveBeenCalledWith(
+        'Sua conta e todos os dados foram excluídos definitivamente.'
+      );
+      expect(component.isDeleteAccountModalOpen()).toBe(false);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/auth']);
+    });
   });
 });
