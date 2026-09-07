@@ -13,6 +13,7 @@ import { UserProfile } from '../../core/models/user.model';
 import { Expense } from '../../core/models/finance.model';
 import { FirebaseService } from '../../core/services/firebase.service';
 import { ExportService } from '../../core/services/export.service';
+import { DuoService } from '../../core/services/duo.service';
 
 describe('DashboardComponent', () => {
   let component: DashboardComponent;
@@ -128,6 +129,13 @@ describe('DashboardComponent', () => {
       exportAnnualDossierPDF: vi.fn()
     };
 
+    const mockDuoService = {
+      getDuoGroupForUser: vi.fn().mockResolvedValue(null),
+      createOrGetDuoGroup: vi.fn().mockResolvedValue(null),
+      calculateSettlement: vi.fn().mockReturnValue(null),
+      listenDuoGroup: vi.fn().mockReturnValue({ subscribe: vi.fn() })
+    };
+
     const mockFirebaseService = {
       firestore: {},
       auth: {}
@@ -144,6 +152,7 @@ describe('DashboardComponent', () => {
         { provide: PlanLimitsService, useValue: mockPlanLimitsService },
         { provide: NotificationService, useValue: mockNotificationService },
         { provide: ExportService, useValue: mockExportService },
+        { provide: DuoService, useValue: mockDuoService },
         { provide: FirebaseService, useValue: mockFirebaseService },
         { provide: Router, useValue: mockRouter }
       ]

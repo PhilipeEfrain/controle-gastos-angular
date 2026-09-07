@@ -245,6 +245,17 @@
       </section>
     }
 
+    <!-- Card de Acerto de Contas do Casal (Modo Duo) -->
+    @if (settlementSummary(); as settlement) {
+      <section class="duo-section">
+        <app-duo-settlement-card
+          [group]="duoGroup()!"
+          [settlement]="settlement"
+          (openPairingModal)="isDuoPairingModalOpen.set(true)"
+        />
+      </section>
+    }
+
     <!-- Grid Quinzenal (Quinzena 1 e Quinzena 2 lado a lado) -->
     <section class="fortnights-grid">
       <!-- Quinzena 1: Renda do Dia 31 -->
@@ -358,6 +369,12 @@
   [userName]="authStore.currentUser()?.displayName ?? authStore.currentUser()?.email ?? undefined"
   (close)="isExportModalOpen.set(false)"
   (requestUpgrade)="onExportUpgradeRequested()"
+/>
+
+<!-- Modal de Pareamento do Modo Casal / Duo -->
+<app-duo-pairing-modal
+  [isOpen]="isDuoPairingModalOpen()"
+  (close)="isDuoPairingModalOpen.set(false)"
 />
 
 <!-- Modal de Limite Atingido (Janela Deslizante de Histórico) -->

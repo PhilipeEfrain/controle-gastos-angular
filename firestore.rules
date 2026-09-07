@@ -131,6 +131,30 @@ service cloud.firestore {
         && (!('quantidade_participantes' in data) || (data.quantidade_participantes is number && data.quantidade_participantes >= 1 && data.quantidade_participantes <= 100));
     }
 
+    // Validador de Grupos do Plano Duo / Casal
+    function isValidDuoGroup(data) {
+      return data.keys().hasOnly([
+        'id', 'ownerId', 'ownerEmail', 'ownerName', 'partnerId',
+        'partnerEmail', 'partnerName', 'inviteCode', 'status',
+        'createdAt', 'updatedAt'
+      ])
+        && isValidString(data.ownerId, 1, 100)
+        && isValidString(data.inviteCode, 4, 20)
+        && data.status in ['pending', 'active', 'cancelled'];
+    }
+
+    // Regras para Grupos do Plano Casal / Duo
+    match /duo_groups/{groupId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.ownerId && isValidDuoGroup(request.resource.data);
+      allow update: if isAuthenticated() && (
+        request.auth.uid == resource.data.ownerId ||
+        (resource.data.status == 'pending' && request.auth.uid == request.resource.data.partnerId) ||
+        request.auth.uid == resource.data.partnerId
+      ) && isValidDuoGroup(request.resource.data);
+      allow delete: if isAuthenticated() && request.auth.uid == resource.data.ownerId;
+    }
+
     // Isolamento Estrito de Dados por Usuário e Governança Administrativa
     match /users/{userId} {
       allow get: if isOwner(userId) || isAdmin();
@@ -187,3 +211,4 @@ service cloud.firestore {
     }
   }
 }
+

@@ -1,0 +1,91 @@
+<div class="duo-settlement-card">
+  <!-- Cabeçalho do Card -->
+  <div class="card-header">
+    <div class="header-left">
+      <div class="card-badge">MODO CASAL 💕</div>
+      <h3 class="card-title">Acerto de Contas do Casal</h3>
+    </div>
+    <button
+      type="button"
+      class="btn-manage-duo"
+      (click)="openPairingModal.emit()"
+      title="Gerenciar Pareamento"
+    >
+      <svg viewBox="0 0 20 20" fill="currentColor" class="gear-icon">
+        <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+      </svg>
+      <span>Pareamento</span>
+    </button>
+  </div>
+
+  <!-- Grid de Contribuição: Ele vs Ela -->
+  <div class="duo-members-grid">
+    <!-- Membro 1: Titular -->
+    <div class="member-box owner-box">
+      <div class="member-info">
+        <div class="member-avatar">
+          {{ settlement().ownerName.charAt(0) }}
+        </div>
+        <div class="member-text">
+          <div class="member-name">{{ settlement().ownerName }}</div>
+          <div class="member-role">Titular</div>
+        </div>
+      </div>
+      <div class="member-paid">
+        <span class="paid-label">Total Pago:</span>
+        <span class="paid-val">{{ formattedOwnerTotal() }}</span>
+      </div>
+    </div>
+
+    <!-- Membro 2: Parceiro -->
+    <div class="member-box partner-box">
+      <div class="member-info">
+        <div class="member-avatar partner-color">
+          {{ settlement().partnerName.charAt(0) }}
+        </div>
+        <div class="member-text">
+          <div class="member-name">{{ settlement().partnerName }}</div>
+          <div class="member-role">Parceiro(a)</div>
+        </div>
+      </div>
+      <div class="member-paid">
+        <span class="paid-label">Total Pago:</span>
+        <span class="paid-val">{{ formattedPartnerTotal() }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra Visual de Proporção 50/50 -->
+  <div class="split-bar-container">
+    <div class="split-labels">
+      <span>{{ settlement().ownerName }} ({{ ownerPercent() }}%)</span>
+      <span>Total: {{ formattedTotalShared() }} (Meta: {{ formattedTargetShare() }}/cada)</span>
+      <span>{{ settlement().partnerName }} ({{ partnerPercent() }}%)</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-owner" [style.width.%]="ownerPercent()"></div>
+      <div class="progress-partner" [style.width.%]="partnerPercent()"></div>
+    </div>
+  </div>
+
+  <!-- Resultado do Acerto -->
+  <div class="settlement-result-box" [class.even]="settlement().debtor === 'even'">
+    <div class="settlement-icon">
+      @if (settlement().debtor === 'even') {
+        <span>⚖️</span>
+      } @else {
+        <span>💸</span>
+      }
+    </div>
+    <div class="settlement-text">
+      <div class="settlement-title">
+        @if (settlement().debtor === 'even') {
+          Despesas 100% Equilibradas
+        } @else {
+          Compensação Sugerida: <strong>{{ formattedSettlementAmount() }}</strong>
+        }
+      </div>
+      <div class="settlement-msg">{{ settlement().message }}</div>
+    </div>
+  </div>
+</div>
