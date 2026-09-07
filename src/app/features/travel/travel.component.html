@@ -141,14 +141,29 @@
               </div>
 
               <div class="metric-block highlight">
-                <span class="metric-label">Cota Individual</span>
+                <span class="metric-label">Cota por Pessoa</span>
                 <strong class="metric-val per-person">
                   {{ formatCurrency(trip.valor_por_pessoa) }}
                 </strong>
               </div>
+
+              <div class="metric-block to-receive">
+                <span class="metric-label">
+                  @if (trip.quantidade_participantes > 2) {
+                    A Receber ({{ getOtherParticipantsCount(trip) }} pessoas)
+                  } @else if (trip.quantidade_participantes === 2) {
+                    A Receber (Outra Pessoa)
+                  } @else {
+                    Gasto Individual
+                  }
+                </span>
+                <strong class="metric-val text-emerald">
+                  {{ formatCurrency(getAmountToReceive(trip)) }}
+                </strong>
+              </div>
             </div>
 
-            <!-- Action Bar: Adicionar Gasto & Lançar no Orçamento -->
+            <!-- Action Bar: Adicionar Gasto & Lançar no Orçamento & Cobrança -->
             <div class="trip-action-bar" (click)="$event.stopPropagation()">
               <button
                 type="button"
@@ -172,6 +187,19 @@
                   <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
                 </svg>
                 <span>Lançar no Orçamento</span>
+              </button>
+
+              <button
+                type="button"
+                class="btn-share-summary"
+                [disabled]="trip.valor_por_pessoa <= 0 || trip.quantidade_participantes <= 1"
+                (click)="copyTripSummaryToClipboard(trip, $event)"
+                title="Copiar texto de cobrança para WhatsApp / PIX"
+              >
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
+                </svg>
+                <span>Cobrar Rateio</span>
               </button>
             </div>
 

@@ -384,4 +384,45 @@ export class TravelComponent implements OnInit, OnDestroy {
   formatCurrency(value: number): string {
     return formatBRL(value);
   }
+
+  getAmountToReceive(trip: TravelTrip): number {
+    const others = Math.max(0, (trip.quantidade_participantes || 1) - 1);
+    return roundBRL(others * (trip.valor_por_pessoa || 0));
+  }
+
+  getOtherParticipantsCount(trip: TravelTrip): number {
+    return Math.max(0, (trip.quantidade_participantes || 1) - 1);
+  }
+
+  async copyTripSummaryToClipboard(trip: TravelTrip, event?: Event): Promise<void> {
+    if (event) event.stopPropagation();
+
+    const cota = formatBRL(trip.valor_por_pessoa || 0);
+    const totalGasto = formatBRL(trip.total_gastos || 0);
+    const totalAReceber = formatBRL(this.getAmountToReceive(trip));
+    const outros = this.getOtherParticipantsCount(trip);
+
+    const message = [
+      `🏖️ *Acerto de Contas - ${trip.titulo}*`,
+      trip.destino ? `📍 Destino: ${trip.destino}` : '',
+      `👥 Participantes: ${trip.quantidade_participantes} pessoas`,
+      `💰 Total dos Gastos: ${totalGasto}`,
+      `💳 *Valor da cota por pessoa: ${cota}*`,
+      outros > 1 ? `📥 Total a receber dos ${outros} participantes: ${totalAReceber}` : `📥 Total a receber do participante: ${cota}`,
+      ``,
+      `👉 *Favor transferir ${cota} via PIX.*`,
+      `_Gerado pelo Controle Financeiro Quinzenal_`
+    ].filter(Boolean).join('\n');
+
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(message);
+        this.notificationService.success('Resumo do rateio copiado para a área de transferência!');
+      } else {
+        this.notificationService.info('Texto gerado: ' + cota);
+      }
+    } catch {
+      this.notificationService.error('Não foi possível copiar automaticamente.');
+    }
+  }
 }
