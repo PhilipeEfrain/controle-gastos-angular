@@ -40,15 +40,28 @@ export class TaxService {
   }
 
   /**
+   * Remove chaves com valor undefined para compatibilidade com o Firestore
+   */
+  private sanitizeData<T extends Record<string, any>>(obj: T): T {
+    const clean: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (value !== undefined) {
+        clean[key] = value;
+      }
+    }
+    return clean;
+  }
+
+  /**
    * Cadastra um novo tributo anual
    */
   async addTax(userId: string, tax: AnnualTax): Promise<string> {
     const taxesColRef = collection(this.firestore, `users/${userId}/tributos_e_parcelas`);
-    const taxData = {
+    const taxData = this.sanitizeData({
       ...tax,
       valor_orcado: roundBRL(tax.valor_orcado),
       valor_pago: roundBRL(tax.valor_pago || 0)
-    };
+    });
     const docRef = await addDoc(taxesColRef, taxData);
     return docRef.id;
   }
@@ -58,7 +71,7 @@ export class TaxService {
    */
   async updateTax(userId: string, taxId: string, data: Partial<AnnualTax>): Promise<void> {
     const taxDocRef = doc(this.firestore, `users/${userId}/tributos_e_parcelas/${taxId}`);
-    const updatePayload = { ...data };
+    const updatePayload = this.sanitizeData({ ...data });
     if (updatePayload.valor_orcado !== undefined) {
       updatePayload.valor_orcado = roundBRL(updatePayload.valor_orcado);
     }

@@ -12,6 +12,7 @@ import { Router } from '@angular/router';
 import { FinanceStore } from '../../core/state/finance.store';
 import { AuthStore } from '../../core/state/auth.store';
 import { TaxService } from '../../core/services/tax.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { AnnualTax } from '../../core/models/finance.model';
 import { formatBRL } from '../../core/utils/formatters';
 import { AppCardComponent } from '../../shared/components/app-card/app-card.component';
@@ -35,6 +36,7 @@ export class TaxesComponent implements OnInit {
   readonly financeStore = inject(FinanceStore);
   readonly authStore = inject(AuthStore);
   private readonly taxService = inject(TaxService);
+  private readonly notificationService = inject(NotificationService);
   private readonly router = inject(Router);
 
   readonly isTaxModalOpen = signal<boolean>(false);
@@ -90,7 +92,7 @@ export class TaxesComponent implements OnInit {
   }
 
   onTaxSaved(): void {
-    this.showFeedback('Tributo anual salvo com sucesso!');
+    this.notificationService.success('Tributo anual salvo com sucesso!');
   }
 
   async onQuickPay(tax: AnnualTax): Promise<void> {
@@ -106,15 +108,15 @@ export class TaxesComponent implements OnInit {
 
     const valor = parseFloat(valorStr.replace('.', '').replace(',', '.'));
     if (isNaN(valor) || valor < 0) {
-      alert('Valor inválido!');
+      this.notificationService.error('Valor de liquidação inválido!');
       return;
     }
 
     try {
       await this.taxService.markAsPaid(user.uid, tax.id, valor);
-      this.showFeedback(`Tributo "${tax.titulo}" liquidado com sucesso!`);
+      this.notificationService.success(`Tributo "${tax.titulo}" liquidado com sucesso!`);
     } catch (err: any) {
-      this.showFeedback('Erro ao liquidar tributo: ' + err.message);
+      this.notificationService.error('Erro ao liquidar tributo: ' + err.message);
     }
   }
 
@@ -127,9 +129,9 @@ export class TaxesComponent implements OnInit {
 
     try {
       await this.taxService.deleteTax(user.uid, tax.id);
-      this.showFeedback(`Tributo "${tax.titulo}" excluído.`);
+      this.notificationService.success(`Tributo "${tax.titulo}" excluído.`);
     } catch (err: any) {
-      this.showFeedback('Erro ao excluir tributo: ' + err.message);
+      this.notificationService.error('Erro ao excluir tributo: ' + err.message);
     }
   }
 

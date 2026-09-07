@@ -31,6 +31,7 @@
 | `MonthBalanceSummary` | `src/app/core/models/finance.model.ts` | Consolidado global do mês com suporte à flag `q1CobreQ2` e `temDeficitGlobal`. |
 | `AnnualTax` | `src/app/core/models/finance.model.ts` | Modelo de tributo/imposto anual (IPTU, IPVA, valor_orcado, valor_pago, status). |
 | `UserProfile` | `src/app/core/models/user.model.ts` | Modelo de perfil de usuário autenticado no Firebase. |
+| `ToastNotification` | `src/app/core/models/notification.model.ts` | Modelo de notificação Toast reativa (id, tipo, mensagem, duração). |
 
 ---
 
@@ -42,7 +43,7 @@
 | `MonthlyCycleService` | `src/app/core/services/monthly-cycle.service.ts` | CRUD e stream em tempo real para `users/{userId}/ciclos_mensais/{mesAno}`. |
 | `ExpenseService` | `src/app/core/services/expense.service.ts` | CRUD de despesas, alternância de pagamento, atualização de comprovante e geração em lote de parcelas (`createInstallmentExpenses`). |
 | `TaxService` | `src/app/core/services/tax.service.ts` | CRUD e sincronização em tempo real de tributos em `users/{userId}/tributos_e_parcelas`. |
-| `NotificationService` | `src/app/core/services/notification.service.ts` | Notificações do tipo Toast / SnackBar para feedback de ações do usuário. |
+| `NotificationService` | `src/app/core/services/notification.service.ts` | Notificações reativas do tipo Toast com Signals (`success`, `error`, `warning`, `info`). |
 
 ---
 
@@ -64,9 +65,15 @@
 | `BalanceBadgeComponent` | `app-balance-badge` | Badge financeiro automático (Verde = superávit / Vermelho = déficit). |
 | `DeficitAlertBannerComponent` | `app-deficit-alert-banner` | Banner de alerta condicional disparado quando a Q2 está deficitária ou o mês está no vermelho. |
 | `ProgressBarComponent` | `app-progress-bar` | Barra de progresso visual demonstrando percentual gasto em relação à renda prevista. |
+| `ToastContainerComponent` | `app-toast-container` | Contêiner flutuante com animações para renderização de alertas Toast. |
 | `ConfirmationModalComponent` | `app-confirmation-modal` | Modal de confirmação reutilizável para exclusão ou ações irreversíveis. |
 
-### B. Feature: Dashboard & Finanças (`src/app/features/dashboard/`)
+### B. Core & Navegação (`src/app/core/components/`)
+| Componente | Seletor | Descrição |
+| :--- | :--- | :--- |
+| `NavbarComponent` | `app-navbar` | Barra de navegação superior responsiva com Glassmorphism, links com indicador ativo, perfil do usuário e logout. |
+
+### C. Feature: Dashboard & Finanças (`src/app/features/dashboard/`)
 | Componente | Seletor | Descrição |
 | :--- | :--- | :--- |
 | `DashboardComponent` | `app-dashboard` | Página principal com seletor de mês, top summary cards, grid quinzenal e botões de ação rápida. |
@@ -76,14 +83,14 @@
 | `IncomeFormModalComponent` | `app-income-form-modal` | Modal para configuração das rendas de Q1 (Dia 31) e Q2 (Dia 15). |
 | `ReceiptModalComponent` | `app-receipt-modal` | Diálogo rápido para inserção/alteração do código de comprovante da transação. |
 
-### C. Feature: Tributos Anuais (`src/app/features/taxes/`)
+### D. Feature: Tributos Anuais (`src/app/features/taxes/`)
 | Componente | Seletor | Descrição |
 | :--- | :--- | :--- |
 | `TaxesListComponent` | `app-taxes-list` | Tabela consolidada de tributos e taxas anuais (IPTU, IPVA, Licenciamento, Bombeiros). |
 | `TaxComparisonCardComponent` | `app-tax-comparison-card` | Card comparativo de totais anuais orçados vs. efetivamente pagos. |
 | `TaxFormModalComponent` | `app-tax-form-modal` | Modal de inclusão e edição de impostos e taxas. |
 
-### D. Feature: Autenticação (`src/app/features/auth/`)
+### E. Feature: Autenticação (`src/app/features/auth/`)
 | Componente | Seletor | Descrição |
 | :--- | :--- | :--- |
 | `AuthComponent` | `app-auth` | Tela com abas de Login e Cadastro, suporte a Google Sign-In e recuperação de senha. |

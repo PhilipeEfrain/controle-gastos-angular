@@ -148,13 +148,17 @@ export class ExpenseFormModalComponent {
     try {
       if (toEdit && toEdit.id) {
         // Atualização de despesa existente
-        await this.expenseService.updateExpense(user.uid, this.mesAno(), toEdit.id, {
+        const updatePayload: Partial<Expense> = {
           descricao: formVal.descricao.trim(),
           valor: parseFloat(formVal.valor),
           quinzena: Number(formVal.quinzena) as FortnightNumber,
-          categoria: formVal.categoria,
-          data_vencimento: formVal.data_vencimento || undefined
-        });
+          categoria: formVal.categoria
+        };
+        if (formVal.data_vencimento?.trim()) {
+          updatePayload.data_vencimento = formVal.data_vencimento.trim();
+        }
+
+        await this.expenseService.updateExpense(user.uid, this.mesAno(), toEdit.id, updatePayload);
       } else if (formVal.isParcelado && formVal.total_parcelas > 1) {
         // Criação de compra parcelada em lote via writeBatch
         const installmentAmount = roundBRL(parseFloat(formVal.valor) / formVal.total_parcelas);
@@ -163,9 +167,11 @@ export class ExpenseFormModalComponent {
           valor: installmentAmount,
           quinzena: Number(formVal.quinzena) as FortnightNumber,
           categoria: formVal.categoria,
-          data_vencimento: formVal.data_vencimento || undefined,
           status_pagamento: false
         };
+        if (formVal.data_vencimento?.trim()) {
+          baseExpense.data_vencimento = formVal.data_vencimento.trim();
+        }
 
         await this.expenseService.createInstallments(
           user.uid,
@@ -175,14 +181,18 @@ export class ExpenseFormModalComponent {
         );
       } else {
         // Criação de despesa simples
-        await this.expenseService.addExpense(user.uid, this.mesAno(), {
+        const newExpense: Expense = {
           descricao: formVal.descricao.trim(),
           valor: parseFloat(formVal.valor),
           quinzena: Number(formVal.quinzena) as FortnightNumber,
           categoria: formVal.categoria,
-          data_vencimento: formVal.data_vencimento || undefined,
           status_pagamento: false
-        });
+        };
+        if (formVal.data_vencimento?.trim()) {
+          newExpense.data_vencimento = formVal.data_vencimento.trim();
+        }
+
+        await this.expenseService.addExpense(user.uid, this.mesAno(), newExpense);
       }
 
       this.saved.emit();

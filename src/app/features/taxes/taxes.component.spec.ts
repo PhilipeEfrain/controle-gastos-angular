@@ -5,6 +5,7 @@ import { TaxesComponent } from './taxes.component';
 import { FinanceStore } from '../../core/state/finance.store';
 import { AuthStore } from '../../core/state/auth.store';
 import { TaxService } from '../../core/services/tax.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { UserProfile } from '../../core/models/user.model';
 import { AnnualTax } from '../../core/models/finance.model';
 
@@ -69,12 +70,19 @@ describe('TaxesComponent', () => {
       navigate: vi.fn()
     };
 
+    const mockNotificationService = {
+      success: vi.fn(),
+      error: vi.fn(),
+      info: vi.fn()
+    };
+
     await TestBed.configureTestingModule({
       imports: [TaxesComponent],
       providers: [
         { provide: FinanceStore, useValue: mockFinanceStore },
         { provide: AuthStore, useValue: mockAuthStore },
         { provide: TaxService, useValue: mockTaxService },
+        { provide: NotificationService, useValue: mockNotificationService },
         { provide: Router, useValue: mockRouter }
       ]
     }).compileComponents();

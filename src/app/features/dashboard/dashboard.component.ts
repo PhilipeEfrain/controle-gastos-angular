@@ -13,6 +13,7 @@ import { FinanceStore } from '../../core/state/finance.store';
 import { AuthStore } from '../../core/state/auth.store';
 import { ExpenseService } from '../../core/services/expense.service';
 import { MonthlyCycleService } from '../../core/services/monthly-cycle.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { Expense, FortnightNumber } from '../../core/models/finance.model';
 import { formatBRL } from '../../core/utils/formatters';
 import { addMonthsToYearMonth } from '../../core/utils/calculations';
@@ -47,6 +48,7 @@ export class DashboardComponent implements OnInit {
   readonly authStore = inject(AuthStore);
   private readonly expenseService = inject(ExpenseService);
   private readonly cycleService = inject(MonthlyCycleService);
+  private readonly notificationService = inject(NotificationService);
   private readonly router = inject(Router);
 
   // Status visual para feedback temporário
@@ -149,20 +151,15 @@ export class DashboardComponent implements OnInit {
   }
 
   onExpenseSaved(): void {
-    this.showFeedback('Despesa registrada com sucesso!');
+    this.notificationService.success('Despesa registrada com sucesso!');
   }
 
   onIncomeSaved(): void {
-    this.showFeedback('Rendas atualizadas com sucesso!');
+    this.notificationService.success('Rendas do ciclo salvas com sucesso!');
   }
 
   onReceiptSaved(): void {
-    this.showFeedback('Comprovante bancário vinculado!');
-  }
-
-  private showFeedback(msg: string): void {
-    this.actionMessage.set(msg);
-    setTimeout(() => this.actionMessage.set(null), 3000);
+    this.notificationService.success('Comprovante bancário vinculado com sucesso!');
   }
 
   // Ações Diretas de Despesas
@@ -177,8 +174,10 @@ export class DashboardComponent implements OnInit {
         expense.id,
         expense.status_pagamento
       );
+      const novoStatus = !expense.status_pagamento ? 'paga' : 'pendente';
+      this.notificationService.info(`Despesa marcada como ${novoStatus}.`);
     } catch (err: any) {
-      this.actionMessage.set('Erro ao atualizar status da despesa: ' + err.message);
+      this.notificationService.error('Erro ao atualizar status: ' + err.message);
     }
   }
 
@@ -195,9 +194,9 @@ export class DashboardComponent implements OnInit {
         this.financeStore.selectedMonth(),
         expense.id
       );
-      this.showFeedback(`Despesa "${expense.descricao}" excluída com sucesso.`);
+      this.notificationService.success(`Despesa "${expense.descricao}" excluída com sucesso.`);
     } catch (err: any) {
-      this.actionMessage.set('Erro ao excluir despesa: ' + err.message);
+      this.notificationService.error('Erro ao excluir despesa: ' + err.message);
     }
   }
 

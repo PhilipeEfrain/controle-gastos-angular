@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { initializeApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
-import { getFirestore, Firestore } from 'firebase/firestore';
+import { initializeFirestore, Firestore } from 'firebase/firestore';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -15,6 +15,10 @@ export class FirebaseService {
   constructor() {
     this.app = initializeApp(environment.firebase);
     this.auth = getAuth(this.app);
-    this.firestore = getFirestore(this.app);
+
+    // Inicializa o Firestore com long-polling forçado para prevenir erros de CORS/WebChannel e stream no ambiente localhost
+    this.firestore = initializeFirestore(this.app, {
+      experimentalForceLongPolling: true
+    });
   }
 }

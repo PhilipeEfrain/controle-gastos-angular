@@ -67,7 +67,8 @@ export class AuthComponent {
       this.authStore.setUser(user);
       this.redirectToDestination();
     } catch (err: any) {
-      if (err?.code !== 'auth/popup-closed-by-user') {
+      console.error('[AuthComponent] Erro no login Google:', err);
+      if (err?.code !== 'auth/popup-closed-by-user' && err?.code !== 'auth/cancelled-popup-request') {
         this.errorMessage.set(this.getFriendlyErrorMessage(err?.code));
       }
     } finally {
@@ -94,6 +95,7 @@ export class AuthComponent {
       this.authStore.setUser(user);
       this.redirectToDestination();
     } catch (err: any) {
+      console.error('[AuthComponent] Erro no login com email:', err);
       this.errorMessage.set(this.getFriendlyErrorMessage(err?.code));
     } finally {
       this.isLoading.set(false);
@@ -119,6 +121,7 @@ export class AuthComponent {
       this.authStore.setUser(user);
       this.redirectToDestination();
     } catch (err: any) {
+      console.error('[AuthComponent] Erro no cadastro:', err);
       this.errorMessage.set(this.getFriendlyErrorMessage(err?.code));
     } finally {
       this.isLoading.set(false);
@@ -145,6 +148,7 @@ export class AuthComponent {
       this.successMessage.set('Instruções de redefinição de senha enviadas para o seu e-mail!');
       this.forgotForm.reset();
     } catch (err: any) {
+      console.error('[AuthComponent] Erro na recuperação de senha:', err);
       this.errorMessage.set(this.getFriendlyErrorMessage(err?.code));
     } finally {
       this.isLoading.set(false);

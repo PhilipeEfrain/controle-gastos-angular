@@ -1,3 +1,11 @@
 <div class="app-shell">
-  <router-outlet />
+  @if (isAuthenticated()) {
+    <app-navbar />
+  }
+
+  <main class="main-content" [class.authenticated-layout]="isAuthenticated()">
+    <router-outlet />
+  </main>
+
+  <app-toast-container />
 </div>
