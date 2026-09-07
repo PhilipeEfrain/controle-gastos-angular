@@ -1,7 +1,7 @@
 {
-  "name": "Controle de Gastos Quinzenais",
-  "short_name": "Controle Gastos",
-  "description": "Gestão financeira pessoal moderna com fluxo quinzenal, parcelamentos e rateio de viagens",
+  "name": "Quinzena",
+  "short_name": "Quinzena",
+  "description": "Saiba quanto entra, quanto sai e quanto sobra.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
