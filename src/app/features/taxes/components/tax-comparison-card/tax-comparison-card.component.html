@@ -1,0 +1,47 @@
+<app-card>
+  <div class="comparison-container">
+    <div class="comparison-header">
+      <div class="header-titles">
+        <h3 class="card-title">Panorama de Tributos Anuais</h3>
+        <p class="card-subtitle">
+          {{ paidCount() }} de {{ taxesCount() }} tributos liquidados ({{ progressPercentage() }}%)
+        </p>
+      </div>
+
+      <div class="status-indicator" [class.is-complete]="taxesCount() > 0 && paidCount() === taxesCount()">
+        @if (taxesCount() > 0 && paidCount() === taxesCount()) {
+          <span class="indicator-badge success">100% Quitado</span>
+        } @else {
+          <span class="indicator-badge pending">Em Aberto</span>
+        }
+      </div>
+    </div>
+
+    <!-- Grid de Métricas Anuais -->
+    <div class="metrics-row">
+      <div class="metric-block">
+        <span class="metric-label">Total Orçado</span>
+        <strong class="metric-val">{{ formattedTotalBudget() }}</strong>
+      </div>
+
+      <div class="metric-block">
+        <span class="metric-label">Total Pago</span>
+        <strong class="metric-val text-success">{{ formattedTotalPaid() }}</strong>
+      </div>
+
+      <div class="metric-block">
+        <span class="metric-label">Saldo a Quitar</span>
+        <strong class="metric-val text-warning">{{ formattedDifference() }}</strong>
+      </div>
+    </div>
+
+    <!-- Barra de Progresso Anual -->
+    <div class="progress-wrapper">
+      <app-progress-bar
+        [current]="totalPaid()"
+        [max]="totalBudget()"
+        [showLabel]="true"
+      />
+    </div>
+  </div>
+</app-card>

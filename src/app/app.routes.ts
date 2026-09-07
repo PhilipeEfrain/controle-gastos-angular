@@ -16,6 +16,12 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'tributos',
+    loadComponent: () =>
+      import('./features/taxes/taxes.component').then(m => m.TaxesComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: '',
     redirectTo: 'dashboard',
     pathMatch: 'full'
