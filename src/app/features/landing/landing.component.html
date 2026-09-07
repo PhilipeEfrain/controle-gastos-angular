@@ -1,0 +1,345 @@
+<div class="landing-page">
+  <!-- Top Navigation Header -->
+  <header class="landing-header">
+    <div class="header-container">
+      <div class="brand-group">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+        </div>
+        <span class="brand-name">Quinzena</span>
+      </div>
+
+      <nav class="header-nav">
+        <a href="#como-funciona" class="nav-link">Como Funciona</a>
+        <a href="#recursos" class="nav-link">Recursos</a>
+        <a href="#offline" class="nav-link">PWA Offline</a>
+        <a href="#faq" class="nav-link">FAQ</a>
+      </nav>
+
+      <div class="header-actions">
+        @if (isAuthenticated()) {
+          <button type="button" class="btn-primary-action" (click)="navigateToDashboard()" id="btn-header-dashboard">
+            <span>Acessar Dashboard</span>
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        } @else {
+          <button type="button" class="btn-login-link" (click)="navigateToAuth('login')" id="btn-header-login">
+            Entrar
+          </button>
+          <button type="button" class="btn-primary-action" (click)="navigateToAuth('register')" id="btn-header-register">
+            <span>Começar Grátis</span>
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        }
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-bg-glow"></div>
+    <div class="app-container hero-content">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        <span>Gestão Financeira Inteligente & PWA Offline</span>
+      </div>
+
+      <h1 class="hero-title">
+        Saiba quanto entra, quanto sai e <span class="gradient-text">quanto sobra.</span>
+      </h1>
+
+      <p class="hero-subtitle">
+        O único controle financeiro desenhado para o ritmo real das suas quinzenas. Organize pagamentos do Dia 31 e Dia 15, planeje compras parceladas, provisione tributos anuais e divida viagens sem estresse.
+      </p>
+
+      <div class="hero-cta-group">
+        @if (isAuthenticated()) {
+          <button type="button" class="btn-cta-main" (click)="navigateToDashboard()" id="btn-hero-cta">
+            <span>Ir para o Meu Dashboard</span>
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        } @else {
+          <button type="button" class="btn-cta-main" (click)="navigateToAuth('register')" id="btn-hero-cta">
+            <span>Começar Gratuitamente</span>
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </button>
+          <button type="button" class="btn-cta-secondary" (click)="navigateToAuth('login')" id="btn-hero-login">
+            <span>Já tenho uma conta</span>
+          </button>
+        }
+      </div>
+
+      <!-- Hero Visual Preview / Mockup -->
+      <div class="hero-mockup-wrapper">
+        <div class="hero-mockup-card">
+          <!-- Top bar inside mockup -->
+          <div class="mockup-top-bar">
+            <div class="mockup-dots">
+              <span class="dot red"></span>
+              <span class="dot yellow"></span>
+              <span class="dot green"></span>
+            </div>
+            <span class="mockup-title">Quinzena — Março / 2026</span>
+            <span class="mockup-status-badge">⚡ 100% Sincronizado</span>
+          </div>
+
+          <!-- Mockup Metrics Row -->
+          <div class="mockup-grid-metrics">
+            <div class="metric-item">
+              <span class="m-label">Renda Total do Mês</span>
+              <strong class="m-val text-blue">R$ 6.500,00</strong>
+            </div>
+            <div class="metric-item">
+              <span class="m-label">Total de Despesas</span>
+              <strong class="m-val text-red">R$ 4.250,00</strong>
+            </div>
+            <div class="metric-item highlight">
+              <span class="m-label">Saldo Livre Previsto</span>
+              <strong class="m-val text-emerald">R$ 2.250,00</strong>
+            </div>
+            <div class="metric-item">
+              <span class="m-label">Situação do Fluxo</span>
+              <strong class="m-val badge-superavit">✓ Superávit Consolidado</strong>
+            </div>
+          </div>
+
+          <!-- Mockup Dual Fortnight Split -->
+          <div class="mockup-fortnights">
+            <div class="fortnight-preview q1">
+              <div class="fn-header">
+                <span class="fn-tag">Quinzena 1 (Dia 31)</span>
+                <span class="fn-balance positive">+ R$ 1.150,00</span>
+              </div>
+              <div class="fn-progress"><div class="bar" style="width: 65%"></div></div>
+              <ul class="fn-items">
+                <li><span>Aluguel & Condomínio</span><strong>R$ 1.800,00</strong></li>
+                <li><span>Supermercado (Semana 1-2)</span><strong>R$ 650,00</strong></li>
+                <li><span>Cartão Nubank (Parcela 3/6)</span><strong>R$ 400,00</strong></li>
+              </ul>
+            </div>
+
+            <div class="fortnight-preview q2">
+              <div class="fn-header">
+                <span class="fn-tag">Quinzena 2 (Dia 15)</span>
+                <span class="fn-balance positive">+ R$ 1.100,00</span>
+              </div>
+              <div class="fn-progress"><div class="bar" style="width: 58%"></div></div>
+              <ul class="fn-items">
+                <li><span>Fatura Cartão Black</span><strong>R$ 950,00</strong></li>
+                <li><span>Viagem Praia (Minha Cota)</span><strong>R$ 300,00</strong></li>
+                <li><span>Reserva IPTU Anual</span><strong>R$ 150,00</strong></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Problem vs Solution: Por que Quinzenal? -->
+  <section class="section-why" id="como-funciona">
+    <div class="app-container">
+      <div class="section-heading text-center">
+        <span class="section-tag">O DIFERENCIAL QUINZENA</span>
+        <h2 class="section-title">Por que o controle mensal tradicional falha?</h2>
+        <p class="section-desc">
+          Se você recebe seu pagamento dividido em duas datas, olhar apenas o total do mês gera ilusão de sobra e descompassos no fluxo de caixa.
+        </p>
+      </div>
+
+      <div class="comparison-grid">
+        <div class="comparison-card traditional">
+          <div class="comp-icon">❌</div>
+          <h3>Apps Financeiros Tradicionais</h3>
+          <ul>
+            <li>Juntam todas as rendas e gastos em um único bloco genérico de 30 dias.</li>
+            <li>Não avisam se você terá dinheiro suficiente no Dia 31 para pagar as contas antes do Dia 15.</li>
+            <li>Despesas parceladas se perdem sem acompanhamento de quantas faltam quitar.</li>
+            <li>Divisão de viagens vira uma bagunça de prints e cálculos manuais.</li>
+          </ul>
+        </div>
+
+        <div class="comparison-card quinzena">
+          <div class="comp-icon">✨</div>
+          <h3>Com o Quinzena</h3>
+          <ul>
+            <li><strong>Organização em 2 Ciclos Reais:</strong> Cada conta é associada à quinzena em que deve ser paga.</li>
+            <li><strong>Detecção Automática de Déficit:</strong> Saiba na hora se o saldo da Q1 cobre a Q2.</li>
+            <li><strong>Gestão de Parcelas em Lote:</strong> Acompanhe o progresso (ex: 3/10) e quite antecipado em 1 clique.</li>
+            <li><strong>Rateio de Viagens Instantâneo:</strong> Separe itens individuais e cobre via WhatsApp/Pix.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Grid Section -->
+  <section class="section-features" id="recursos">
+    <div class="app-container">
+      <div class="section-heading text-center">
+        <span class="section-tag">RECURSOS COMPLETOS</span>
+        <h2 class="section-title">Tudo o que você precisa para dominar suas finanças</h2>
+        <p class="section-desc">
+          Projetado com arquitetura moderna, design Glassmorphism e precisão centavo a centavo.
+        </p>
+      </div>
+
+      <div class="features-grid">
+        @for (feature of features; track feature.title) {
+          <div class="feature-card">
+            <div class="feature-header">
+              <span class="feature-icon">{{ feature.icon }}</span>
+              <span class="feature-badge">{{ feature.badge }}</span>
+            </div>
+            <h3 class="feature-title">{{ feature.title }}</h3>
+            <p class="feature-desc">{{ feature.description }}</p>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- PWA & Offline First Section -->
+  <section class="section-offline" id="offline">
+    <div class="app-container">
+      <div class="offline-box">
+        <div class="offline-text-col">
+          <span class="section-tag-emerald">TECNOLOGIA OFFLINE-FIRST</span>
+          <h2 class="offline-heading">Funciona no metrô, na praia ou no avião. Mesmo sem sinal.</h2>
+          <p class="offline-p">
+            O Quinzena foi construído como um Progressive Web App (PWA) de ponta com cache local encriptado no IndexedDB.
+            Instale diretamente no seu iPhone, Android ou computador e continue registrando gastos mesmo se a conexão cair.
+          </p>
+          <div class="offline-highlights">
+            <div class="hl-item">
+              <span class="hl-icon">📱</span>
+              <div>
+                <strong>Instalação Rápida</strong>
+                <p>Ocupa menos de 2 MB no celular, sem necessidade de baixar pela loja.</p>
+              </div>
+            </div>
+            <div class="hl-item">
+              <span class="hl-icon">🔄</span>
+              <div>
+                <strong>Sincronização Automática</strong>
+                <p>Seus dados sincronizam com o servidor assim que a internet voltar.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="offline-visual-col">
+          <div class="pwa-mock-badge">
+            <div class="pwa-icon-large">📱</div>
+            <h3>Quinzena Web App</h3>
+            <p>Disponível para todos os navegadores e dispositivos</p>
+            <button type="button" class="btn-pwa-preview" (click)="navigateToAuth('register')">
+              Experimentar Agora
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section class="section-faq" id="faq">
+    <div class="app-container">
+      <div class="section-heading text-center">
+        <span class="section-tag">DÚVIDAS FREQUENTES</span>
+        <h2 class="section-title">Perguntas Frequentes</h2>
+        <p class="section-desc">Tudo o que você precisa saber sobre o Quinzena.</p>
+      </div>
+
+      <div class="faq-accordion">
+        @for (item of faqs(); track item.question; let i = $index) {
+          <div class="faq-item" [class.is-open]="item.isOpen">
+            <button type="button" class="faq-question-btn" (click)="toggleFaq(i)">
+              <span class="faq-q-text">{{ item.question }}</span>
+              <svg class="faq-arrow" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+              </svg>
+            </button>
+            @if (item.isOpen) {
+              <div class="faq-answer">
+                <p>{{ item.answer }}</p>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Bottom CTA Banner -->
+  <section class="section-cta-bottom">
+    <div class="app-container">
+      <div class="cta-banner-box">
+        <h2 class="cta-banner-title">
+          Pronto para ter clareza total sobre o seu dinheiro?
+        </h2>
+        <p class="cta-banner-subtitle">
+          Crie sua conta em menos de 1 minuto e comece a planejar suas quinzenas hoje mesmo.
+        </p>
+        <div class="cta-banner-actions">
+          <button type="button" class="btn-cta-main large" (click)="navigateToAuth('register')">
+            <span>Criar Minha Conta Grátis</span>
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Landing Footer -->
+  <footer class="landing-footer">
+    <div class="app-container footer-content">
+      <div class="footer-brand">
+        <div class="brand-group">
+          <div class="brand-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+          </div>
+          <span class="brand-name">Quinzena</span>
+        </div>
+        <p class="footer-tagline">Saiba quanto entra, quanto sai e quanto sobra.</p>
+      </div>
+
+      <div class="footer-links-group">
+        <div class="footer-col">
+          <h4>Navegação</h4>
+          <a href="#como-funciona">Como Funciona</a>
+          <a href="#recursos">Recursos</a>
+          <a href="#offline">PWA Offline</a>
+          <a href="#faq">Dúvidas Frequentes</a>
+        </div>
+        <div class="footer-col">
+          <h4>Acesso</h4>
+          <a (click)="navigateToAuth('login')">Fazer Login</a>
+          <a (click)="navigateToAuth('register')">Criar Conta Gratuita</a>
+          <a (click)="navigateToDashboard()">Meu Orçamento</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="app-container footer-bottom-inner">
+        <span>© 2026 Quinzena. Todos os direitos reservados.</span>
+        <span>Desenvolvido com Angular 19, Signals & Firebase Modular SDK.</span>
+      </div>
+    </div>
+  </footer>
+</div>

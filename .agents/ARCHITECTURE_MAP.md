@@ -124,6 +124,11 @@
 | :--- | :--- | :--- |
 | `SettingsComponent` | `app-settings` | Gestão de perfil (nome de exibição, avatar), alternância de tema Dark/Light e redefinição de senha. |
 
+### I. Feature: Landing Page & Apresentação (`src/app/features/landing/`)
+| Componente | Seletor | Descrição |
+| :--- | :--- | :--- |
+| `LandingComponent` | `app-landing` | Landing Page de conversão de alto impacto com Glassmorphism, proposta de valor dos 4 pilares do Quinzena, mockups interativos, FAQ e CTAs. |
+
 ---
 
 ## 6. Pipes e Diretivas Customizadas (`src/app/shared/`)

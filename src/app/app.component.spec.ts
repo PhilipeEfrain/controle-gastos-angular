@@ -98,4 +98,14 @@ describe('App', () => {
 
     expect(app.showNavbar()).toBe(true);
   });
+
+  it('não deve exibir a Navbar na landing page pública / mesmo se autenticado', async () => {
+    isAuthenticatedSignal.set(true);
+    await router.navigate(['/']);
+
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+
+    expect(app.showNavbar()).toBe(false);
+  });
 });
