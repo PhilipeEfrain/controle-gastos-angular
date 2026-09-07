@@ -9,6 +9,7 @@
       <nav class="header-nav">
         <a href="#como-funciona" class="nav-link">Como Funciona</a>
         <a href="#recursos" class="nav-link">Recursos</a>
+        <a href="#planos" class="nav-link">Planos & Preços</a>
         <a href="#offline" class="nav-link">PWA Offline</a>
         <a href="#faq" class="nav-link">FAQ</a>
       </nav>
@@ -265,6 +266,185 @@
     </div>
   </section>
 
+  <!-- Pricing Section -->
+  <section class="section-pricing" id="planos">
+    <div class="app-container">
+      <div class="section-heading text-center">
+        <span class="section-tag-amber">PLANOS & PREÇOS</span>
+        <h2 class="section-title">Escolha o plano ideal para a sua jornada financeira</h2>
+        <p class="section-desc">
+          Comece gratuitamente e evolua para recursos ilimitados quando estiver pronto.
+        </p>
+
+        <!-- Toggle Ciclo de Pagamento -->
+        <div class="pricing-toggle-wrapper">
+          <div class="pricing-toggle-pill">
+            <button
+              type="button"
+              class="toggle-cycle-btn"
+              [class.active]="billingCycle() === 'monthly'"
+              (click)="setBillingCycle('monthly')"
+            >
+              Mensal
+            </button>
+            <button
+              type="button"
+              class="toggle-cycle-btn"
+              [class.active]="billingCycle() === 'yearly'"
+              (click)="setBillingCycle('yearly')"
+            >
+              <span>Anual</span>
+              <span class="discount-pill">Economize 25%</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grid de Planos -->
+      <div class="pricing-grid">
+        <!-- Plano Free -->
+        <div class="pricing-card plan-free">
+          <div class="plan-badge">Comece Agora</div>
+          <h3 class="plan-name">Plano Gratuito</h3>
+          <p class="plan-desc">Ideal para quem quer experimentar o controle quinzenal básico.</p>
+
+          <div class="plan-price-box">
+            <span class="currency">R$</span>
+            <span class="price-val">0</span>
+            <span class="billing-period">/ para sempre</span>
+          </div>
+
+          <ul class="plan-features-list">
+            <li class="feature-line">
+              <svg viewBox="0 0 20 20" fill="currentColor" class="check-icon"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              <span>Até <strong>3 contas fixas</strong> recorrentes</span>
+            </li>
+            <li class="feature-line">
+              <svg viewBox="0 0 20 20" fill="currentColor" class="check-icon"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              <span>Até <strong>3 compras parceladas</strong> ativas</span>
+            </li>
+            <li class="feature-line">
+              <svg viewBox="0 0 20 20" fill="currentColor" class="check-icon"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              <span><strong>1 tributo anual</strong> (IPTU/IPVA)</span>
+            </li>
+            <li class="feature-line">
+              <svg viewBox="0 0 20 20" fill="currentColor" class="check-icon"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              <span><strong>1 viagem ativa</strong> com rateio</span>
+            </li>
+            <li class="feature-line">
+              <svg viewBox="0 0 20 20" fill="currentColor" class="check-icon"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              <span>Histórico de 2 meses</span>
+            </li>
+            <li class="feature-line disabled">
+              <svg viewBox="0 0 20 20" fill="currentColor" class="cross-icon"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+              <span>Dossiê do Ano em PDF</span>
+            </li>
+          </ul>
+
+          <button type="button" class="btn-plan-action btn-plan-free" (click)="navigateToAuth('register', 'free')">
+            Criar Conta Grátis
+          </button>
+        </div>
+
+        <!-- Plano PRO (Destaque Mais Popular) -->
+        <div class="pricing-card plan-pro featured">
+          <div class="popular-ribbon">⭐ MAIS ESCOLHIDO</div>
+          <div class="plan-badge plan-badge-pro">Poder Total</div>
+          <h3 class="plan-name">Plano PRO</h3>
+          <p class="plan-desc">Controle absoluto sem limites para quem busca liberdade financeira.</p>
+
+          <div class="plan-price-box">
+            <span class="currency">R$</span>
+            @if (billingCycle() === 'yearly') {
+              <span class="price-val">7,49</span>
+              <span class="billing-period">/ mês (R$ 89,90 cobrado anual)</span>
+            } @else {
+              <span class="price-val">9,90</span>
+              <span class="billing-period">/ mês</span>
+            }
+          </div>
+
+          <ul class="plan-features-list">
+            <li class="feature-line highlight">
+              <svg viewBox="0 0 20 20" fill="currentColor" class="check-icon"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              <span><strong>Contas Fixas Ilimitadas</strong></span>
+            </li>
+            <li class="feature-line highlight">
+              <svg viewBox="0 0 20 20" fill="currentColor" class="check-icon"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              <span><strong>Compras Parceladas Ilimitadas</strong></span>
+            </li>
+            <li class="feature-line highlight">
+              <svg viewBox="0 0 20 20" fill="currentColor" class="check-icon"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              <span><strong>Tributos e Viagens Ilimitados</strong></span>
+            </li>
+            <li class="feature-line highlight">
+              <svg viewBox="0 0 20 20" fill="currentColor" class="check-icon"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              <span><strong>Janela Móvel de 13 Meses</strong> de Histórico</span>
+            </li>
+            <li class="feature-line highlight">
+              <svg viewBox="0 0 20 20" fill="currentColor" class="check-icon"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              <span><strong>Dossiê do Ano Consolidado em PDF</strong></span>
+            </li>
+            <li class="feature-line">
+              <svg viewBox="0 0 20 20" fill="currentColor" class="check-icon"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              <span>Sincronização PWA Offline Completa</span>
+            </li>
+          </ul>
+
+          <button type="button" class="btn-plan-action btn-plan-pro" (click)="navigateToAuth('register', 'pro')">
+            <span>Começar com o PRO</span>
+            <svg viewBox="0 0 20 20" fill="currentColor" class="arrow-icon"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+          </button>
+        </div>
+
+        <!-- Plano DUO / Casal -->
+        <div class="pricing-card plan-duo">
+          <div class="plan-badge plan-badge-duo">Finanças a Dois</div>
+          <h3 class="plan-name">Plano CASAL / DUO</h3>
+          <p class="plan-desc">Orçamento compartilhado com total transparência para casais e parceiros.</p>
+
+          <div class="plan-price-box">
+            <span class="currency">R$</span>
+            @if (billingCycle() === 'yearly') {
+              <span class="price-val">14,99</span>
+              <span class="billing-period">/ mês (R$ 179,90 cobrado anual)</span>
+            } @else {
+              <span class="price-val">19,90</span>
+              <span class="billing-period">/ mês</span>
+            }
+          </div>
+
+          <ul class="plan-features-list">
+            <li class="feature-line highlight-duo">
+              <svg viewBox="0 0 20 20" fill="currentColor" class="check-icon"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              <span><strong>2 Contas Sincronizadas</strong> em Tempo Real</span>
+            </li>
+            <li class="feature-line">
+              <svg viewBox="0 0 20 20" fill="currentColor" class="check-icon"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              <span>Tudo o que o <strong>Plano PRO</strong> inclui</span>
+            </li>
+            <li class="feature-line">
+              <svg viewBox="0 0 20 20" fill="currentColor" class="check-icon"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              <span>Despesas fixas & parcelas ilimitadas</span>
+            </li>
+            <li class="feature-line">
+              <svg viewBox="0 0 20 20" fill="currentColor" class="check-icon"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              <span>Dossiê anual duplo em PDF</span>
+            </li>
+            <li class="feature-line">
+              <svg viewBox="0 0 20 20" fill="currentColor" class="check-icon"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              <span>Suporte Prioritário Direto</span>
+            </li>
+          </ul>
+
+          <button type="button" class="btn-plan-action btn-plan-duo" (click)="navigateToAuth('register', 'duo')">
+            Assinar Plano DUO
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- FAQ Section -->
   <section class="section-faq" id="faq">
     <div class="app-container">
@@ -332,6 +512,7 @@
           <h4>Navegação</h4>
           <a href="#como-funciona">Como Funciona</a>
           <a href="#recursos">Recursos</a>
+          <a href="#planos">Planos & Preços</a>
           <a href="#offline">PWA Offline</a>
           <a href="#faq">Dúvidas Frequentes</a>
         </div>

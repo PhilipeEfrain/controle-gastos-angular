@@ -72,6 +72,8 @@ export class LandingComponent {
     }
   ];
 
+  readonly billingCycle = signal<'monthly' | 'yearly'>('yearly');
+
   readonly faqs = signal<FaqItem[]>([
     {
       question: 'Quinzena organiza o orçamento somente em duas quinzenas?',
@@ -94,11 +96,15 @@ export class LandingComponent {
       isOpen: false
     },
     {
-      question: 'O uso do Quinzena é gratuito?',
-      answer: 'Sim! O aplicativo é 100% gratuito e não possui limites de despesas, viagens ou ciclos cadastrados.',
+      question: 'Qual a diferença entre o Plano Gratuito e os Planos PRO / DUO?',
+      answer: 'O plano Gratuito permite começar sem custo com até 3 despesas fixas, 3 parcelamentos, 1 tributo e 1 viagem. Os planos PRO (R$ 9,90/mês ou R$ 89,90/ano) e DUO (R$ 19,90/mês ou R$ 179,90/ano) desbloqueiam cadastros ilimitados, histórico móvel completo de 13 meses, exportação do Dossiê do Ano em PDF e sincronização em modo casal para duas contas.',
       isOpen: false
     }
   ]);
+
+  setBillingCycle(cycle: 'monthly' | 'yearly'): void {
+    this.billingCycle.set(cycle);
+  }
 
   toggleFaq(index: number): void {
     this.faqs.update(items =>
@@ -106,8 +112,12 @@ export class LandingComponent {
     );
   }
 
-  navigateToAuth(mode: 'login' | 'register' = 'register'): void {
-    this.router.navigate(['/auth'], { queryParams: { tab: mode } });
+  navigateToAuth(mode: 'login' | 'register' = 'register', plan?: string): void {
+    const queryParams: any = { tab: mode };
+    if (plan) {
+      queryParams.plan = plan;
+    }
+    this.router.navigate(['/auth'], { queryParams });
   }
 
   navigateToDashboard(): void {

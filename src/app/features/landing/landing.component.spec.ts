@@ -68,4 +68,28 @@ describe('LandingComponent', () => {
     component.toggleFaq(0);
     expect(component.faqs()[0].isOpen).toBe(false);
   });
+
+  it('Cenário BDD (Planos Landing): deve alternar ciclo de cobrança entre Anual e Mensal', () => {
+    expect(component.billingCycle()).toBe('yearly');
+
+    component.setBillingCycle('monthly');
+    fixture.detectChanges();
+    expect(component.billingCycle()).toBe('monthly');
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('.plan-pro .price-val')?.textContent?.trim()).toBe('9,90');
+    expect(compiled.querySelector('.plan-duo .price-val')?.textContent?.trim()).toBe('19,90');
+
+    component.setBillingCycle('yearly');
+    fixture.detectChanges();
+    expect(compiled.querySelector('.plan-pro .price-val')?.textContent?.trim()).toBe('7,49');
+    expect(compiled.querySelector('.plan-duo .price-val')?.textContent?.trim()).toBe('14,99');
+  });
+
+  it('Cenário BDD (Checkout): deve navegar para /auth com queryParams de plano', () => {
+    component.navigateToAuth('register', 'pro');
+    expect(router.navigate).toHaveBeenCalledWith(['/auth'], {
+      queryParams: { tab: 'register', plan: 'pro' }
+    });
+  });
 });
