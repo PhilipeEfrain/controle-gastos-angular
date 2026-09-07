@@ -9,8 +9,8 @@
           </svg>
         </div>
         <div class="brand-text">
-          <span class="brand-title">Controle Financeiro</span>
-          <span class="brand-badge">Quinzenal</span>
+          <span class="brand-title">Quinzena</span>
+          <span class="brand-badge">Finanças</span>
         </div>
       </a>
     </div>
@@ -85,6 +85,27 @@
 
     <!-- User Profile & Actions -->
     <div class="header-actions">
+      @if (!isOnline()) {
+        <div class="offline-status-badge" title="Você está desconectado. Modo offline ativo com sincronização automática.">
+          <span class="offline-dot"></span>
+          <span class="offline-label">Offline</span>
+        </div>
+      }
+
+      @if (canInstall()) {
+        <button
+          type="button"
+          class="btn-install-pwa"
+          (click)="installPwa()"
+          title="Instalar aplicativo no seu dispositivo"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="install-icon">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+          </svg>
+          <span class="install-text">Instalar App</span>
+        </button>
+      }
+
       @if (user(); as currentUser) {
         <a routerLink="/configuracoes" class="user-profile-badge" title="Ver Configurações & Perfil">
           <div class="user-avatar">
@@ -205,6 +226,19 @@
           </svg>
           <span>Configurações</span>
         </a>
+
+        @if (canInstall()) {
+          <button
+            type="button"
+            class="mobile-btn-install"
+            (click)="installPwa(); closeMobileMenu()"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="nav-icon">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
+            <span>Instalar Aplicativo</span>
+          </button>
+        }
 
         @if (user()) {
           <div class="mobile-user-actions">

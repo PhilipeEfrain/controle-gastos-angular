@@ -4,12 +4,13 @@ import { CommonModule } from '@angular/common';
 import { filter } from 'rxjs/operators';
 import { NavbarComponent } from './core/components/navbar/navbar.component';
 import { ToastContainerComponent } from './shared/components/toast-container/toast-container.component';
+import { OfflineBannerComponent } from './shared/components/offline-banner/offline-banner.component';
 import { AuthStore } from './core/state/auth.store';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, NavbarComponent, ToastContainerComponent],
+  imports: [CommonModule, RouterOutlet, NavbarComponent, ToastContainerComponent, OfflineBannerComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

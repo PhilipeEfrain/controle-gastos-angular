@@ -1,0 +1,29 @@
+@if (!isOnline()) {
+  <div class="offline-banner" role="alert">
+    <div class="banner-content">
+      <div class="pulse-dot"></div>
+      <svg class="banner-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18M8.5 8.5a7 7 0 019.5 9.5M12 20a8 8 0 01-6-2.7M16.5 7.5A9.9 9.9 0 0012 6.5c-2.3 0-4.4.8-6 2.1" />
+      </svg>
+      <span class="banner-text">
+        <strong>Modo Offline Ativo:</strong> Seus dados estão salvos localmente no dispositivo e serão sincronizados assim que a conexão retornar.
+      </span>
+    </div>
+  </div>
+}
+
+@if (updateAvailable()) {
+  <div class="update-banner" role="alert">
+    <div class="banner-content">
+      <svg class="banner-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+      <span class="banner-text">
+        Uma nova versão do aplicativo está pronta para ser usada.
+      </span>
+      <button type="button" class="btn-update" (click)="reloadApp()">
+        Atualizar Agora
+      </button>
+    </div>
+  </div>
+}

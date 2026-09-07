@@ -4,8 +4,9 @@ import { provideRouter, Router } from '@angular/router';
 import { AuthStore } from '../../state/auth.store';
 import { AuthService } from '../../services/auth.service';
 import { NotificationService } from '../../services/notification.service';
+import { PwaService } from '../../services/pwa.service';
 import { UserProfile } from '../../models/user.model';
-import { signal } from '@angular/core';
+import { signal, WritableSignal } from '@angular/core';
 
 describe('NavbarComponent', () => {
   let component: NavbarComponent;
@@ -13,6 +14,11 @@ describe('NavbarComponent', () => {
   let mockAuthStore: Partial<AuthStore>;
   let mockAuthService: Partial<AuthService>;
   let mockNotificationService: Partial<NotificationService>;
+  let mockPwaService: {
+    isOnline: WritableSignal<boolean>;
+    canInstall: WritableSignal<boolean>;
+    installApp: ReturnType<typeof vi.fn>;
+  };
   let router: Router;
 
   const mockUser: UserProfile = {
@@ -41,13 +47,20 @@ describe('NavbarComponent', () => {
       success: vi.fn()
     };
 
+    mockPwaService = {
+      isOnline: signal(true),
+      canInstall: signal(false),
+      installApp: vi.fn().mockResolvedValue(true)
+    };
+
     await TestBed.configureTestingModule({
       imports: [NavbarComponent],
       providers: [
         provideRouter([]),
         { provide: AuthStore, useValue: mockAuthStore },
         { provide: AuthService, useValue: mockAuthService },
-        { provide: NotificationService, useValue: mockNotificationService }
+        { provide: NotificationService, useValue: mockNotificationService },
+        { provide: PwaService, useValue: mockPwaService }
       ]
     }).compileComponents();
 
@@ -80,5 +93,23 @@ describe('NavbarComponent', () => {
     expect(mockAuthStore.logout).toHaveBeenCalled();
     expect(mockNotificationService.info).toHaveBeenCalledWith('Você saiu da sua conta.');
     expect(router.navigate).toHaveBeenCalledWith(['/auth']);
+  });
+
+  it('deve exibir badge de offline quando desconectado', () => {
+    mockPwaService.isOnline.set(false);
+    fixture.detectChanges();
+    const badge = fixture.nativeElement.querySelector('.offline-status-badge');
+    expect(badge).toBeTruthy();
+    expect(badge.textContent).toContain('Offline');
+  });
+
+  it('deve exibir botão de instalar app quando canInstall for true e disparar installPwa', async () => {
+    mockPwaService.canInstall.set(true);
+    fixture.detectChanges();
+    const installBtn = fixture.nativeElement.querySelector('.btn-install-pwa');
+    expect(installBtn).toBeTruthy();
+
+    await component.installPwa();
+    expect(mockPwaService.installApp).toHaveBeenCalled();
   });
 });

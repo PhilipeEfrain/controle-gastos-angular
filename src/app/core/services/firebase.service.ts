@@ -1,7 +1,13 @@
 import { Injectable } from '@angular/core';
 import { initializeApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
-import { initializeFirestore, Firestore } from 'firebase/firestore';
+import {
+  initializeFirestore,
+  Firestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+  memoryLocalCache
+} from 'firebase/firestore';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -16,8 +22,23 @@ export class FirebaseService {
     this.app = initializeApp(environment.firebase);
     this.auth = getAuth(this.app);
 
-    // Inicializa o Firestore com long-polling forçado para prevenir erros de CORS/WebChannel e stream no ambiente localhost
+    // Habilita persistência offline via IndexedDB com suporte a múltiplas abas (PWA / Offline First)
+    let localCacheConfig;
+    try {
+      if (typeof window !== 'undefined' && 'indexedDB' in window) {
+        localCacheConfig = persistentLocalCache({
+          tabManager: persistentMultipleTabManager()
+        });
+      } else {
+        localCacheConfig = memoryLocalCache();
+      }
+    } catch {
+      localCacheConfig = memoryLocalCache();
+    }
+
+    // Inicializa o Firestore com long-polling forçado para compatibilidade WebChannel e persistência offline
     this.firestore = initializeFirestore(this.app, {
+      localCache: localCacheConfig,
       experimentalForceLongPolling: true
     });
   }
