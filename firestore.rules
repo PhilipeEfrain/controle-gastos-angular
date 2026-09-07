@@ -15,6 +15,10 @@ service cloud.firestore {
       return val is number && val >= 0;
     }
 
+    function isValidNumber(val) {
+      return val is number;
+    }
+
     function isValidString(val, minLen, maxLen) {
       return val is string && val.size() >= minLen && val.size() <= maxLen;
     }
@@ -27,25 +31,35 @@ service cloud.firestore {
       return val is number && (val == 1 || val == 2);
     }
 
-    // Validador de Perfil do Usuário com Restrição Estrita de Campos (hasOnly)
+    // Validador de Perfil do Usuário com Restrição Estrita de Campos
     function isValidUserProfile(data) {
-      return data.keys().hasOnly(['uid', 'email', 'displayName', 'photoURL', 'preferences', 'createdAt', 'updatedAt'])
+      return data.keys().hasOnly(['uid', 'id', 'email', 'displayName', 'photoURL', 'preferences', 'createdAt', 'updatedAt'])
         && (!('displayName' in data) || isValidString(data.displayName, 1, 100))
         && (!('photoURL' in data) || data.photoURL == null || (data.photoURL is string && data.photoURL.size() <= 1500))
         && (!('email' in data) || data.email == null || (data.email is string && data.email.size() <= 200));
     }
 
-    // Validador de Ciclo Mensal com Restrição Estrita de Campos (hasOnly)
+    // Validador de Ciclo Mensal com Suporte a Renda, Totais e Regime Salarial
     function isValidMonthlyCycle(data) {
-      return data.keys().hasOnly(['mesAno', 'renda_quinzena_1', 'renda_quinzena_2', 'total_renda', 'total_gastos', 'saldo_final', 'createdAt', 'updatedAt'])
+      return data.keys().hasOnly(['id', 'mesAno', 'renda_quinzena_1', 'renda_quinzena_2', 'total_renda', 'total_gastos', 'saldo_final', 'regime_salarial', 'createdAt', 'updatedAt'])
         && (!('renda_quinzena_1' in data) || isValidPositiveNumber(data.renda_quinzena_1))
         && (!('renda_quinzena_2' in data) || isValidPositiveNumber(data.renda_quinzena_2))
-        && (!('mesAno' in data) || isValidYearMonth(data.mesAno));
+        && (!('total_renda' in data) || isValidPositiveNumber(data.total_renda))
+        && (!('total_gastos' in data) || isValidPositiveNumber(data.total_gastos))
+        && (!('saldo_final' in data) || isValidNumber(data.saldo_final))
+        && (!('mesAno' in data) || isValidYearMonth(data.mesAno))
+        && (!('regime_salarial' in data) || data.regime_salarial in ['quinzenal', 'mensal_q1', 'mensal_q2', 'divisao_50_50']);
     }
 
-    // Validador de Despesa / Renda Extra com Restrição Estrita de Campos (hasOnly)
+    // Validador de Despesa / Renda Extra com Suporte a Parcelamentos e Comprovantes
     function isValidExpense(data) {
-      return data.keys().hasOnly(['id', 'descricao', 'valor', 'categoria', 'quinzena', 'mesAno', 'status_pagamento', 'tipo', 'codigo_comprovante', 'data_vencimento', 'isParcelado', 'grupoParcelamentoId', 'numeroParcela', 'totalParcelas', 'observacao', 'createdAt', 'updatedAt'])
+      return data.keys().hasOnly([
+        'id', 'descricao', 'valor', 'categoria', 'quinzena', 'mesAno',
+        'status_pagamento', 'tipo', 'codigo_comprovante', 'data_vencimento',
+        'recorrente', 'parcela_atual', 'total_parcelas', 'grupo_parcela_id',
+        'isParcelado', 'grupoParcelamentoId', 'numeroParcela', 'totalParcelas',
+        'observacao', 'observacoes', 'createdAt', 'updatedAt'
+      ])
         && isValidPositiveNumber(data.valor)
         && isValidString(data.descricao, 1, 100)
         && (!('categoria' in data) || (data.categoria is string && data.categoria.size() <= 50))
@@ -56,19 +70,27 @@ service cloud.firestore {
         && (!('codigo_comprovante' in data) || data.codigo_comprovante == null || (data.codigo_comprovante is string && data.codigo_comprovante.size() <= 100));
     }
 
-    // Validador de Tributos Anuais com Restrição Estrita de Campos (hasOnly)
+    // Validador de Tributos Anuais
     function isValidTax(data) {
-      return data.keys().hasOnly(['id', 'titulo', 'nome', 'ano', 'valor_orcado', 'valor_pago', 'data_vencimento', 'status', 'observacoes', 'createdAt', 'updatedAt'])
+      return data.keys().hasOnly([
+        'id', 'titulo', 'nome', 'ano', 'ano_referencia', 'valor_orcado',
+        'valor_pago', 'data_vencimento', 'data_pagamento', 'status',
+        'observacao', 'observacoes', 'createdAt', 'updatedAt'
+      ])
         && (!('titulo' in data) || isValidString(data.titulo, 1, 100))
         && (!('nome' in data) || isValidString(data.nome, 1, 100))
         && (!('valor_orcado' in data) || isValidPositiveNumber(data.valor_orcado))
-        && (!('valor_pago' in data) || isValidPositiveNumber(data.valor_pago))
-        && (!('ano' in data) || (data.ano is number && data.ano >= 2000 && data.ano <= 2100));
+        && (!('valor_pago' in data) || isValidPositiveNumber(data.valor_pago));
     }
 
-    // Validador de Viagens e Gastos Coletivos com Restrição Estrita de Campos (hasOnly)
+    // Validador de Viagens e Gastos Coletivos
     function isValidTravel(data) {
-      return data.keys().hasOnly(['id', 'titulo', 'nome', 'destino', 'numPessoas', 'quantidade_participantes', 'data_inicio', 'data_fim', 'moeda', 'total', 'total_gastos', 'valor_por_pessoa', 'itens', 'despesas', 'participantes', 'createdAt', 'updatedAt'])
+      return data.keys().hasOnly([
+        'id', 'titulo', 'nome', 'destino', 'numPessoas', 'quantidade_participantes',
+        'data_inicio', 'data_fim', 'moeda', 'total', 'total_gastos',
+        'valor_por_pessoa', 'itens', 'despesas', 'participantes',
+        'createdAt', 'updatedAt'
+      ])
         && (!('titulo' in data) || isValidString(data.titulo, 1, 100))
         && (!('nome' in data) || isValidString(data.nome, 1, 100))
         && (!('total' in data) || isValidPositiveNumber(data.total))
