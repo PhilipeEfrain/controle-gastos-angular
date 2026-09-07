@@ -27,6 +27,7 @@ import { IncomeFormModalComponent } from './components/income-form-modal/income-
 import { ReceiptModalComponent } from './components/receipt-modal/receipt-modal.component';
 import { CategoryDonutChartComponent } from './components/category-donut-chart/category-donut-chart.component';
 import { MonthlyEvolutionChartComponent } from './components/monthly-evolution-chart/monthly-evolution-chart.component';
+import { ExportModalComponent } from './components/export-modal/export-modal.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -41,7 +42,8 @@ import { MonthlyEvolutionChartComponent } from './components/monthly-evolution-c
     IncomeFormModalComponent,
     ReceiptModalComponent,
     CategoryDonutChartComponent,
-    MonthlyEvolutionChartComponent
+    MonthlyEvolutionChartComponent,
+    ExportModalComponent
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
@@ -88,6 +90,8 @@ export class DashboardComponent implements OnInit {
 
   readonly isReceiptModalOpen = signal<boolean>(false);
   readonly selectedExpenseForReceipt = signal<Expense | null>(null);
+
+  readonly isExportModalOpen = signal<boolean>(false);
 
   // Formatações computadas para os Top Cards
   readonly formattedTotalRenda = computed(() =>
@@ -173,6 +177,10 @@ export class DashboardComponent implements OnInit {
   openReceiptModal(expense: Expense): void {
     this.selectedExpenseForReceipt.set(expense);
     this.isReceiptModalOpen.set(true);
+  }
+
+  openExportModal(): void {
+    this.isExportModalOpen.set(true);
   }
 
   onExpenseSaved(): void {

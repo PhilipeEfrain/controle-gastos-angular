@@ -50,6 +50,7 @@
 | `TaxService` | `src/app/core/services/tax.service.ts` | CRUD e sincronização em tempo real de tributos em `users/{userId}/tributos_e_parcelas`. |
 | `TravelService` | `src/app/core/services/travel.service.ts` | CRUD e stream em tempo real para controle de gastos de viagem e rateio (`users/{userId}/viagens`). |
 | `InstallmentService` | `src/app/core/services/installment.service.ts` | Agrupamento de parcelamentos ativos nos ciclos do usuário e quitação/cancelamento em lote via `writeBatch`. |
+| `ExportService` | `src/app/core/services/export.service.ts` | Exportação de balanço e relatórios em CSV (UTF-8 com BOM para Excel) e PDF estruturado A4 client-side para impressão. |
 | `NotificationService` | `src/app/core/services/notification.service.ts` | Notificações reativas do tipo Toast com Signals (`success`, `error`, `warning`, `info`). |
 
 ---
@@ -91,6 +92,7 @@
 | `ReceiptModalComponent` | `app-receipt-modal` | Diálogo rápido para inserção/alteração do código de comprovante da transação. |
 | `CategoryDonutChartComponent` | `app-category-donut-chart` | Gráfico Donut em SVG com cálculo proporcional por categoria, tooltips reativos e legenda com percentuais. |
 | `MonthlyEvolutionChartComponent` | `app-monthly-evolution-chart` | Gráfico de evolução histórica mensal em barras SVG comparativas (Rendas vs. Gastos vs. Saldo). |
+| `ExportModalComponent` | `app-export-modal` | Modal para seleção de formato de exportação (Planilha Excel/CSV ou Relatório PDF/Impressão) com prévia do resumo financeiro. |
 
 ### D. Feature: Tributos Anuais (`src/app/features/taxes/`)
 | Componente | Seletor | Descrição |
