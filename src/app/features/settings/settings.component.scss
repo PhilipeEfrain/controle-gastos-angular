@@ -318,17 +318,24 @@
     }
 
     &.dark-preview {
-      background: #0b0f19;
-      .preview-header { background: #1f2937; }
-      .preview-line { background: #374151; }
-      .preview-box { background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.4); }
+      background: #0e1512;
+      .preview-header { background: #17211c; }
+      .preview-line { background: #273a32; }
+      .preview-box { background: rgba(168, 230, 207, 0.2); border: 1px solid rgba(168, 230, 207, 0.4); }
+    }
+
+    &.dark-blue-preview {
+      background: #0b0f17;
+      .preview-header { background: #131b2e; }
+      .preview-line { background: #1e293b; }
+      .preview-box { background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); }
     }
 
     &.light-preview {
-      background: #f8fafc;
-      .preview-header { background: #e2e8f0; }
-      .preview-line { background: #cbd5e1; }
-      .preview-box { background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); }
+      background: #f5f2e9;
+      .preview-header { background: #ffffff; }
+      .preview-line { background: #ede8dc; }
+      .preview-box { background: rgba(23, 63, 53, 0.15); border: 1px solid rgba(23, 63, 53, 0.3); }
     }
   }
 

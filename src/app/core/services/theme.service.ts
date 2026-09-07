@@ -1,6 +1,6 @@
 import { Injectable, signal, computed, effect } from '@angular/core';
 
-export type AppTheme = 'dark' | 'light';
+export type AppTheme = 'dark' | 'dark-blue' | 'light';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +10,7 @@ export class ThemeService {
 
   // Signal com o tema ativo
   readonly currentTheme = signal<AppTheme>('dark');
-  readonly isDark = computed(() => this.currentTheme() === 'dark');
+  readonly isDark = computed(() => this.currentTheme() === 'dark' || this.currentTheme() === 'dark-blue');
 
   constructor() {
     this.initTheme();
@@ -25,7 +25,7 @@ export class ThemeService {
   private initTheme(): void {
     if (typeof window !== 'undefined' && window.localStorage) {
       const savedTheme = localStorage.getItem(this.STORAGE_KEY) as AppTheme | null;
-      if (savedTheme === 'light' || savedTheme === 'dark') {
+      if (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'dark-blue') {
         this.currentTheme.set(savedTheme);
         return;
       }
@@ -42,7 +42,15 @@ export class ThemeService {
   }
 
   toggleTheme(): void {
-    const nextTheme: AppTheme = this.currentTheme() === 'dark' ? 'light' : 'dark';
+    const current = this.currentTheme();
+    let nextTheme: AppTheme;
+    if (current === 'dark') {
+      nextTheme = 'dark-blue';
+    } else if (current === 'dark-blue') {
+      nextTheme = 'light';
+    } else {
+      nextTheme = 'dark';
+    }
     this.setTheme(nextTheme);
   }
 

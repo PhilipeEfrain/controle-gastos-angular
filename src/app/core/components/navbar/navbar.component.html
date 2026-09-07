@@ -77,18 +77,28 @@
 
     <!-- User Profile & Actions -->
     <div class="header-actions">
-      <!-- Alternador de Tema Dark/Light -->
+      <!-- Alternador de Tema Dark/Dark-Blue/Light -->
       <button
         type="button"
         class="btn-theme-toggle"
         (click)="toggleTheme()"
-        [title]="isDark() ? 'Alternar para tema claro' : 'Alternar para tema escuro'"
-        [attr.aria-label]="isDark() ? 'Alternar para tema claro' : 'Alternar para tema escuro'"
+        [title]="themeTooltip()"
+        [attr.aria-label]="themeTooltip()"
         id="btn-navbar-theme"
       >
-        @if (isDark()) {
-          <!-- Ícone Sol para modo Claro -->
+        @if (currentTheme() === 'dark') {
+          <!-- Ícone Modo Escuro Quinzena (Lua Crescente) -->
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
+          </svg>
+        } @else if (currentTheme() === 'dark-blue') {
+          <!-- Ícone Modo Escuro Azul Noturno (Lua Estilizada) -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon theme-icon-blue">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+        } @else {
+          <!-- Ícone Modo Claro (Sol) -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon theme-icon-sun">
             <circle cx="12" cy="12" r="5" />
             <line x1="12" y1="1" x2="12" y2="3" />
             <line x1="12" y1="21" x2="12" y2="23" />
@@ -98,11 +108,6 @@
             <line x1="21" y1="12" x2="23" y2="12" />
             <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
             <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-          </svg>
-        } @else {
-          <!-- Ícone Lua para modo Escuro -->
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
           </svg>
         }
       </button>
@@ -254,7 +259,17 @@
           class="mobile-nav-link mobile-theme-btn"
           (click)="toggleTheme(); closeMobileMenu()"
         >
-          @if (isDark()) {
+          @if (currentTheme() === 'dark') {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="nav-icon">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
+            </svg>
+            <span>Tema: Escuro Quinzena (Mudar)</span>
+          } @else if (currentTheme() === 'dark-blue') {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="nav-icon">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+            <span>Tema: Escuro Azul Original (Mudar)</span>
+          } @else {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="nav-icon">
               <circle cx="12" cy="12" r="5" />
               <line x1="12" y1="1" x2="12" y2="3" />
@@ -266,12 +281,7 @@
               <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
               <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
             </svg>
-            <span>Alternar para Modo Claro</span>
-          } @else {
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="nav-icon">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-            </svg>
-            <span>Alternar para Modo Escuro</span>
+            <span>Tema: Modo Claro (Mudar)</span>
           }
         </button>
 

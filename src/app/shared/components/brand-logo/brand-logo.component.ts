@@ -16,12 +16,12 @@ export class BrandLogoComponent {
   readonly size = input<'sm' | 'md' | 'lg' | 'xl'>('md');
   readonly showText = input<boolean>(true);
   readonly showTagline = input<boolean>(false);
-  readonly forceTheme = input<'dark' | 'light' | null>(null);
+  readonly forceTheme = input<'dark' | 'dark-blue' | 'light' | null>(null);
 
   get isDark(): boolean {
     const forced = this.forceTheme();
     if (forced) {
-      return forced === 'dark';
+      return forced === 'dark' || forced === 'dark-blue';
     }
     return this.themeService.isDark();
   }

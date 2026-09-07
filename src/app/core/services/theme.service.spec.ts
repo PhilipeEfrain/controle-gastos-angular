@@ -24,12 +24,20 @@ describe('ThemeService', () => {
     expect(service.isDark()).toBe(true);
   });
 
-  it('deve alternar o tema entre dark e light via toggleTheme()', () => {
+  it('deve alternar o tema ciclando entre dark, dark-blue e light via toggleTheme()', () => {
+    // dark -> dark-blue
+    service.toggleTheme();
+    expect(service.currentTheme()).toBe('dark-blue');
+    expect(service.isDark()).toBe(true);
+    expect(localStorage.getItem('app_theme_preference')).toBe('dark-blue');
+
+    // dark-blue -> light
     service.toggleTheme();
     expect(service.currentTheme()).toBe('light');
     expect(service.isDark()).toBe(false);
     expect(localStorage.getItem('app_theme_preference')).toBe('light');
 
+    // light -> dark
     service.toggleTheme();
     expect(service.currentTheme()).toBe('dark');
     expect(service.isDark()).toBe(true);
@@ -37,12 +45,19 @@ describe('ThemeService', () => {
   });
 
   it('deve definir tema explicitamente via setTheme()', () => {
+    service.setTheme('dark-blue');
+    expect(service.currentTheme()).toBe('dark-blue');
+    expect(service.isDark()).toBe(true);
+    expect(localStorage.getItem('app_theme_preference')).toBe('dark-blue');
+
     service.setTheme('light');
     expect(service.currentTheme()).toBe('light');
+    expect(service.isDark()).toBe(false);
     expect(localStorage.getItem('app_theme_preference')).toBe('light');
 
     service.setTheme('dark');
     expect(service.currentTheme()).toBe('dark');
+    expect(service.isDark()).toBe(true);
     expect(localStorage.getItem('app_theme_preference')).toBe('dark');
   });
 });

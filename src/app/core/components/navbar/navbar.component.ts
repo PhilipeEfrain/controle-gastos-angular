@@ -38,6 +38,14 @@ export class NavbarComponent {
   readonly isOnline = this.pwaService.isOnline;
   readonly canInstall = this.pwaService.canInstall;
   readonly isDark = this.themeService.isDark;
+  readonly currentTheme = this.themeService.currentTheme;
+
+  readonly themeTooltip = computed(() => {
+    const theme = this.currentTheme();
+    if (theme === 'dark') return 'Tema atual: Escuro Quinzena (clique para Escuro Azul)';
+    if (theme === 'dark-blue') return 'Tema atual: Escuro Azul (clique para Modo Claro)';
+    return 'Tema atual: Modo Claro (clique para Escuro Quinzena)';
+  });
 
   toggleTheme(): void {
     this.themeService.toggleTheme();

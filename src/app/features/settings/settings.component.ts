@@ -101,7 +101,12 @@ export class SettingsComponent implements OnInit {
         preferences: { theme, currency: 'BRL' }
       }).catch(err => console.warn('Erro ao sincronizar preferência de tema no Firestore:', err));
     }
-    this.notificationService.info(`Tema alterado para ${theme === 'dark' ? 'Escuro' : 'Claro'}.`);
+    const themeLabels: Record<AppTheme, string> = {
+      'dark': 'Escuro Quinzena',
+      'dark-blue': 'Escuro Azul (Original)',
+      'light': 'Modo Claro'
+    };
+    this.notificationService.info(`Tema alterado para ${themeLabels[theme]}.`);
   }
 
   async onSendPasswordReset(): Promise<void> {

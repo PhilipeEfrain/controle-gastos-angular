@@ -160,3 +160,72 @@
   --shadow-lg: 0 10px 15px -3px rgba(23, 33, 28, 0.1), 0 4px 6px -2px rgba(23, 33, 28, 0.05);
 }
 
+// Modo Escuro Azul Noturno (Cores Originais do Projeto: Slate & Azul)
+[data-theme='dark-blue'] {
+  // Ações e Marca (Azul / Emerald)
+  --color-primary: #3b82f6;
+  --color-primary-hover: #60a5fa;
+  --color-primary-light: rgba(59, 130, 246, 0.15);
+  --color-accent: #38bdf8;
+
+  // Finanças: Superávit / Entrada / Sucesso
+  --color-success: #10b981;
+  --color-success-hover: #34d399;
+  --color-success-bg: rgba(16, 185, 129, 0.12);
+  --color-success-border: rgba(16, 185, 129, 0.28);
+  --color-success-light: #6ee7b7;
+
+  // Finanças: Déficit / Saída / Alerta
+  --color-danger: #ef4444;
+  --color-danger-hover: #dc2626;
+  --color-danger-bg: rgba(239, 68, 68, 0.12);
+  --color-danger-border: rgba(239, 68, 68, 0.28);
+  --color-danger-light: #f87171;
+
+  // Finanças: Atenção
+  --color-warning: #f59e0b;
+  --color-warning-hover: #d97706;
+  --color-warning-bg: rgba(245, 158, 11, 0.12);
+  --color-warning-border: rgba(245, 158, 11, 0.28);
+
+  // Superfícies & Backgrounds (Azul Noturno / Slate)
+  --bg-app: #0b0f17;
+  --bg-surface: #131b2e;
+  --bg-surface-elevated: #1e293b;
+  --bg-surface-hover: #26354d;
+
+  --color-background: var(--bg-app);
+  --color-surface: var(--bg-surface);
+  --color-surface-elevated: var(--bg-surface-elevated);
+  --color-surface-hover: var(--bg-surface-hover);
+
+  // Bordas e Divisores
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-color-focus: rgba(59, 130, 246, 0.5);
+
+  --color-border: var(--border-color);
+  --color-border-focus: var(--border-color-focus);
+
+  // Tipografia (Slate Light)
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+
+  // Glassmorphism Blue Dark
+  --glass-bg: rgba(19, 27, 46, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-blur: blur(16px);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+
+  // Sombras
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.25);
+  --shadow-glow-primary: 0 0 20px rgba(59, 130, 246, 0.25);
+  --shadow-glow-success: 0 0 20px rgba(16, 185, 129, 0.25);
+}
+
