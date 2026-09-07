@@ -38,6 +38,7 @@
 | `InstallmentParcel` | `src/app/core/models/finance.model.ts` | Item individual de parcela com mês de referência, número, valor e status de quitação. |
 | `UserProfile` | `src/app/core/models/user.model.ts` | Modelo de perfil de usuário com suporte a papéis RBAC (`role?: 'admin' \| 'user'`), planos SaaS (`plan?: 'free' \| 'pro' \| 'duo'`), status da assinatura e identificadores Asaas. |
 | `UserRole` / `PlanType` / `PlanStatus` | `src/app/core/models/user.model.ts` | Tipos literais estritos para controle de acesso e monetização. |
+| `PlanPricing` / `AsaasSubscriptionPayload` / `AsaasWebhookPayload` | `src/app/core/models/payment.model.ts` | Interfaces de contratos de pagamento com o gateway Asaas (API v3, PIX, Cartão e Webhooks). |
 | `ToastNotification` | `src/app/core/models/notification.model.ts` | Modelo de notificação Toast reativa (id, tipo, mensagem, duração). |
 
 ---
@@ -58,6 +59,7 @@
 | `NotificationService` | `src/app/core/services/notification.service.ts` | Notificações reativas do tipo Toast com Signals (`success`, `error`, `warning`, `info`). |
 | `LoggerService` | `src/app/core/services/logger.service.ts` | Logging seguro com supressão de stacktraces e dados de exceção em ambiente de produção (CWE-532). |
 | `AdminService` | `src/app/core/services/admin.service.ts` | Gestão administrativa de usuários, papéis RBAC, planos SaaS e cálculo de KPIs de MRR/conversão. |
+| `AsaasService` | `src/app/core/services/asaas.service.ts` | Integração com Gateway Asaas API v3: tabela oficial de preços, criação de clientes, assinaturas recorrentes (PIX e Cartão) e processamento seguro de Webhooks. |
 
 ---
 
