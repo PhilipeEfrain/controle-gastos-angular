@@ -89,4 +89,17 @@ export function parseFirestoreDate(val: any): Date | null {
   return null;
 }
 
+/**
+ * Calcula a diferença em meses entre o mês alvo e um mês base (padrão: mês atual)
+ * Retorna número negativo para meses no passado e positivo para meses no futuro
+ * Ex: target "2026-08", base "2026-09" -> -1
+ */
+export function getMonthOffset(targetYearMonth: string, baseYearMonth: string = getCurrentYearMonth()): number {
+  if (!targetYearMonth || !baseYearMonth) return 0;
+  const [targetY, targetM] = targetYearMonth.split('-').map(Number);
+  const [baseY, baseM] = baseYearMonth.split('-').map(Number);
+  if (isNaN(targetY) || isNaN(targetM) || isNaN(baseY) || isNaN(baseM)) return 0;
+  return (targetY - baseY) * 12 + (targetM - baseM);
+}
+
 

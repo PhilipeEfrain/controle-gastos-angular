@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getCurrentYearMonth, getFortnightFromDay, formatYearMonthLabel, parseFirestoreDate } from './date';
+import { getCurrentYearMonth, getFortnightFromDay, formatYearMonthLabel, parseFirestoreDate, getMonthOffset } from './date';
 
 describe('Date Utility', () => {
   describe('getCurrentYearMonth', () => {
@@ -58,6 +58,24 @@ describe('Date Utility', () => {
       const date = parseFirestoreDate(isoStr);
       expect(date).toBeInstanceOf(Date);
       expect(date?.toISOString()).toBe(isoStr);
+    });
+  });
+
+  describe('getMonthOffset', () => {
+    it('deve calcular offset 0 para o mesmo mês', () => {
+      expect(getMonthOffset('2026-09', '2026-09')).toBe(0);
+    });
+
+    it('deve calcular offset negativo para meses no passado', () => {
+      expect(getMonthOffset('2026-08', '2026-09')).toBe(-1);
+      expect(getMonthOffset('2026-07', '2026-09')).toBe(-2);
+      expect(getMonthOffset('2025-09', '2026-09')).toBe(-12);
+      expect(getMonthOffset('2025-08', '2026-09')).toBe(-13);
+    });
+
+    it('deve calcular offset positivo para meses no futuro', () => {
+      expect(getMonthOffset('2026-10', '2026-09')).toBe(1);
+      expect(getMonthOffset('2027-09', '2026-09')).toBe(12);
     });
   });
 });

@@ -41,6 +41,8 @@ describe('DashboardComponent', () => {
   beforeEach(async () => {
     mockAuthStore = {
       currentUser: signal<UserProfile | null>(mockUser),
+      isProOrDuo: signal<boolean>(false),
+      currentPlan: signal<'free' | 'pro' | 'duo'>('free'),
       logout: vi.fn().mockResolvedValue(undefined)
     };
 
@@ -114,7 +116,8 @@ describe('DashboardComponent', () => {
       checkRecurringExpenseLimit: vi.fn().mockReturnValue({ allowed: true }),
       checkInstallmentLimit: vi.fn().mockReturnValue({ allowed: true }),
       checkTaxLimit: vi.fn().mockReturnValue({ allowed: true }),
-      checkTripLimit: vi.fn().mockReturnValue({ allowed: true })
+      checkTripLimit: vi.fn().mockReturnValue({ allowed: true }),
+      isHistoryMonthAllowed: vi.fn().mockReturnValue(true)
     };
 
     await TestBed.configureTestingModule({
@@ -186,5 +189,26 @@ describe('DashboardComponent', () => {
     await component.onLogout();
     expect(mockAuthStore.logout).toHaveBeenCalled();
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/auth']);
+  });
+
+  it('Cenário BDD (Janela de Histórico): DEVE permitir navegar para mês anterior quando dentro da janela permitida', () => {
+    const planLimits = TestBed.inject(PlanLimitsService);
+    vi.spyOn(planLimits, 'isHistoryMonthAllowed').mockReturnValue(true);
+
+    component.prevMonth();
+
+    expect(mockFinanceStore.setSelectedMonth).toHaveBeenCalledWith('2025-02', 'user-777');
+  });
+
+  it('Cenário BDD (Janela de Histórico - Free): DEVE exibir modal de limite ao tentar navegar além da janela do Free', () => {
+    const planLimits = TestBed.inject(PlanLimitsService);
+    vi.spyOn(planLimits, 'isHistoryMonthAllowed').mockReturnValue(false);
+
+    component.prevMonth();
+
+    expect(component.limitModalData()).toEqual(expect.objectContaining({
+      title: 'Histórico Completo de 13 Meses',
+      resourceName: 'Histórico de 13 Meses'
+    }));
   });
 });
