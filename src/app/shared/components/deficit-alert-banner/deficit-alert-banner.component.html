@@ -27,9 +27,9 @@
           O saldo total do ciclo está negativo em <strong>-{{ formattedSaldoFinal() }}</strong>. As rendas somadas não cobrem o total de gastos projetados.
         </p>
       } @else {
-        <strong class="deficit-banner__title">Compensação de Fluxo Quinzenal</strong>
+        <strong class="deficit-banner__title">Tudo certo: sua próxima quinzena está coberta.</strong>
         <p class="deficit-banner__message">
-          A Quinzena 2 fecha com déficit de <strong>-{{ formattedSaldoQ2() }}</strong>, mas a sobra da Quinzena 1 (<strong>{{ formattedSaldoQ1() }}</strong>) é suficiente para cobrir o período.
+          A Quinzena 2 fecha com déficit de <strong>-{{ formattedSaldoQ2() }}</strong>, mas a sobra da Quinzena 1 (<strong>{{ formattedSaldoQ1() }}</strong>) garante o equilíbrio do seu mês.
         </p>
       }
     </div>

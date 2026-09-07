@@ -42,6 +42,10 @@ export class FortnightCardComponent {
     return this.quinzena() === 1 ? 'Renda do Dia 31' : 'Renda do Dia 15';
   }
 
+  get availabilityHint(): string {
+    return this.quinzena() === 1 ? 'disponível até dia 15' : 'previsto até dia 30';
+  }
+
   get formattedIncome(): string {
     return formatBRL(this.summary().renda);
   }

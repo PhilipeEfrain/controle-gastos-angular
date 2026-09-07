@@ -114,7 +114,7 @@ export class DashboardComponent implements OnInit {
     if (summary.q1CobreQ2) {
       return 'Q2 Coberta pela Q1';
     }
-    return 'Superavitário';
+    return 'Seu mês em equilíbrio';
   });
 
   constructor() {

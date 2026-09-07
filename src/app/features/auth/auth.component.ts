@@ -5,13 +5,14 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { AuthStore } from '../../core/state/auth.store';
 import { AppCardComponent } from '../../shared/components/app-card/app-card.component';
+import { BrandLogoComponent } from '../../shared/components/brand-logo/brand-logo.component';
 
 export type AuthTab = 'login' | 'register' | 'forgot';
 
 @Component({
   selector: 'app-auth',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, AppCardComponent],
+  imports: [CommonModule, ReactiveFormsModule, AppCardComponent, BrandLogoComponent],
   templateUrl: './auth.component.html',
   styleUrl: './auth.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

@@ -16,10 +16,12 @@ interface FaqItem {
   isOpen: boolean;
 }
 
+import { BrandLogoComponent } from '../../shared/components/brand-logo/brand-logo.component';
+
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, BrandLogoComponent],
   templateUrl: './landing.component.html',
   styleUrls: ['./landing.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
