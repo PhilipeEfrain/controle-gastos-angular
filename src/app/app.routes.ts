@@ -22,6 +22,12 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'viagens',
+    loadComponent: () =>
+      import('./features/travel/travel.component').then(m => m.TravelComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: '',
     redirectTo: 'dashboard',
     pathMatch: 'full'

@@ -1,0 +1,108 @@
+@use 'abstracts' as *;
+
+.modal-backdrop {
+  @include flex-center;
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background-color: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  padding: 1rem;
+}
+
+.modal-container {
+  width: 100%;
+  max-width: 420px;
+  border-radius: $radius-xl;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: $shadow-lg;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  .modal-title {
+    font-size: $font-size-lg;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin: 0;
+  }
+
+  .close-btn {
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    font-size: 1.25rem;
+    cursor: pointer;
+
+    &:hover {
+      color: var(--color-text-primary);
+    }
+  }
+}
+
+.modal-message {
+  font-size: $font-size-sm;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.btn-cancel {
+  padding: 0.625rem 1rem;
+  border-radius: $radius-md;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: $font-size-sm;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--color-text-primary);
+  }
+}
+
+.btn-confirm {
+  padding: 0.625rem 1.25rem;
+  border-radius: $radius-md;
+  border: none;
+  font-size: $font-size-sm;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &.btn-danger {
+    background-color: var(--color-danger);
+    color: #fff;
+
+    &:hover {
+      background-color: var(--color-danger-light);
+    }
+  }
+
+  &.btn-primary {
+    background-color: var(--color-primary);
+    color: #fff;
+
+    &:hover {
+      background-color: var(--color-primary-hover);
+    }
+  }
+}

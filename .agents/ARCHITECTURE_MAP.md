@@ -31,6 +31,8 @@
 | `FortnightSummary` | `src/app/core/models/finance.model.ts` | Estrutura de resumo da quinzena (renda, totalGastos, saldo, isDeficit). |
 | `MonthBalanceSummary` | `src/app/core/models/finance.model.ts` | Consolidado global do mês com suporte à flag `q1CobreQ2` e `temDeficitGlobal`. |
 | `AnnualTax` | `src/app/core/models/finance.model.ts` | Modelo de tributo/imposto anual (IPTU, IPVA, valor_orcado, valor_pago, status). |
+| `TravelTrip` | `src/app/core/models/finance.model.ts` | Modelo de viagem com nome, quantidade de pessoas, moeda, itens de despesa e data. |
+| `TravelExpenseItem` | `src/app/core/models/finance.model.ts` | Item de despesa de viagem com descrição, categoria, valor, pagador e rateio (`dividir`). |
 | `UserProfile` | `src/app/core/models/user.model.ts` | Modelo de perfil de usuário autenticado no Firebase. |
 | `ToastNotification` | `src/app/core/models/notification.model.ts` | Modelo de notificação Toast reativa (id, tipo, mensagem, duração). |
 
@@ -44,6 +46,7 @@
 | `MonthlyCycleService` | `src/app/core/services/monthly-cycle.service.ts` | CRUD e stream em tempo real para `users/{userId}/ciclos_mensais/{mesAno}`. |
 | `ExpenseService` | `src/app/core/services/expense.service.ts` | CRUD de despesas, alternância de pagamento, atualização de comprovante e geração em lote de parcelas (`createInstallmentExpenses`). |
 | `TaxService` | `src/app/core/services/tax.service.ts` | CRUD e sincronização em tempo real de tributos em `users/{userId}/tributos_e_parcelas`. |
+| `TravelService` | `src/app/core/services/travel.service.ts` | CRUD e stream em tempo real para controle de gastos de viagem e rateio (`users/{userId}/viagens`). |
 | `NotificationService` | `src/app/core/services/notification.service.ts` | Notificações reativas do tipo Toast com Signals (`success`, `error`, `warning`, `info`). |
 
 ---
@@ -91,7 +94,12 @@
 | `TaxComparisonCardComponent` | `app-tax-comparison-card` | Card comparativo de totais anuais orçados vs. efetivamente pagos. |
 | `TaxFormModalComponent` | `app-tax-form-modal` | Modal de inclusão e edição de impostos e taxas. |
 
-### E. Feature: Autenticação (`src/app/features/auth/`)
+### E. Feature: Gastos de Viagem (`src/app/features/travel/`)
+| Componente | Seletor | Descrição |
+| :--- | :--- | :--- |
+| `TravelComponent` | `app-travel` | Gestão de viagens com múltiplos participantes, rateio por pessoa/item, cálculo em tempo real e exportação direta da cota individual para o orçamento quinzenal. |
+
+### F. Feature: Autenticação (`src/app/features/auth/`)
 | Componente | Seletor | Descrição |
 | :--- | :--- | :--- |
 | `AuthComponent` | `app-auth` | Tela com abas de Login e Cadastro, suporte a Google Sign-In e recuperação de senha. |

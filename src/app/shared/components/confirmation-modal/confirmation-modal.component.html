@@ -1,0 +1,46 @@
+@if (isOpen()) {
+  <div class="modal-backdrop" (click)="onCancel()">
+    <div
+      class="modal-container"
+      (click)="$event.stopPropagation()"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div class="modal-header">
+        <h3 class="modal-title">{{ title() }}</h3>
+        <button
+          type="button"
+          class="close-btn"
+          (click)="onCancel()"
+          aria-label="Fechar"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-message">{{ message() }}</p>
+      </div>
+
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn-cancel"
+          (click)="onCancel()"
+        >
+          {{ cancelButtonText() }}
+        </button>
+
+        <button
+          type="button"
+          class="btn-confirm"
+          [class.btn-danger]="variant() === 'danger'"
+          [class.btn-primary]="variant() === 'primary'"
+          (click)="onConfirm()"
+        >
+          {{ confirmButtonText() }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
