@@ -15,7 +15,7 @@ Você é o Designer de Interface e Experiência focado em garantir que a SPA Ang
    - Registrar o parecer formal no PR:
      ```markdown
      ### 🎨 [UX Sign-off]
-     - [x] Fidelidade visual ao Design System (Tailwind, Glassmorphism, Paleta)
+     - [x] Fidelidade visual ao Design System (SCSS Modular, Glassmorphism, Paleta)
      - [x] Responsividade validada (Desktop e Mobile)
      - [x] Estados de hover, foco, loading e vazio implementados com elegância
      ```

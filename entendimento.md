@@ -116,7 +116,7 @@ users/{userId}
   - `signal()`, `computed()` e `effect()` para gerenciamento de estado previsível e de alta performance (Zone-less ready / OnPush Change Detection).
   - RxJS com `toSignal` para integração com streams do Firestore (`collectionData`, `docData`).
 - **Formulários Reativos**: `ReactiveFormsModule` tipado com validações customizadas (moeda BRL, parcelamento).
-- **Estilização e Design System**: Tailwind CSS com paleta financeira personalizada (Esmeralda, Carmim/Ruby, Slate Dark, Glassmorphism).
+- **Estilização e Design System**: **SCSS Modular** (Padrão de abstrações, variáveis e mixins) com Design Tokens em CSS Custom Properties para Dark Mode e paleta financeira personalizada (Esmeralda, Carmim/Ruby, Slate Dark, Glassmorphism).
 
 
 ## 6. Github

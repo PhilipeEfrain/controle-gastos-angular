@@ -9,7 +9,7 @@ Este repositório é gerenciado por uma equipe multidisciplinar de agentes atuan
 1. **PM (`pm_agent`)**: Gestão de produto, roadmap, criação de issues no GitHub e priorização no Kanban (`Backlog`).
 2. **PO (`po_agent`)**: Especificação de regras de negócio financeiras, detalhamento BDD (Gherkin), critérios de aceite e aprovação para `Ready`.
 3. **SEC (`sec_agent`)**: Modelagem de segurança, Firebase Security Rules (Firestore & Storage), sanitização de dados, auditoria SAST (`npm audit`) e parecer de segurança (`[SEC Sign-off]`).
-4. **UX (`ux_agent`)**: Design System financeiro (Tailwind CSS, dark mode, micro-interações, responsividade mobile/desktop) e parecer de UX (`[UX Sign-off]`).
+4. **UX (`ux_agent`)**: Design System financeiro (SCSS Modular, Design Tokens, dark mode, micro-interações, responsividade mobile/desktop) e parecer de UX (`[UX Sign-off]`).
 5. **DEV (`dev_agent`)**: Engenharia frontend em Angular (Standalone Components, Signals, `inject()`, AngularFire, TypeScript rigoroso), consulta obrigatória ao `ARCHITECTURE_MAP.md`, criação de branch `feat/` e abertura de Pull Requests.
 6. **QA (`qa_agent`)**: Automação de testes unitários e de componentes, validação estrita dos critérios de aceite BDD e parecer final de qualidade (`[QA Sign-off]`).
 
@@ -29,7 +29,7 @@ As transições no GitHub Projects seguem 5 colunas estritas:
 2. **Refinamento (Pré-Ready)**:
    - **PO** adiciona cenários BDD (`Dado`, `Quando`, `Então`) e regras de cálculo à Issue.
    - **SEC** adiciona requisitos de segurança e isolamento por usuário.
-   - **UX** adiciona layout, tokens Tailwind e comportamento responsivo.
+   - **UX** adiciona layout, tokens SCSS / Design System e comportamento responsivo.
    - Com o consenso do trio (PO, SEC, UX), o **PO** move o card para **`Ready`**.
 3. **Ready**:
    - Card pronto para ser puxado pelo DEV.

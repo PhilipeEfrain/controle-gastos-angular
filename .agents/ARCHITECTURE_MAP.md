@@ -1,7 +1,7 @@
 # Mapa de Arquitetura - Angular + Firebase (Web SPA)
 
 > **ATENÇÃO DEV**: Antes de criar qualquer novo componente standalone, service, pipe, directive, guard ou função utilitária, consulte este catálogo para garantir máxima reutilização de código. Ao criar um novo artefato reutilizável, registre-o aqui imediatamente.
-> **Stack Oficial**: Angular (Standalone Components, Signals, `inject()`), TypeScript, Tailwind CSS, `@angular/fire` / Firebase Modular SDK (Auth, Firestore), Jasmine/Karma ou Vitest para testes unitários.
+> **Stack Oficial**: Angular (Standalone Components, Signals, `inject()`), TypeScript, **SCSS Modular** (`src/styles/abstracts`), `@angular/fire` / Firebase Modular SDK (Auth, Firestore), Jasmine/Karma ou Vitest para testes unitários.
 
 ---
 
@@ -117,7 +117,21 @@
 
 ---
 
-## 9. CI/CD e Automação de Qualidade
+---
+
+## 9. Arquitetura de Estilos SCSS & Design System (`src/styles/`)
+
+| Artefato | Arquivo | Descrição |
+| :--- | :--- | :--- |
+| `Abstracts Index` | `src/styles/abstracts/_index.scss` | Centralizador com `@forward` de colors, variables, mixins e functions. |
+| `Colors & Tokens` | `src/styles/abstracts/_colors.scss` | Paleta financeira (Emerald, Carmine, Slate Dark, Glassmorphism) e CSS Custom Properties. |
+| `Mixins` | `src/styles/abstracts/_mixins.scss` | Mixins de responsividade (`respond-to`), glassmorphism e flex helpers. |
+| `Base & Reset` | `src/styles/base/_reset.scss` | Reset CSS moderno e normalizações. |
+| `Grid Layout` | `src/styles/layout/_grid.scss` | Layout do dashboard quinzenal (desktop 2 colunas / mobile empilhado). |
+
+---
+
+## 10. CI/CD e Automação de Qualidade
 
 | Artefato | Arquivo | Descrição |
 | :--- | :--- | :--- |
