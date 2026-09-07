@@ -94,4 +94,29 @@ describe('FinanceStore (Signals Reactive State)', () => {
     expect(store.totalTaxesBudget()).toBe(2000);
     expect(store.totalTaxesPaid()).toBe(1150);
   });
+
+  it('Cenário BDD: deve resetar todo o estado e limpar streams ao invocar resetState()', () => {
+    store.setCycle({
+      mesAno: '2026-09',
+      renda_quinzena_1: 3000,
+      renda_quinzena_2: 3000,
+      total_renda: 6000,
+      total_gastos: 1000,
+      saldo_final: 5000
+    });
+    store.setExpenses([{ id: '1', descricao: 'Aluguel', valor: 1000, quinzena: 1, status_pagamento: true, categoria: 'Moradia' }]);
+    store.setTaxes([{ titulo: 'IPTU', data_vencimento: '2026-04-10', valor_orcado: 1200, valor_pago: 0, status: 'Pendente' }]);
+
+    expect(store.currentCycle()).not.toBeNull();
+    expect(store.expenses().length).toBe(1);
+    expect(store.taxes().length).toBe(1);
+
+    store.resetState();
+
+    expect(store.currentCycle()).toBeNull();
+    expect(store.expenses()).toEqual([]);
+    expect(store.taxes()).toEqual([]);
+    expect(store.isLoading()).toBe(false);
+    expect(store.error()).toBeNull();
+  });
 });

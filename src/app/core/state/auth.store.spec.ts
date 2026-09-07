@@ -3,12 +3,14 @@ import { TestBed } from '@angular/core/testing';
 import { of, Subject } from 'rxjs';
 import { AuthStore } from './auth.store';
 import { AuthService } from '../services/auth.service';
+import { FinanceStore } from './finance.store';
 import { UserProfile } from '../models/user.model';
 
 describe('AuthStore (Signals State)', () => {
   let store: AuthStore;
   let authStateSubject: Subject<any>;
   let mockAuthService: Partial<AuthService>;
+  let mockFinanceStore: any;
 
   const mockUser: UserProfile = {
     uid: 'user-123',
@@ -25,10 +27,15 @@ describe('AuthStore (Signals State)', () => {
       logout: vi.fn(async () => {})
     };
 
+    mockFinanceStore = {
+      resetState: vi.fn()
+    };
+
     TestBed.configureTestingModule({
       providers: [
         AuthStore,
-        { provide: AuthService, useValue: mockAuthService }
+        { provide: AuthService, useValue: mockAuthService },
+        { provide: FinanceStore, useValue: mockFinanceStore }
       ]
     });
 
@@ -50,7 +57,7 @@ describe('AuthStore (Signals State)', () => {
     expect(store.isLoading()).toBe(false);
   });
 
-  it('deve limpar sessão ao executar logout', async () => {
+  it('deve limpar sessão e resetar o financeStore ao executar logout', async () => {
     store.setUser(mockUser);
     expect(store.isAuthenticated()).toBe(true);
 
@@ -59,6 +66,7 @@ describe('AuthStore (Signals State)', () => {
     expect(store.isAuthenticated()).toBe(false);
     expect(store.currentUser()).toBeNull();
     expect(mockAuthService.logout).toHaveBeenCalled();
+    expect(mockFinanceStore.resetState).toHaveBeenCalled();
   });
 
   it('Cenário BDD: deve resolver ensureInitialized() quando o primeiro evento de auth for emitido', async () => {

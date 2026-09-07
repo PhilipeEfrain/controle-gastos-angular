@@ -106,8 +106,13 @@
                     formControlName="photoURL"
                     class="form-input"
                     placeholder="https://exemplo.com/minha-foto.jpg"
+                    [class.is-invalid]="profileForm.get('photoURL')?.invalid && profileForm.get('photoURL')?.touched"
                   />
-                  <span class="field-hint">Insira o link de uma imagem pública para personalizar seu avatar.</span>
+                  @if (profileForm.get('photoURL')?.invalid && profileForm.get('photoURL')?.touched) {
+                    <span class="field-error">Insira uma URL segura válida (iniciando com https://).</span>
+                  } @else {
+                    <span class="field-hint">Insira o link seguro (https://) de uma imagem pública para personalizar seu avatar.</span>
+                  }
                 </div>
 
                 <div class="form-actions">

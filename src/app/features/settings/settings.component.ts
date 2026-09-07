@@ -50,11 +50,25 @@ export class SettingsComponent implements OnInit {
     return name.slice(0, 2).toUpperCase();
   });
 
+  // Validador customizado para URLs seguras HTTPS (CWE-79 / XSS)
+  private static httpsUrlValidator(control: { value: string | null | undefined }): { [key: string]: any } | null {
+    const value = control.value;
+    if (!value || value.trim() === '') {
+      return null;
+    }
+    const trimmed = value.trim();
+    const httpsPattern = /^https:\/\/[a-zA-Z0-9\-\._~:\/\?#\[\]@!$&'\(\)\*\+,;=%]+$/i;
+    if (!httpsPattern.test(trimmed)) {
+      return { invalidHttpsUrl: true };
+    }
+    return null;
+  }
+
   ngOnInit(): void {
     const user = this.authStore.currentUser();
     this.profileForm = this.fb.group({
       displayName: [user?.displayName || '', [Validators.required, Validators.minLength(2)]],
-      photoURL: [user?.photoURL || '']
+      photoURL: [user?.photoURL || '', [SettingsComponent.httpsUrlValidator]]
     });
   }
 
