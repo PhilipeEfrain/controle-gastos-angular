@@ -194,7 +194,7 @@
 | :--- | :--- | :--- |
 | `Abstracts Index` | `src/styles/abstracts/_index.scss` | Centralizador com `@forward` de colors, variables, mixins e functions. |
 | `Colors & Tokens` | `src/styles/abstracts/_colors.scss` | Paleta financeira (Emerald, Carmine, Slate Dark, Glassmorphism) e CSS Custom Properties. |
-| `Mixins` | `src/styles/abstracts/_mixins.scss` | Mixins de responsividade (`respond-to`), glassmorphism e flex helpers. |
+| `Mixins` | `src/styles/abstracts/_mixins.scss` | Mixins de responsividade (`respond-to` e `respond-below` com suporte a `mobile` e `tablet`), glassmorphism e flex helpers. |
 | `Base & Reset` | `src/styles/base/_reset.scss` | Reset CSS moderno e normalizações. |
 | `Grid Layout` | `src/styles/layout/_grid.scss` | Layout do dashboard quinzenal (desktop 2 colunas / mobile empilhado). |
 

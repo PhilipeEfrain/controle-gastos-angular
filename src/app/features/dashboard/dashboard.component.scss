@@ -69,8 +69,26 @@
 .header-controls {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
   flex-wrap: wrap;
+
+  @include respond-below('sm') {
+    width: 100%;
+    gap: 0.5rem;
+
+    .month-navigator {
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .income-btn,
+    .taxes-nav-btn,
+    .logout-btn {
+      flex: 1 1 auto;
+      justify-content: center;
+      min-height: 40px;
+    }
+  }
 }
 
 .month-navigator {
@@ -414,7 +432,7 @@
 
   .analytics-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
     gap: 1.5rem;
     align-items: stretch;
 
