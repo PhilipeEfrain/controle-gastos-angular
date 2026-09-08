@@ -254,18 +254,25 @@ export class AdminService {
   async saveAsaasConfig(config: AsaasConfig): Promise<void> {
     try {
       const configDocRef = doc(this.firestore, 'system_config', 'asaas');
-      const payload: AsaasConfig = {
+      const payload: Record<string, any> = {
         environment: config.environment || 'sandbox',
         apiKey: (config.apiKey || '').trim(),
         webhookSecret: (config.webhookSecret || '').trim(),
         walletId: (config.walletId || '').trim(),
         notificationEmail: (config.notificationEmail || '').trim(),
         isActive: !!config.apiKey && config.apiKey.trim().length > 10,
-        lastTestedAt: config.lastTestedAt,
-        lastTestStatus: config.lastTestStatus,
-        lastTestMessage: config.lastTestMessage,
         updatedAt: new Date().toISOString()
       };
+
+      if (config.lastTestedAt) {
+        payload['lastTestedAt'] = config.lastTestedAt;
+      }
+      if (config.lastTestStatus) {
+        payload['lastTestStatus'] = config.lastTestStatus;
+      }
+      if (config.lastTestMessage) {
+        payload['lastTestMessage'] = config.lastTestMessage;
+      }
 
       await setDoc(configDocRef, payload, { merge: true });
     } catch (err) {
