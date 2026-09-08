@@ -9,8 +9,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
-  padding: 1rem;
+  z-index: 1100;
+  padding: 1.5rem 1rem;
+  overflow-y: auto;
   animation: fadeIn 0.25s ease-out;
 }
 
@@ -21,7 +22,8 @@
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 40px rgba(139, 92, 246, 0.15);
   max-width: 780px;
   width: 100%;
-  max-height: 90vh;
+  max-height: calc(100vh - 3rem);
+  margin: auto;
   overflow-y: auto;
   position: relative;
   padding: 2.25rem 2rem;
@@ -29,6 +31,7 @@
 
   @include respond-to('mobile') {
     padding: 1.5rem 1.25rem;
+    max-height: calc(100vh - 2rem);
   }
 }
 

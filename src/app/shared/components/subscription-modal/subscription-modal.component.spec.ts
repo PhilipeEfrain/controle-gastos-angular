@@ -15,14 +15,14 @@ describe('SubscriptionModalComponent (Checkout de Assinaturas)', () => {
 
   beforeEach(async () => {
     mockAsaasService = {
-      getPlanPrice: vi.fn((plan: string, cycle: string) => {
-        if (plan === 'pro') return cycle === 'YEARLY' ? 89.90 : 9.90;
-        if (plan === 'duo') return cycle === 'YEARLY' ? 179.90 : 19.90;
+      getPlanPrice: vi.fn((plan: string) => {
+        if (plan === 'pro') return 9.90;
+        if (plan === 'duo') return 19.90;
         return 0;
       }),
       isValidCpfCnpj: vi.fn((cpf: string) => cpf.replace(/\D/g, '').length === 11),
       createCustomer: vi.fn().mockResolvedValue({ id: 'cus_123', name: 'Teste' }),
-      createSubscription: vi.fn().mockResolvedValue({ id: 'sub_123', value: 89.90 }),
+      createSubscription: vi.fn().mockResolvedValue({ id: 'sub_123', value: 9.90 }),
       getPixQrCodeForPayment: vi.fn().mockResolvedValue({
         encodedImage: 'data:image/png;base64,...',
         payload: '00020126580014br.gov.bcb.pix...',
@@ -60,19 +60,21 @@ describe('SubscriptionModalComponent (Checkout de Assinaturas)', () => {
     fixture.detectChanges();
   });
 
-  it('deve inicializar com o plano Pro e ciclo Anual por padrão', () => {
+  it('deve inicializar com o plano Pro e ciclo Mensal por padrão', () => {
     expect(component).toBeTruthy();
     expect(component.selectedPlan()).toBe('pro');
-    expect(component.cycle()).toBe('YEARLY');
-    expect(component.currentPrice()).toBe(89.90);
+    expect(component.cycle()).toBe('MONTHLY');
+    expect(component.currentPrice()).toBe(9.90);
   });
 
-  it('Cenário BDD 1: deve alternar entre ciclo Mensal e Anual atualizando o preço', () => {
-    component.setCycle('MONTHLY');
+  it('Cenário BDD 1: deve atualizar o preço ao alternar entre os planos Pro e Duo', () => {
     expect(component.currentPrice()).toBe(9.90);
 
-    component.setCycle('YEARLY');
-    expect(component.currentPrice()).toBe(89.90);
+    component.selectPlan('duo');
+    expect(component.currentPrice()).toBe(19.90);
+
+    component.selectPlan('pro');
+    expect(component.currentPrice()).toBe(9.90);
   });
 
   it('Cenário BDD 2: deve avançar para checkout ao selecionar um plano', () => {

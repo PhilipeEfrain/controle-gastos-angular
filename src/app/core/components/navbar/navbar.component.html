@@ -369,9 +369,10 @@
       </nav>
     </div>
   }
-
-  <!-- Modal de Assinatura Recorrente -->
-  @if (isSubscriptionModalOpen()) {
-    <app-subscription-modal (close)="isSubscriptionModalOpen.set(false)" />
-  }
 </header>
+
+<!-- Modal de Assinatura Recorrente -->
+@if (isSubscriptionModalOpen()) {
+  <app-subscription-modal (close)="isSubscriptionModalOpen.set(false)" />
+}
+

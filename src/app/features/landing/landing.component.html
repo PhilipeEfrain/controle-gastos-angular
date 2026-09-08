@@ -275,29 +275,6 @@
         <p class="section-desc">
           Comece gratuitamente e evolua para recursos ilimitados quando estiver pronto.
         </p>
-
-        <!-- Toggle Ciclo de Pagamento -->
-        <div class="pricing-toggle-wrapper">
-          <div class="pricing-toggle-pill">
-            <button
-              type="button"
-              class="toggle-cycle-btn"
-              [class.active]="billingCycle() === 'monthly'"
-              (click)="setBillingCycle('monthly')"
-            >
-              Mensal
-            </button>
-            <button
-              type="button"
-              class="toggle-cycle-btn"
-              [class.active]="billingCycle() === 'yearly'"
-              (click)="setBillingCycle('yearly')"
-            >
-              <span>Anual</span>
-              <span class="discount-pill">Economize 25%</span>
-            </button>
-          </div>
-        </div>
       </div>
 
       <!-- Grid de Planos -->
@@ -355,13 +332,8 @@
 
           <div class="plan-price-box">
             <span class="currency">R$</span>
-            @if (billingCycle() === 'yearly') {
-              <span class="price-val">7,49</span>
-              <span class="billing-period">/ mês (R$ 89,90 cobrado anual)</span>
-            } @else {
-              <span class="price-val">9,90</span>
-              <span class="billing-period">/ mês</span>
-            }
+            <span class="price-val">9,90</span>
+            <span class="billing-period">/ mês</span>
           </div>
 
           <ul class="plan-features-list">
@@ -405,13 +377,8 @@
 
           <div class="plan-price-box">
             <span class="currency">R$</span>
-            @if (billingCycle() === 'yearly') {
-              <span class="price-val">14,99</span>
-              <span class="billing-period">/ mês (R$ 179,90 cobrado anual)</span>
-            } @else {
-              <span class="price-val">19,90</span>
-              <span class="billing-period">/ mês</span>
-            }
+            <span class="price-val">19,90</span>
+            <span class="billing-period">/ mês</span>
           </div>
 
           <ul class="plan-features-list">

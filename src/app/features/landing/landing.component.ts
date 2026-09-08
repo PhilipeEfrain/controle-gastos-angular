@@ -72,7 +72,7 @@ export class LandingComponent {
     }
   ];
 
-  readonly billingCycle = signal<'monthly' | 'yearly'>('yearly');
+  readonly billingCycle = signal<'monthly'>('monthly');
 
   readonly faqs = signal<FaqItem[]>([
     {
@@ -97,13 +97,13 @@ export class LandingComponent {
     },
     {
       question: 'Qual a diferença entre o Plano Gratuito e os Planos PRO / DUO?',
-      answer: 'O plano Gratuito permite começar sem custo com até 3 despesas fixas, 3 parcelamentos, 1 tributo e 1 viagem. Os planos PRO (R$ 9,90/mês ou R$ 89,90/ano) e DUO (R$ 19,90/mês ou R$ 179,90/ano) desbloqueiam cadastros ilimitados, histórico móvel completo de 13 meses, exportação do Dossiê do Ano em PDF e sincronização em modo casal para duas contas.',
+      answer: 'O plano Gratuito permite começar sem custo com até 3 despesas fixas, 3 parcelamentos, 1 tributo e 1 viagem. Os planos PRO (R$ 9,90/mês) e DUO (R$ 19,90/mês) desbloqueiam cadastros ilimitados, histórico móvel completo de 13 meses, exportação do Dossiê do Ano em PDF e sincronização em modo casal para duas contas.',
       isOpen: false
     }
   ]);
 
   setBillingCycle(cycle: 'monthly' | 'yearly'): void {
-    this.billingCycle.set(cycle);
+    this.billingCycle.set('monthly');
   }
 
   toggleFaq(index: number): void {

@@ -17,29 +17,6 @@
         </button>
       </header>
 
-      <!-- Alternador Mensal / Anual -->
-      <div class="cycle-switcher-wrapper">
-        <div class="cycle-switcher">
-          <button
-            type="button"
-            class="switch-btn"
-            [class.active]="cycle() === 'MONTHLY'"
-            (click)="setCycle('MONTHLY')"
-          >
-            Mensal
-          </button>
-          <button
-            type="button"
-            class="switch-btn switch-yearly"
-            [class.active]="cycle() === 'YEARLY'"
-            (click)="setCycle('YEARLY')"
-          >
-            <span>Anual</span>
-            <span class="discount-tag">Economize 25%</span>
-          </button>
-        </div>
-      </div>
-
       <!-- Cards de Planos -->
       <div class="plans-grid">
         <!-- Plano PRO Individual -->
@@ -56,13 +33,8 @@
           </div>
 
           <div class="plan-pricing">
-            @if (cycle() === 'YEARLY') {
-              <div class="price-value">R$ 89,90<span class="price-cycle">/ano</span></div>
-              <div class="price-equivalent">Equivalente a <strong>R$ 7,49/mês</strong></div>
-            } @else {
-              <div class="price-value">R$ 9,90<span class="price-cycle">/mês</span></div>
-              <div class="price-equivalent">Cobrança mensal sem fidelidade</div>
-            }
+            <div class="price-value">R$ 9,90<span class="price-cycle">/mês</span></div>
+            <div class="price-equivalent">Assinatura mensal sem fidelidade • Cancele quando quiser</div>
           </div>
 
           <ul class="features-list">
@@ -111,13 +83,8 @@
           </div>
 
           <div class="plan-pricing">
-            @if (cycle() === 'YEARLY') {
-              <div class="price-value">R$ 179,90<span class="price-cycle">/ano</span></div>
-              <div class="price-equivalent">Equivalente a <strong>R$ 14,99/mês</strong></div>
-            } @else {
-              <div class="price-value">R$ 19,90<span class="price-cycle">/mês</span></div>
-              <div class="price-equivalent">Cobrança mensal para 2 contas</div>
-            }
+            <div class="price-value">R$ 19,90<span class="price-cycle">/mês</span></div>
+            <div class="price-equivalent">Assinatura mensal para 2 contas • Cancele quando quiser</div>
           </div>
 
           <ul class="features-list">
@@ -148,15 +115,15 @@
           </ul>
 
           <button type="button" class="btn-select-plan btn-duo" (click)="selectPlan('duo'); goToCheckout()">
-            Quero o Plano Duo
+            Quero o Plano Casal
           </button>
         </div>
       </div>
     }
 
     @if (step() === 'checkout') {
-      <!-- Etapa de Checkout e Pagamento -->
-      <header class="dialog-header">
+      <!-- Checkout Header -->
+      <header class="dialog-header header-with-back">
         <button type="button" class="btn-back" (click)="step.set('select-plan')" aria-label="Voltar para planos">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
@@ -167,7 +134,7 @@
         <h2 class="dialog-title">Finalizar Assinatura</h2>
         <p class="dialog-subtitle">
           Plano selecionado: <strong>{{ selectedPlan() === 'pro' ? 'Pro Individual' : 'Casal / Duo' }}</strong> &bull;
-          <strong>{{ formatBRL(currentPrice()) }}</strong> ({{ cycle() === 'YEARLY' ? 'Anual' : 'Mensal' }})
+          <strong>{{ formatBRL(currentPrice()) }}/mês</strong>
         </p>
 
         <button type="button" class="btn-close" (click)="closeModal()" aria-label="Fechar">

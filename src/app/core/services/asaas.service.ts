@@ -57,9 +57,9 @@ export class AsaasService {
       name: 'Pro Individual',
       badge: 'Mais Popular',
       monthlyPrice: 9.90,
-      yearlyPrice: 89.90,
-      yearlyEquivalentMonthly: 7.49,
-      discountPercentage: 25,
+      yearlyPrice: 0,
+      yearlyEquivalentMonthly: 0,
+      discountPercentage: 0,
       features: [
         'Tudo do plano Free',
         'Histórico de 13 meses (12+1)',
@@ -75,9 +75,9 @@ export class AsaasService {
       name: 'Casal / Duo',
       badge: 'Família',
       monthlyPrice: 19.90,
-      yearlyPrice: 179.90,
-      yearlyEquivalentMonthly: 14.99,
-      discountPercentage: 25,
+      yearlyPrice: 0,
+      yearlyEquivalentMonthly: 0,
+      discountPercentage: 0,
       features: [
         'Tudo do plano Pro Individual',
         '2 contas independentes conectadas',
@@ -97,12 +97,12 @@ export class AsaasService {
   }
 
   /**
-   * Retorna o valor de cobrança com base no plano e ciclo
+   * Retorna o valor de cobrança mensal com base no plano
    */
   getPlanPrice(plan: PlanType, cycle: BillingCycle = 'MONTHLY'): number {
     const config = this.PRICING_TABLE.find(p => p.plan === plan);
     if (!config) return 0;
-    return cycle === 'YEARLY' ? config.yearlyPrice : config.monthlyPrice;
+    return config.monthlyPrice;
   }
 
   /**

@@ -30,12 +30,12 @@ describe('AsaasService (Gateway de Pagamentos & Assinaturas)', () => {
   });
 
   describe('Tabela de Preços e Cálculos de Planos', () => {
-    it('Cenário BDD: deve retornar os preços oficiais dos planos Mensal e Anual', () => {
+    it('Cenário BDD: deve retornar os preços mensais oficiais dos planos Pro e Duo', () => {
       expect(service.getPlanPrice('free')).toBe(0);
+      expect(service.getPlanPrice('pro')).toBe(9.90);
       expect(service.getPlanPrice('pro', 'MONTHLY')).toBe(9.90);
-      expect(service.getPlanPrice('pro', 'YEARLY')).toBe(89.90);
+      expect(service.getPlanPrice('duo')).toBe(19.90);
       expect(service.getPlanPrice('duo', 'MONTHLY')).toBe(19.90);
-      expect(service.getPlanPrice('duo', 'YEARLY')).toBe(179.90);
     });
 
     it('Cenário BDD: deve fornecer lista completa de 3 planos com recursos', () => {
@@ -80,18 +80,18 @@ describe('AsaasService (Gateway de Pagamentos & Assinaturas)', () => {
       ).rejects.toThrow('CPF ou CNPJ inválido');
     });
 
-    it('Cenário BDD 2: deve criar assinatura para plano Pro Anual via PIX', async () => {
+    it('Cenário BDD 2: deve criar assinatura para plano Pro via PIX', async () => {
       const sub = await service.createSubscription({
         plan: 'pro',
-        cycle: 'YEARLY',
+        cycle: 'MONTHLY',
         billingType: 'PIX',
         customerId: 'cus_123456'
       });
 
       expect(sub.id).toBeTruthy();
       expect(sub.customer).toBe('cus_123456');
-      expect(sub.value).toBe(89.90);
-      expect(sub.cycle).toBe('YEARLY');
+      expect(sub.value).toBe(9.90);
+      expect(sub.cycle).toBe('MONTHLY');
       expect(sub.billingType).toBe('PIX');
       expect(sub.status).toBe('ACTIVE');
     });

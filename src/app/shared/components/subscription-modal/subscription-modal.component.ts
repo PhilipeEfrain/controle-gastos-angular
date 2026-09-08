@@ -37,7 +37,7 @@ export class SubscriptionModalComponent implements OnInit {
   // Etapas e Seleções (Signals)
   readonly step = signal<'select-plan' | 'checkout' | 'success'>('select-plan');
   readonly selectedPlan = signal<'pro' | 'duo'>('pro');
-  readonly cycle = signal<BillingCycle>('YEARLY');
+  readonly cycle = signal<BillingCycle>('MONTHLY');
   readonly paymentMethod = signal<PaymentBillingType>('PIX');
 
   // Estado do PIX
