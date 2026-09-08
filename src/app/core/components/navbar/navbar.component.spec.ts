@@ -168,4 +168,21 @@ describe('NavbarComponent', () => {
     expect(proBtn).toBeTruthy();
     expect(proBtn.textContent).toContain('Seja PRO');
   });
+
+  it('Cenário BDD 1 (Responsividade Mobile): DEVE alternar exibição do drawer mobile ao interagir com o botão hambúrguer', () => {
+    expect(component.isMobileMenuOpen()).toBe(false);
+    expect(fixture.nativeElement.querySelector('.mobile-menu')).toBeNull();
+
+    component.toggleMobileMenu();
+    fixture.detectChanges();
+
+    expect(component.isMobileMenuOpen()).toBe(true);
+    const mobileMenu = fixture.nativeElement.querySelector('.mobile-menu');
+    expect(mobileMenu).toBeTruthy();
+    expect(mobileMenu.querySelectorAll('.mobile-nav-link').length).toBeGreaterThan(0);
+
+    component.closeMobileMenu();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.mobile-menu')).toBeNull();
+  });
 });

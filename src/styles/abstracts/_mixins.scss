@@ -1,14 +1,51 @@
 @use 'variables' as *;
 @use 'sass:map';
 
-// Media Query Responsiva
+// Media Query Responsiva (Suporte Mobile First e Desktop)
 @mixin respond-to($breakpoint) {
-  @if map.has-key($breakpoints, $breakpoint) {
+  @if $breakpoint == 'mobile' or $breakpoint == 'mobile-only' {
+    @media (max-width: 767.98px) {
+      @content;
+    }
+  } @else if $breakpoint == 'tablet' {
+    @media (max-width: 1023.98px) {
+      @content;
+    }
+  } @else if map.has-key($breakpoints, $breakpoint) {
     @media (min-width: map.get($breakpoints, $breakpoint)) {
       @content;
     }
   } @else {
     @media (min-width: $breakpoint) {
+      @content;
+    }
+  }
+}
+
+// Media Query para Telas Menores que o Breakpoint (Max-Width)
+@mixin respond-below($breakpoint) {
+  @if $breakpoint == 'mobile' or $breakpoint == 'md' {
+    @media (max-width: 767.98px) {
+      @content;
+    }
+  } @else if $breakpoint == 'tablet' or $breakpoint == 'lg' {
+    @media (max-width: 1023.98px) {
+      @content;
+    }
+  } @else if $breakpoint == 'sm' {
+    @media (max-width: 639.98px) {
+      @content;
+    }
+  } @else if $breakpoint == 'xl' {
+    @media (max-width: 1279.98px) {
+      @content;
+    }
+  } @else if map.has-key($breakpoints, $breakpoint) {
+    @media (max-width: (map.get($breakpoints, $breakpoint) - 0.02px)) {
+      @content;
+    }
+  } @else {
+    @media (max-width: $breakpoint) {
       @content;
     }
   }
