@@ -290,48 +290,69 @@ export class AdminService {
       return { success: false, message: 'A chave de API informada é muito curta ou inválida.' };
     }
 
-    const baseUrl = environment === 'production'
-      ? 'https://api.asaas.com/v3'
-      : 'https://sandbox.asaas.com/api/v3';
+    const isLocalhost = typeof window !== 'undefined' &&
+      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+    const envLabel = environment === 'production' ? 'PRODUÇÃO' : 'SANDBOX';
+    const proxyBase = environment === 'production' ? '/api/asaas/production' : '/api/asaas/sandbox';
+    const directBase = environment === 'production' ? 'https://api.asaas.com/v3' : 'https://sandbox.asaas.com/api/v3';
+
+    // Se estiver em localhost, tenta a rota proxy do dev server; caso contrário, a rota direta
+    const targetUrls = isLocalhost ? [proxyBase, directBase] : [directBase];
 
     if (this.http) {
-      try {
-        const headers = new HttpHeaders({
-          'access_token': cleanKey,
-          'Content-Type': 'application/json'
-        });
+      const headers = new HttpHeaders({
+        'access_token': cleanKey,
+        'Content-Type': 'application/json'
+      });
 
-        // GET /v3/finance/balance - endpoint oficial do Asaas v3 para validação de credenciais
-        const response: any = await firstValueFrom(
-          this.http.get<any>(`${baseUrl}/finance/balance`, { headers })
-        );
+      let lastError: any = null;
 
-        const balance = response?.balance ?? 0;
-        const envLabel = environment === 'production' ? 'PRODUÇÃO' : 'SANDBOX';
-        const msg = `Conexão bem-sucedida com o Asaas (${envLabel})! Saldo consultado: R$ ${balance.toFixed(2)}`;
+      for (const baseUrl of targetUrls) {
+        try {
+          // GET /v3/finance/balance - endpoint oficial do Asaas v3 para validação de credenciais
+          const response: any = await firstValueFrom(
+            this.http.get<any>(`${baseUrl}/finance/balance`, { headers })
+          );
 
-        await this.updateAsaasTestStatus('success', msg);
-        return { success: true, message: msg, balance };
-      } catch (err: any) {
-        let errorMsg = 'Falha ao conectar com o Asaas.';
-        if (err.status === 401 || err.status === 403) {
-          errorMsg = 'Falha de Autenticação (401/403): O Access Token informado é inválido ou foi revogado no painel do Asaas.';
-        } else if (err.status === 0) {
-          errorMsg = 'Aviso de Conectividade: Requisição bloqueada por CORS no navegador. No ambiente real, a chamada é processada pelo backend/Cloud Function.';
-        } else if (err.error && err.error.errors && err.error.errors.length > 0) {
-          errorMsg = `Erro Asaas: ${err.error.errors[0].description || err.message}`;
-        } else if (err.message) {
-          errorMsg = `Erro na requisição: ${err.message}`;
+          const balance = response?.balance ?? 0;
+          const msg = `Conexão bem-sucedida com o Asaas (${envLabel})! Saldo consultado: R$ ${balance.toFixed(2)}`;
+
+          await this.updateAsaasTestStatus('success', msg);
+          return { success: true, message: msg, balance };
+        } catch (err: any) {
+          lastError = err;
+          // Se foi 404 na rota proxy (dev-server rodando sem o proxy ativado), tenta o fallback direto
+          if (err.status === 404 && baseUrl === proxyBase) {
+            continue;
+          }
+          break;
         }
-
-        await this.updateAsaasTestStatus('error', errorMsg);
-        return { success: false, message: errorMsg };
       }
+
+      // Trata o erro retornado
+      let errorMsg = 'Falha ao conectar com o Asaas.';
+      if (lastError?.status === 401 || lastError?.status === 403) {
+        errorMsg = 'Falha de Autenticação (401/403): O Access Token informado é inválido ou foi revogado no painel do Asaas.';
+      } else if (lastError?.status === 0) {
+        const isKeyFormatValid = cleanKey.startsWith('$aact_') && cleanKey.length >= 25;
+        if (isKeyFormatValid) {
+          errorMsg = 'Bloqueio de CORS no navegador: A API do Asaas não permite chamadas diretas de browsers. Reinicie o servidor com "npm start" para utilizar o proxy local configurado (proxy.conf.json).';
+        } else {
+          errorMsg = 'Aviso de Conectividade: Requisição bloqueada por CORS no navegador. No ambiente real, a chamada é processada pelo backend/Cloud Function.';
+        }
+      } else if (lastError?.error?.errors?.length > 0) {
+        errorMsg = `Erro Asaas: ${lastError.error.errors[0].description || lastError.message}`;
+      } else if (lastError?.message) {
+        errorMsg = `Erro na requisição: ${lastError.message}`;
+      }
+
+      await this.updateAsaasTestStatus('error', errorMsg);
+      return { success: false, message: errorMsg };
     }
 
     // Modo Mock/Teste seguro sem HttpClient
     const isMockValid = cleanKey.startsWith('$aact_') || cleanKey.startsWith('mock_') || cleanKey.length >= 20;
-    const envLabel = environment === 'production' ? 'PRODUÇÃO' : 'SANDBOX';
     if (isMockValid) {
       const msg = `Conexão simulada com sucesso com o Asaas (${envLabel}).`;
       await this.updateAsaasTestStatus('success', msg);
