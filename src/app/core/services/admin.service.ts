@@ -212,16 +212,49 @@ export class AdminService {
     };
   }
 
+  private readonly ASAAS_LOCAL_STORAGE_KEY = 'quinzena_asaas_config';
+
   /**
-   * Obtém as configurações ativas do gateway Asaas salvas no Firestore
+   * Recupera o backup local das configurações do Asaas para resiliência de ambiente offline/desenvolvimento
+   */
+  private getLocalAsaasConfig(): AsaasConfig | null {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const raw = localStorage.getItem(this.ASAAS_LOCAL_STORAGE_KEY);
+        if (raw) {
+          return JSON.parse(raw) as AsaasConfig;
+        }
+      }
+    } catch {
+      // Ignora falha de leitura em ambientes sem localStorage
+    }
+    return null;
+  }
+
+  /**
+   * Salva o backup local das configurações do Asaas no localStorage
+   */
+  private setLocalAsaasConfig(config: AsaasConfig): void {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem(this.ASAAS_LOCAL_STORAGE_KEY, JSON.stringify(config));
+      }
+    } catch {
+      // Ignora falha de escrita em ambientes sem localStorage
+    }
+  }
+
+  /**
+   * Obtém as configurações ativas do gateway Asaas salvas no Firestore, com fallback para cache local
    */
   async getAsaasConfig(): Promise<AsaasConfig | null> {
+    const localBackup = this.getLocalAsaasConfig();
     try {
       const configDocRef = doc(this.firestore, 'system_config', 'asaas');
       const snap = await getDoc(configDocRef);
       if (snap.exists()) {
         const data = snap.data();
-        return {
+        const config: AsaasConfig = {
           environment: data['environment'] || 'sandbox',
           apiKey: data['apiKey'] || '',
           webhookSecret: data['webhookSecret'] || '',
@@ -232,7 +265,12 @@ export class AdminService {
           lastTestStatus: data['lastTestStatus'] || undefined,
           lastTestMessage: data['lastTestMessage'] || undefined,
           updatedAt: data['updatedAt'] || undefined
-        } as AsaasConfig;
+        };
+        this.setLocalAsaasConfig(config);
+        return config;
+      }
+      if (localBackup) {
+        return localBackup;
       }
       return {
         environment: 'sandbox',
@@ -242,16 +280,29 @@ export class AdminService {
         notificationEmail: '',
         isActive: false
       };
-    } catch (err) {
-      this.logger.error('Erro ao carregar configurações do Asaas:', err);
-      return null;
+    } catch (err: any) {
+      this.logger.warn('Aviso: Não foi possível carregar configurações do Asaas no Firestore. Utilizando cache local.', err);
+      if (localBackup) {
+        return localBackup;
+      }
+      return {
+        environment: 'sandbox',
+        apiKey: '',
+        webhookSecret: '',
+        walletId: '',
+        notificationEmail: '',
+        isActive: false
+      };
     }
   }
 
   /**
-   * Salva com segurança as configurações do Asaas na coleção administrativa do Firestore
+   * Salva com segurança as configurações do Asaas na coleção administrativa do Firestore e no cache local
    */
-  async saveAsaasConfig(config: AsaasConfig): Promise<void> {
+  async saveAsaasConfig(config: AsaasConfig): Promise<{ syncedWithCloud: boolean }> {
+    // 1. Sempre preserva em cache local primeiro
+    this.setLocalAsaasConfig(config);
+
     try {
       const configDocRef = doc(this.firestore, 'system_config', 'asaas');
       const payload: Record<string, any> = {
@@ -275,8 +326,13 @@ export class AdminService {
       }
 
       await setDoc(configDocRef, payload, { merge: true });
-    } catch (err) {
-      this.logger.error('Erro ao salvar configurações do Asaas:', err);
+      return { syncedWithCloud: true };
+    } catch (err: any) {
+      this.logger.warn('Aviso: Firestore recusou gravação de system_config (permissão ou offline). Dados preservados localmente:', err);
+      // Se o erro for de permissão ou rede, preserva no cache local e sinaliza
+      if (err?.code === 'permission-denied' || err?.message?.includes('permissions')) {
+        return { syncedWithCloud: false };
+      }
       throw err;
     }
   }

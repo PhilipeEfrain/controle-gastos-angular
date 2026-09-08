@@ -230,9 +230,15 @@ export class AdminComponent implements OnInit {
         lastTestMessage: this.asaasLastTestMessage()
       };
 
-      await this.adminService.saveAsaasConfig(configPayload);
+      const saveResult = await this.adminService.saveAsaasConfig(configPayload);
       this.asaasIsActive.set(configPayload.isActive);
-      this.notificationService.success('Configurações do Asaas salvas com sucesso no Firebase!');
+      if (saveResult && saveResult.syncedWithCloud === false) {
+        this.notificationService.warning(
+          'Configurações salvas localmente no navegador! (Para sincronizar com o Firebase, defina role: "admin" no documento do seu usuário no Firestore Console).'
+        );
+      } else {
+        this.notificationService.success('Configurações do Asaas salvas com sucesso no Firebase!');
+      }
     } catch {
       this.notificationService.error('Erro ao salvar configurações do Asaas.');
     } finally {
