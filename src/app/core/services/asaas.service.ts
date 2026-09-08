@@ -11,7 +11,8 @@ import {
   AsaasPixQrCodeResponse,
   AsaasWebhookPayload,
   CreditCardData,
-  CreditCardHolderInfo
+  CreditCardHolderInfo,
+  AsaasEnvironment
 } from '../models/payment.model';
 import { PlanType, PlanStatus } from '../models/user.model';
 
@@ -30,6 +31,13 @@ export class AsaasService {
     productionUrl: 'https://api.asaas.com/v3',
     defaultCycle: 'MONTHLY' as BillingCycle
   };
+
+  /**
+   * Retorna a URL base de acordo com o ambiente selecionado (Sandbox ou Produção)
+   */
+  getBaseUrl(environment: AsaasEnvironment = 'sandbox'): string {
+    return environment === 'production' ? this.API_CONFIG.productionUrl : this.API_CONFIG.sandboxUrl;
+  }
 
   /**
    * Tabela Oficial de Preços e Recursos do Quinzena App

@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
+import { HttpClient } from '@angular/common/http';
+import { of, throwError } from 'rxjs';
 import { AdminService } from './admin.service';
 import { FirebaseService } from './firebase.service';
 import { LoggerService } from './logger.service';
@@ -9,6 +11,7 @@ describe('AdminService', () => {
   let service: AdminService;
   let mockFirebaseService: any;
   let mockLoggerService: any;
+  let mockHttpClient: any;
 
   beforeEach(() => {
     mockFirebaseService = {
@@ -21,11 +24,16 @@ describe('AdminService', () => {
       info: vi.fn()
     };
 
+    mockHttpClient = {
+      get: vi.fn().mockReturnValue(of({ balance: 1250.00 }))
+    };
+
     TestBed.configureTestingModule({
       providers: [
         AdminService,
         { provide: FirebaseService, useValue: mockFirebaseService },
-        { provide: LoggerService, useValue: mockLoggerService }
+        { provide: LoggerService, useValue: mockLoggerService },
+        { provide: HttpClient, useValue: mockHttpClient }
       ]
     });
 
@@ -70,4 +78,40 @@ describe('AdminService', () => {
       expect(metrics.conversionRate).toBe(60);
     });
   });
+
+  describe('Integração Asaas (CARD-032)', () => {
+    it('deve validar que o Access Token não pode ser vazio ou curto', async () => {
+      const emptyResult = await service.testAsaasConnection('');
+      expect(emptyResult.success).toBe(false);
+      expect(emptyResult.message).toContain('vazia');
+
+      const shortResult = await service.testAsaasConnection('12345');
+      expect(shortResult.success).toBe(false);
+      expect(shortResult.message).toContain('muito curta');
+    });
+
+    it('deve validar conexão com sucesso no ambiente sandbox', async () => {
+      mockHttpClient.get.mockReturnValue(of({ balance: 1250.00 }));
+      const result = await service.testAsaasConnection('$aact_YTU5YTE0M2M6N2...', 'sandbox');
+      expect(result.success).toBe(true);
+      expect(result.message).toContain('SANDBOX');
+      expect(result.balance).toBe(1250.00);
+    });
+
+    it('deve validar conexão com sucesso para ambiente de produção', async () => {
+      mockHttpClient.get.mockReturnValue(of({ balance: 5000.00 }));
+      const result = await service.testAsaasConnection('$aact_prod_token_1234567890', 'production');
+      expect(result.success).toBe(true);
+      expect(result.message).toContain('PRODUÇÃO');
+      expect(result.balance).toBe(5000.00);
+    });
+
+    it('deve retornar falha de autenticação quando a API Asaas responder 401', async () => {
+      mockHttpClient.get.mockReturnValue(throwError(() => ({ status: 401 })));
+      const result = await service.testAsaasConnection('invalid_token_xyz', 'sandbox');
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('Falha de Autenticação (401/403)');
+    });
+  });
 });
+

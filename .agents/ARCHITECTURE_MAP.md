@@ -39,6 +39,7 @@
 | `UserProfile` | `src/app/core/models/user.model.ts` | Modelo de perfil de usuário com suporte a papéis RBAC (`role?: 'admin' \| 'user'`), planos SaaS (`plan?: 'free' \| 'pro' \| 'duo'`), status da assinatura e identificadores Asaas. |
 | `UserRole` / `PlanType` / `PlanStatus` | `src/app/core/models/user.model.ts` | Tipos literais estritos para controle de acesso e monetização. |
 | `PlanPricing` / `AsaasSubscriptionPayload` / `AsaasWebhookPayload` | `src/app/core/models/payment.model.ts` | Interfaces de contratos de pagamento com o gateway Asaas (API v3, PIX, Cartão e Webhooks). |
+| `AsaasConfig` / `AsaasEnvironment` | `src/app/core/models/payment.model.ts` | Modelo de governança e configuração de credenciais Asaas v3 (`environment`, `apiKey`, `webhookSecret`, `walletId`, `isActive`, `lastTestedAt`). |
 | `ToastNotification` | `src/app/core/models/notification.model.ts` | Modelo de notificação Toast reativa (id, tipo, mensagem, duração). |
 | `DuoGroup` / `DuoSettlementSummary` | `src/app/core/models/duo.model.ts` | Interfaces do Modo Casal / Duo: grupos de pareamento, convites e saldo de acerto de contas 50/50. |
 
@@ -60,8 +61,8 @@
 | `PwaService` | `src/app/core/services/pwa.service.ts` | Monitoramento reativo de conectividade (online/offline), captura de beforeinstallprompt, instalação de PWA e controle de Service Worker. |
 | `NotificationService` | `src/app/core/services/notification.service.ts` | Notificações reativas do tipo Toast com Signals (`success`, `error`, `warning`, `info`). |
 | `LoggerService` | `src/app/core/services/logger.service.ts` | Logging seguro com supressão de stacktraces e dados de exceção em ambiente de produção (CWE-532). |
-| `AdminService` | `src/app/core/services/admin.service.ts` | Gestão administrativa de usuários, papéis RBAC, planos SaaS e cálculo de KPIs de MRR/conversão. |
-| `AsaasService` | `src/app/core/services/asaas.service.ts` | Integração com Gateway Asaas API v3: tabela oficial de preços, criação de clientes, assinaturas recorrentes (PIX e Cartão) e processamento seguro de Webhooks. |
+| `AdminService` | `src/app/core/services/admin.service.ts` | Gestão administrativa de usuários, papéis RBAC, planos SaaS, cálculo de KPIs de MRR/conversão e persistência/teste de conectividade da integração Asaas (`getAsaasConfig`, `saveAsaasConfig`, `testAsaasConnection`). |
+| `AsaasService` | `src/app/core/services/asaas.service.ts` | Integração com Gateway Asaas API v3: tabela oficial de preços, URLs base por ambiente (`getBaseUrl`), criação de clientes, assinaturas recorrentes (PIX e Cartão) e processamento seguro de Webhooks. |
 | `PlanLimitsService` | `src/app/core/services/plan-limits.service.ts` | Validação de regras e limites da matriz de planos SaaS (Free: máx 3 recorrentes, 3 parcelamentos, 1 tributo, 1 viagem, 2 meses histórico; Pro/Duo: ilimitado, 13 meses e PDF). |
 
 ---
@@ -146,7 +147,7 @@
 ### J. Feature: Administração SaaS (`src/app/features/admin/`)
 | Componente | Seletor | Descrição |
 | :--- | :--- | :--- |
-| `AdminComponent` | `app-admin` | Painel administrativo para monitoramento global, gestão de usuários e controle de planos SaaS. |
+| `AdminComponent` | `app-admin` | Painel administrativo com abas (Visão Geral & Usuários vs. Integração Asaas), monitoramento global de métricas de SaaS, governança de planos e configuração protegida do gateway de pagamentos com teste de conectividade em tempo real. |
 
 ---
 

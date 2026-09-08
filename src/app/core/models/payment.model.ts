@@ -96,3 +96,19 @@ export interface AsaasWebhookPayload {
   event: AsaasWebhookEventType;
   payment: AsaasPaymentData;
 }
+
+export type AsaasEnvironment = 'sandbox' | 'production';
+
+export interface AsaasConfig {
+  environment: AsaasEnvironment;
+  apiKey: string;
+  webhookSecret?: string;
+  walletId?: string;
+  notificationEmail?: string;
+  isActive: boolean;
+  lastTestedAt?: string;
+  lastTestStatus?: 'success' | 'error';
+  lastTestMessage?: string;
+  updatedAt?: string;
+}
+

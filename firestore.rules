@@ -155,6 +155,11 @@ service cloud.firestore {
       allow delete: if isAuthenticated() && request.auth.uid == resource.data.ownerId;
     }
 
+    // Configurações Globais do Sistema e Gateway Asaas (Isolamento Estrito RBAC)
+    match /system_config/{configId} {
+      allow read, write: if isAdmin();
+    }
+
     // Isolamento Estrito de Dados por Usuário e Governança Administrativa
     match /users/{userId} {
       allow get: if isOwner(userId) || isAdmin();
