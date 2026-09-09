@@ -270,7 +270,13 @@ export class SubscriptionModalComponent implements OnInit {
         environment
       );
 
+      const cleanCpf = this.customerCpf().replace(/\D/g, '');
+      const holderName = this.cardHolderName().trim() || user?.displayName || 'Titular';
+      const holderEmail = user?.email || 'contato@quinzena.app';
       const expiryParts = this.cardExpiry().split('/');
+      const expiryMonth = (expiryParts[0] || '12').padStart(2, '0');
+      const expiryYear = expiryParts[1] ? (expiryParts[1].length === 2 ? '20' + expiryParts[1] : expiryParts[1]) : '2028';
+
       const subscription = await this.asaasService.createSubscription(
         {
           plan: this.selectedPlan(),
@@ -278,11 +284,20 @@ export class SubscriptionModalComponent implements OnInit {
           billingType: 'CREDIT_CARD',
           customerId: customer.id || 'cus_demo',
           cardData: {
-            holderName: this.cardHolderName(),
+            holderName: holderName,
             number: this.cardNumber().replace(/\s/g, ''),
-            expiryMonth: expiryParts[0] || '12',
-            expiryYear: expiryParts[1] ? (expiryParts[1].length === 2 ? '20' + expiryParts[1] : expiryParts[1]) : '2028',
-            ccv: this.cardCvv()
+            expiryMonth: expiryMonth,
+            expiryYear: expiryYear,
+            ccv: this.cardCvv().trim()
+          },
+          holderInfo: {
+            name: holderName,
+            email: holderEmail,
+            cpfCnpj: cleanCpf,
+            postalCode: '01310100',
+            addressNumber: '100',
+            phone: '11999999999',
+            mobilePhone: '11999999999'
           }
         },
         apiKey,

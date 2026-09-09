@@ -217,8 +217,25 @@ export class AsaasService {
     }
 
     const nextDueDate = new Date();
-    nextDueDate.setDate(nextDueDate.getDate() + 1);
+    // Vencimento hoje para cobrança imediata via cartão de crédito, ou D+1 para boletos/outros
+    if (params.billingType !== 'CREDIT_CARD') {
+      nextDueDate.setDate(nextDueDate.getDate() + 1);
+    }
     const formattedDueDate = nextDueDate.toISOString().split('T')[0];
+
+    // Para cartão de crédito, creditCardHolderInfo é mandatório pela API Asaas v3
+    let holderInfo = params.holderInfo;
+    if (params.billingType === 'CREDIT_CARD' && params.cardData && !holderInfo) {
+      holderInfo = {
+        name: params.cardData.holderName,
+        email: 'contato@quinzena.app',
+        cpfCnpj: '52998224725',
+        postalCode: '01310100',
+        addressNumber: '100',
+        phone: '11999999999',
+        mobilePhone: '11999999999'
+      };
+    }
 
     const payload: AsaasSubscriptionPayload = {
       customer: params.customerId,
@@ -228,7 +245,7 @@ export class AsaasService {
       cycle: params.cycle,
       description: `Assinatura Quinzena App - Plano ${params.plan.toUpperCase()} (${params.cycle === 'YEARLY' ? 'Anual' : 'Mensal'})`,
       creditCard: params.cardData,
-      creditCardHolderInfo: params.holderInfo
+      creditCardHolderInfo: holderInfo
     };
 
     if (this.http && apiKey) {
@@ -241,11 +258,15 @@ export class AsaasService {
         return await firstValueFrom(this.http.post<AsaasSubscriptionResponse>(url, payload, { headers }));
       } catch (err: any) {
         this.logger.error('Erro na API Asaas ao criar assinatura:', err);
-        const description =
-          err?.error?.errors?.[0]?.description ||
-          err?.error?.message ||
-          err?.message ||
-          'Erro ao processar assinatura no Asaas.';
+        const apiErrors = err?.error?.errors;
+        let description = 'Erro ao processar assinatura no Asaas.';
+        if (Array.isArray(apiErrors) && apiErrors.length > 0) {
+          description = apiErrors.map((e: any) => e.description || e.message).join(' | ');
+        } else if (err?.error?.message) {
+          description = err.error.message;
+        } else if (err?.message) {
+          description = err.message;
+        }
         throw new Error(description);
       }
     }

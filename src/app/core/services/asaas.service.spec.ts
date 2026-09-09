@@ -127,6 +127,34 @@ describe('AsaasService (Gateway de Pagamentos & Assinaturas)', () => {
       expect(sub.status).toBe('ACTIVE');
     });
 
+    it('Cenário BDD 2.1: deve criar assinatura para plano Duo via Cartão de Crédito com holderInfo', async () => {
+      const sub = await service.createSubscription({
+        plan: 'duo',
+        cycle: 'MONTHLY',
+        billingType: 'CREDIT_CARD',
+        customerId: 'cus_123456',
+        cardData: {
+          holderName: 'PHILIPE GONZALEZ',
+          number: '4444444444444444',
+          expiryMonth: '12',
+          expiryYear: '2028',
+          ccv: '123'
+        },
+        holderInfo: {
+          name: 'PHILIPE GONZALEZ',
+          email: 'philipe@example.com',
+          cpfCnpj: '52998224725',
+          postalCode: '01310100',
+          addressNumber: '100',
+          phone: '11999999999'
+        }
+      });
+
+      expect(sub.id).toBeTruthy();
+      expect(sub.value).toBe(19.90);
+      expect(sub.billingType).toBe('CREDIT_CARD');
+    });
+
     it('deve rejeitar assinatura para plano Free', async () => {
       await expect(
         service.createSubscription({
