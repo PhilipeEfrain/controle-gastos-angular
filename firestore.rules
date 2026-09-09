@@ -168,7 +168,11 @@ service cloud.firestore {
       allow list: if isAuthenticated();
       allow create: if (isOwner(userId) && isValidUserProfile(request.resource.data)
                         && (!('role' in request.resource.data) || request.resource.data.role == 'user')
-                        && (!('plan' in request.resource.data) || request.resource.data.plan == 'free'))
+                        && (
+                          !('plan' in request.resource.data) ||
+                          request.resource.data.plan == 'free' ||
+                          ('asaasSubscriptionId' in request.resource.data && request.resource.data.asaasSubscriptionId is string && request.resource.data.asaasSubscriptionId.size() > 0)
+                        ))
                      || isAdmin();
       allow update: if (isOwner(userId) && isValidUserProfile(request.resource.data)
                         && (!('role' in request.resource.data) || request.resource.data.role == resource.data.role || (!('role' in resource.data) && request.resource.data.role == 'user'))

@@ -166,10 +166,23 @@ export class AuthService {
   ): Promise<void> {
     const userDocRef = doc(this.firestore, `users/${userId}`);
     const updatePayload: Record<string, any> = {
+      uid: userId,
+      role: 'user',
       plan: subscriptionData.plan,
       planStatus: subscriptionData.planStatus,
       updatedAt: new Date().toISOString()
     };
+
+    const currentUser = this.auth.currentUser;
+    if (currentUser?.email) {
+      updatePayload['email'] = currentUser.email;
+    }
+    if (currentUser?.displayName) {
+      updatePayload['displayName'] = currentUser.displayName;
+    }
+    if (currentUser?.photoURL) {
+      updatePayload['photoURL'] = currentUser.photoURL;
+    }
 
     if (subscriptionData.asaasCustomerId) {
       updatePayload['asaasCustomerId'] = subscriptionData.asaasCustomerId;
