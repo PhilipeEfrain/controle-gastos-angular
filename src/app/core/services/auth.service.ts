@@ -24,7 +24,7 @@ import {
 import { Observable } from 'rxjs';
 import { FirebaseService } from './firebase.service';
 import { LoggerService } from './logger.service';
-import { UserProfile } from '../models/user.model';
+import { UserProfile, PlanType, PlanStatus } from '../models/user.model';
 
 @Injectable({
   providedIn: 'root'
@@ -149,6 +149,44 @@ export class AuthService {
     }
 
     return userProfile;
+  }
+
+  /**
+   * Atualiza e persiste a assinatura do usuário (plano, status e identificadores Asaas) no Firestore
+   */
+  async updateUserSubscription(
+    userId: string,
+    subscriptionData: {
+      plan: PlanType;
+      planStatus: PlanStatus;
+      asaasCustomerId?: string;
+      asaasSubscriptionId?: string;
+      planExpiresAt?: string | null;
+    }
+  ): Promise<void> {
+    const userDocRef = doc(this.firestore, `users/${userId}`);
+    const updatePayload: Record<string, any> = {
+      plan: subscriptionData.plan,
+      planStatus: subscriptionData.planStatus,
+      updatedAt: new Date().toISOString()
+    };
+
+    if (subscriptionData.asaasCustomerId) {
+      updatePayload['asaasCustomerId'] = subscriptionData.asaasCustomerId;
+    }
+    if (subscriptionData.asaasSubscriptionId) {
+      updatePayload['asaasSubscriptionId'] = subscriptionData.asaasSubscriptionId;
+    }
+    if (subscriptionData.planExpiresAt !== undefined) {
+      updatePayload['planExpiresAt'] = subscriptionData.planExpiresAt;
+    }
+
+    try {
+      await setDoc(userDocRef, updatePayload, { merge: true });
+    } catch (err) {
+      this.logger.error('Erro ao atualizar assinatura no Firestore:', err);
+      throw err;
+    }
   }
 
   /**

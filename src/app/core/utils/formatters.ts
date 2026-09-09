@@ -47,3 +47,62 @@ export function formatPercent(value: number | null | undefined): string {
 
   return `${value.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
 }
+
+/**
+ * Aplica máscara dinâmica de CPF (000.000.000-00) ou CNPJ (00.000.000/0000-00)
+ */
+export function maskCpfCnpj(value: string | null | undefined): string {
+  if (!value) return '';
+  const digits = value.replace(/\D/g, '').slice(0, 14);
+  if (digits.length <= 11) {
+    return digits
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  }
+  return digits
+    .replace(/^(\d{2})(\d)/, '$1.$2')
+    .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+    .replace(/\.(\d{3})(\d)/, '.$1/$2')
+    .replace(/(\d{4})(\d)/, '$1-$2');
+}
+
+/**
+ * Aplica máscara no número do cartão de crédito (grupos de 4 dígitos)
+ * Ex: "5555555555555555" -> "5555 5555 5555 5555"
+ */
+export function maskCardNumber(value: string | null | undefined): string {
+  if (!value) return '';
+  const digits = value.replace(/\D/g, '').slice(0, 19);
+  return digits.replace(/(\d{4})(?=\d)/g, '$1 ').trim();
+}
+
+/**
+ * Aplica máscara na data de expiração do cartão no padrão MM/AA
+ * Ex: "1228" -> "12/28"
+ */
+export function maskCardExpiry(value: string | null | undefined): string {
+  if (!value) return '';
+  const digits = value.replace(/\D/g, '').slice(0, 4);
+  if (digits.length <= 2) {
+    return digits;
+  }
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}`;
+}
+
+/**
+ * Aplica máscara no código de segurança CVV (apenas números, até 4 dígitos)
+ */
+export function maskCardCvv(value: string | null | undefined): string {
+  if (!value) return '';
+  return value.replace(/\D/g, '').slice(0, 4);
+}
+
+/**
+ * Sanitiza e formata o nome do titular (maiúsculas e apenas letras/espaços)
+ */
+export function maskCardHolderName(value: string | null | undefined): string {
+  if (!value) return '';
+  return value.replace(/[^a-zA-ZÀ-ÿ\s]/g, '').toUpperCase();
+}
+

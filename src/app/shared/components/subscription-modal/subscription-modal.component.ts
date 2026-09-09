@@ -11,11 +11,19 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AsaasService } from '../../../core/services/asaas.service';
+import { AdminService } from '../../../core/services/admin.service';
 import { AuthStore } from '../../../core/state/auth.store';
 import { NotificationService } from '../../../core/services/notification.service';
 import { BillingCycle, PaymentBillingType } from '../../../core/models/payment.model';
 import { PlanType } from '../../../core/models/user.model';
-import { formatBRL } from '../../../core/utils/formatters';
+import {
+  formatBRL,
+  maskCpfCnpj,
+  maskCardNumber,
+  maskCardExpiry,
+  maskCardCvv,
+  maskCardHolderName
+} from '../../../core/utils/formatters';
 
 @Component({
   selector: 'app-subscription-modal',
@@ -27,6 +35,7 @@ import { formatBRL } from '../../../core/utils/formatters';
 })
 export class SubscriptionModalComponent implements OnInit {
   private asaasService = inject(AsaasService);
+  private adminService = inject(AdminService);
   private authStore = inject(AuthStore);
   private notificationService = inject(NotificationService);
 
@@ -46,6 +55,8 @@ export class SubscriptionModalComponent implements OnInit {
   readonly pixPayload = signal<string>('');
   readonly isCopied = signal<boolean>(false);
   readonly isProcessing = signal<boolean>(false);
+  readonly lastSubscriptionId = signal<string | null>(null);
+  readonly lastCustomerId = signal<string | null>(null);
 
   // Estado do Cartão de Crédito
   readonly cardHolderName = signal<string>('');
@@ -100,8 +111,39 @@ export class SubscriptionModalComponent implements OnInit {
 
   onCpfInput(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.customerCpf.set(input.value);
+    const formatted = maskCpfCnpj(input.value);
+    input.value = formatted;
+    this.customerCpf.set(formatted);
   }
+
+  onCardHolderNameInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const formatted = maskCardHolderName(input.value);
+    input.value = formatted;
+    this.cardHolderName.set(formatted);
+  }
+
+  onCardNumberInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const formatted = maskCardNumber(input.value);
+    input.value = formatted;
+    this.cardNumber.set(formatted);
+  }
+
+  onCardExpiryInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const formatted = maskCardExpiry(input.value);
+    input.value = formatted;
+    this.cardExpiry.set(formatted);
+  }
+
+  onCardCvvInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const formatted = maskCardCvv(input.value);
+    input.value = formatted;
+    this.cardCvv.set(formatted);
+  }
+
 
   /**
    * Gera a transação PIX com QR Code e Copia-e-Cola
@@ -115,20 +157,39 @@ export class SubscriptionModalComponent implements OnInit {
     this.isProcessing.set(true);
     try {
       const user = this.authStore.currentUser();
-      const customer = await this.asaasService.createCustomer({
-        name: user?.displayName || 'Usuário Quinzena',
-        email: user?.email || 'contato@quinzena.app',
-        cpfCnpj: this.customerCpf()
-      });
+      const asaasConfig = await this.adminService.getAsaasConfig();
+      const apiKey = asaasConfig?.apiKey || undefined;
+      const environment = asaasConfig?.environment || 'sandbox';
 
-      const subscription = await this.asaasService.createSubscription({
-        plan: this.selectedPlan(),
-        cycle: this.cycle(),
-        billingType: 'PIX',
-        customerId: customer.id || 'cus_demo'
-      });
+      const customer = await this.asaasService.createCustomer(
+        {
+          name: user?.displayName || 'Usuário Quinzena',
+          email: user?.email || 'contato@quinzena.app',
+          cpfCnpj: this.customerCpf()
+        },
+        apiKey,
+        environment
+      );
 
-      const pixResponse = await this.asaasService.getPixQrCodeForPayment(subscription.id);
+      const subscription = await this.asaasService.createSubscription(
+        {
+          plan: this.selectedPlan(),
+          cycle: this.cycle(),
+          billingType: 'PIX',
+          customerId: customer.id || 'cus_demo'
+        },
+        apiKey,
+        environment
+      );
+
+      this.lastSubscriptionId.set(subscription.id || null);
+      this.lastCustomerId.set(customer.id || null);
+
+      const pixResponse = await this.asaasService.getPixQrCodeForPayment(
+        subscription.id,
+        apiKey,
+        environment
+      );
       this.pixPayload.set(pixResponse.payload);
       this.pixGenerated.set(true);
       this.notificationService.info('QR Code PIX gerado! Realize o pagamento para ativação.');
@@ -157,27 +218,34 @@ export class SubscriptionModalComponent implements OnInit {
   }
 
   /**
-   * Confirmação / Simulação de Pagamento com Ativação Reativa do Plano
+   * Confirmação / Simulação de Pagamento com Ativação Reativa e Persistência no Firestore
    */
   async simulatePaymentConfirmation(): Promise<void> {
     this.isProcessing.set(true);
     try {
-      // Simula confirmação do webhook do gateway
       const plan = this.selectedPlan();
-      this.authStore.updateCurrentUser({
+      const subId = this.lastSubscriptionId() || `sub_${Math.random().toString(36).substring(2, 10)}`;
+      const cusId = this.lastCustomerId() || 'cus_demo';
+
+      // Persiste no Firestore e atualiza o AuthStore
+      await this.authStore.upgradeSubscription({
         plan,
-        planStatus: 'active'
+        planStatus: 'active',
+        asaasCustomerId: cusId,
+        asaasSubscriptionId: subId
       });
 
       this.step.set('success');
       this.notificationService.success(`Assinatura confirmada! Bem-vindo ao plano ${plan.toUpperCase()}!`);
+    } catch (err: any) {
+      this.notificationService.error(err?.message || 'Erro ao confirmar assinatura.');
     } finally {
       this.isProcessing.set(false);
     }
   }
 
   /**
-   * Processa pagamento via Cartão de Crédito
+   * Processa pagamento via Cartão de Crédito com consulta real ao Asaas e persistência definitiva
    */
   async processCreditCardPayment(): Promise<void> {
     if (!this.isCardFormValid()) {
@@ -188,31 +256,46 @@ export class SubscriptionModalComponent implements OnInit {
     this.isProcessing.set(true);
     try {
       const user = this.authStore.currentUser();
-      const customer = await this.asaasService.createCustomer({
-        name: user?.displayName || this.cardHolderName(),
-        email: user?.email || 'contato@quinzena.app',
-        cpfCnpj: this.customerCpf()
-      });
+      const asaasConfig = await this.adminService.getAsaasConfig();
+      const apiKey = asaasConfig?.apiKey || undefined;
+      const environment = asaasConfig?.environment || 'sandbox';
+
+      const customer = await this.asaasService.createCustomer(
+        {
+          name: user?.displayName || this.cardHolderName(),
+          email: user?.email || 'contato@quinzena.app',
+          cpfCnpj: this.customerCpf()
+        },
+        apiKey,
+        environment
+      );
 
       const expiryParts = this.cardExpiry().split('/');
-      await this.asaasService.createSubscription({
-        plan: this.selectedPlan(),
-        cycle: this.cycle(),
-        billingType: 'CREDIT_CARD',
-        customerId: customer.id || 'cus_demo',
-        cardData: {
-          holderName: this.cardHolderName(),
-          number: this.cardNumber().replace(/\s/g, ''),
-          expiryMonth: expiryParts[0] || '12',
-          expiryYear: expiryParts[1] ? (expiryParts[1].length === 2 ? '20' + expiryParts[1] : expiryParts[1]) : '2028',
-          ccv: this.cardCvv()
-        }
-      });
+      const subscription = await this.asaasService.createSubscription(
+        {
+          plan: this.selectedPlan(),
+          cycle: this.cycle(),
+          billingType: 'CREDIT_CARD',
+          customerId: customer.id || 'cus_demo',
+          cardData: {
+            holderName: this.cardHolderName(),
+            number: this.cardNumber().replace(/\s/g, ''),
+            expiryMonth: expiryParts[0] || '12',
+            expiryYear: expiryParts[1] ? (expiryParts[1].length === 2 ? '20' + expiryParts[1] : expiryParts[1]) : '2028',
+            ccv: this.cardCvv()
+          }
+        },
+        apiKey,
+        environment
+      );
 
       const plan = this.selectedPlan();
-      this.authStore.updateCurrentUser({
+      // Persiste no Firestore e atualiza o AuthStore em memória
+      await this.authStore.upgradeSubscription({
         plan,
-        planStatus: 'active'
+        planStatus: 'active',
+        asaasCustomerId: customer.id,
+        asaasSubscriptionId: subscription.id
       });
 
       this.step.set('success');
@@ -223,6 +306,7 @@ export class SubscriptionModalComponent implements OnInit {
       this.isProcessing.set(false);
     }
   }
+
 
   closeModal(): void {
     this.close.emit();

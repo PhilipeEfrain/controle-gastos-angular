@@ -37,8 +37,41 @@
       </div>
     </header>
 
-    <!-- Cards de KPIs (Métricas Globais do SaaS) -->
-    <section class="kpi-grid" aria-label="Métricas Principais">
+    <!-- Navegação de Abas do Admin -->
+    <nav class="admin-tabs" aria-label="Navegação Administrativa">
+      <button
+        type="button"
+        class="admin-tab-btn"
+        [class.active]="activeTab() === 'overview'"
+        (click)="setTab('overview')"
+        id="tab-btn-overview"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="tab-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+        </svg>
+        <span>Visão Geral & Usuários</span>
+      </button>
+
+      <button
+        type="button"
+        class="admin-tab-btn"
+        [class.active]="activeTab() === 'asaas'"
+        (click)="setTab('asaas')"
+        id="tab-btn-asaas"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="tab-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
+        </svg>
+        <span>Integração Asaas</span>
+        @if (asaasIsActive()) {
+          <span class="tab-badge-active" title="Integração Ativa">Ativo</span>
+        }
+      </button>
+    </nav>
+
+    @if (activeTab() === 'overview') {
+      <!-- Cards de KPIs (Métricas Globais do SaaS) -->
+      <section class="kpi-grid" aria-label="Métricas Principais">
       <!-- KPI 1: Total de Usuários -->
       <div class="kpi-card card-total">
         <div class="kpi-icon-wrapper icon-users">
@@ -288,6 +321,375 @@
         }
       </div>
     </section>
+    }
+
+    <!-- Seção de Integração Asaas (CARD-032) -->
+    @if (activeTab() === 'asaas') {
+      <section class="asaas-config-section" aria-label="Configurações da Integração Asaas">
+        <!-- Status Banner / Overview Card -->
+        <div class="asaas-hero-card">
+          <div class="hero-left">
+            <div class="asaas-badge-group">
+              <span class="gateway-brand-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="brand-icon">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
+                </svg>
+                Asaas Pagamentos v3
+              </span>
+
+              @if (asaasEnvironment() === 'production') {
+                <span class="env-badge env-production">
+                  <span class="pulse-dot green"></span>
+                  Produção (Live)
+                </span>
+              } @else {
+                <span class="env-badge env-sandbox">
+                  <span class="pulse-dot purple"></span>
+                  Sandbox (Testes)
+                </span>
+              }
+
+              @if (asaasIsActive()) {
+                <span class="status-badge-active">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="status-icon">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                  Configurado
+                </span>
+              } @else {
+                <span class="status-badge-inactive">Não Ativado</span>
+              }
+            </div>
+
+            <h2 class="hero-title">Configurações do Gateway Asaas</h2>
+            <p class="hero-subtitle">
+              Gerencie as chaves de API, webhook e parâmetros operacionais para processamento de assinaturas recorrentes, PIX e cartões de crédito.
+            </p>
+          </div>
+
+          <div class="hero-actions">
+            <a
+              href="https://docs.asaas.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn-docs-link"
+              title="Abrir documentação oficial do Asaas"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="docs-icon">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+              </svg>
+              <span>Documentação Asaas</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Alerta de Segurança e Boas Práticas -->
+        <div class="security-info-banner">
+          <div class="banner-icon">🛡️</div>
+          <div class="banner-content">
+            <h4>Segurança e Proteção de Segredos (CWE-532 / RBAC)</h4>
+            <p>
+              As chaves salvas aqui são armazenadas de forma restrita na coleção protegida do Firebase (acesso restrito por <code>isAdmin()</code>).
+              Nunca compartilhe o seu <strong>Access Token de Produção</strong> em canais públicos ou chats.
+            </p>
+          </div>
+        </div>
+
+        <!-- Formulário de Configuração do Asaas -->
+        <div class="asaas-form-card">
+          <!-- 1. Seleção de Ambiente -->
+          <div class="form-section">
+            <label class="section-label">Ambiente da API Asaas</label>
+            <p class="section-hint">Selecione se as requisições serão direcionadas para o Sandbox de testes ou para o ambiente real de produção.</p>
+
+            <div class="env-selector-grid">
+              <label
+                class="env-option-card"
+                [class.selected]="asaasEnvironment() === 'sandbox'"
+                (click)="setEnvironment('sandbox')"
+              >
+                <input
+                  type="radio"
+                  name="asaasEnvironment"
+                  value="sandbox"
+                  [checked]="asaasEnvironment() === 'sandbox'"
+                  class="sr-only"
+                />
+                <div class="env-card-header">
+                  <div class="env-icon-box sandbox-icon">🧪</div>
+                  <div class="env-card-info">
+                    <span class="env-card-name">Sandbox (Homologação)</span>
+                    <span class="env-card-tag">Ambiente Seguro de Testes</span>
+                  </div>
+                </div>
+                <p class="env-card-desc">
+                  Permite simular assinaturas, pagamentos PIX e cartões de teste sem cobranças financeiras reais.
+                </p>
+                <div class="env-url-badge">https://sandbox.asaas.com/api/v3</div>
+              </label>
+
+              <label
+                class="env-option-card"
+                [class.selected]="asaasEnvironment() === 'production'"
+                (click)="setEnvironment('production')"
+              >
+                <input
+                  type="radio"
+                  name="asaasEnvironment"
+                  value="production"
+                  [checked]="asaasEnvironment() === 'production'"
+                  class="sr-only"
+                />
+                <div class="env-card-header">
+                  <div class="env-icon-box production-icon">⚡</div>
+                  <div class="env-card-info">
+                    <span class="env-card-name">Produção (Live)</span>
+                    <span class="env-card-tag danger">Cobranças Financeiras Reais</span>
+                  </div>
+                </div>
+                <p class="env-card-desc">
+                  Transações financeiras reais enviadas diretamente à instituição financeira parceira e ao Banco Central.
+                </p>
+                <div class="env-url-badge">https://api.asaas.com/v3</div>
+              </label>
+            </div>
+          </div>
+
+          <!-- 2. Access Token -->
+          <div class="form-section">
+            <div class="field-header">
+              <label for="input-asaas-key" class="field-label">
+                Chave de API (Access Token) <span class="required">*</span>
+              </label>
+              <span class="field-badge">Obrigatório</span>
+            </div>
+            <p class="section-hint">
+              Encontre sua chave no painel do Asaas em: <strong>Minha Conta &gt; Configurações de Integração &gt; Chaves de API</strong>.
+            </p>
+
+            <div class="input-with-actions">
+              <div class="input-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="input-icon">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
+                </svg>
+                <input
+                  id="input-asaas-key"
+                  [type]="showApiKey() ? 'text' : 'password'"
+                  class="form-input code-font"
+                  placeholder="$aact_YTU5YTE0M2M6N2..."
+                  [value]="asaasApiKey()"
+                  (input)="asaasApiKey.set($any($event.target).value)"
+                  autocomplete="off"
+                />
+              </div>
+
+              <div class="field-action-buttons">
+                <button
+                  type="button"
+                  class="btn-toggle-visibility"
+                  (click)="toggleShowApiKey()"
+                  [title]="showApiKey() ? 'Ocultar chave' : 'Mostrar chave'"
+                  id="btn-toggle-key-visibility"
+                >
+                  @if (showApiKey()) {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+                    </svg>
+                  } @else {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  }
+                </button>
+
+                <button
+                  type="button"
+                  class="btn-copy-field"
+                  (click)="copyToClipboard(asaasApiKey(), 'Access Token')"
+                  title="Copiar chave"
+                  id="btn-copy-asaas-key"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Webhook Secret -->
+          <div class="form-section">
+            <div class="field-header">
+              <label for="input-asaas-webhook" class="field-label">Segredo de Validação de Webhook (asaas-access-token)</label>
+              <span class="field-badge optional">Opcional</span>
+            </div>
+            <p class="section-hint">
+              Token customizado definido no cadastro do Webhook no Asaas para validação de integridade nos disparos recebidos.
+            </p>
+
+            <div class="input-with-actions">
+              <div class="input-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="input-icon">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                </svg>
+                <input
+                  id="input-asaas-webhook"
+                  [type]="showWebhookSecret() ? 'text' : 'password'"
+                  class="form-input code-font"
+                  placeholder="Ex: whsec_9f83acb1..."
+                  [value]="asaasWebhookSecret()"
+                  (input)="asaasWebhookSecret.set($any($event.target).value)"
+                  autocomplete="off"
+                />
+              </div>
+
+              <div class="field-action-buttons">
+                <button
+                  type="button"
+                  class="btn-toggle-visibility"
+                  (click)="toggleShowWebhookSecret()"
+                  [title]="showWebhookSecret() ? 'Ocultar segredo' : 'Mostrar segredo'"
+                  id="btn-toggle-webhook-visibility"
+                >
+                  @if (showWebhookSecret()) {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+                    </svg>
+                  } @else {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  }
+                </button>
+
+                <button
+                  type="button"
+                  class="btn-copy-field"
+                  (click)="copyToClipboard(asaasWebhookSecret(), 'Webhook Secret')"
+                  title="Copiar segredo"
+                  id="btn-copy-asaas-webhook"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Webhook URL Informativa -->
+          <div class="form-section">
+            <div class="field-header">
+              <label for="input-webhook-url" class="field-label">URL do Endpoint de Webhook (Disparos Asaas)</label>
+              <span class="field-badge info">Informativo</span>
+            </div>
+            <p class="section-hint">
+              Cadastre este endereço no painel Asaas em <strong>Integrações &gt; Webhooks para Cobranças</strong>.
+            </p>
+
+            <div class="input-with-actions">
+              <div class="input-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="input-icon">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+                </svg>
+                <input
+                  id="input-webhook-url"
+                  type="text"
+                  class="form-input code-font readonly-input"
+                  [value]="getWebhookUrl()"
+                  readonly
+                />
+              </div>
+
+              <div class="field-action-buttons">
+                <button
+                  type="button"
+                  class="btn-copy-field"
+                  (click)="copyToClipboard(getWebhookUrl(), 'URL do Webhook')"
+                  title="Copiar URL"
+                  id="btn-copy-webhook-url"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Feedback do Teste de Conectividade -->
+          @if (connectionTestResult(); as res) {
+            <div class="test-feedback-box" [class.success]="res.success" [class.error]="!res.success">
+              <div class="feedback-icon">
+                @if (res.success) {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                } @else {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                  </svg>
+                }
+              </div>
+              <div class="feedback-content">
+                <strong>{{ res.success ? 'Conexão Bem-Sucedida!' : 'Falha no Teste de Conexão' }}</strong>
+                <p>{{ res.message }}</p>
+              </div>
+            </div>
+          } @else if (asaasLastTestedAt()) {
+            <div class="last-tested-hint">
+              <span>Último teste registrado: {{ formatDate(asaasLastTestedAt()) }}</span>
+              @if (asaasLastTestStatus() === 'success') {
+                <span class="badge-mini success">Sucesso</span>
+              } @else if (asaasLastTestStatus() === 'error') {
+                <span class="badge-mini error">Erro</span>
+              }
+            </div>
+          }
+
+          <!-- Botões de Ação do Formulário -->
+          <footer class="asaas-actions-bar">
+            <button
+              type="button"
+              class="btn-test-connection"
+              (click)="testAsaasConnection()"
+              [disabled]="isTestingConnection() || !asaasApiKey()"
+              id="btn-test-asaas-conn"
+            >
+              @if (isTestingConnection()) {
+                <div class="btn-spinner"></div>
+                <span>Validando com Asaas...</span>
+              } @else {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                </svg>
+                <span>Testar Conexão</span>
+              }
+            </button>
+
+            <button
+              type="button"
+              class="btn-save-asaas"
+              (click)="saveAsaasConfig()"
+              [disabled]="isSavingAsaas() || !asaasApiKey()"
+              id="btn-save-asaas-config"
+            >
+              @if (isSavingAsaas()) {
+                <div class="btn-spinner"></div>
+                <span>Salvando Credenciais...</span>
+              } @else {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+                <span>Salvar Configurações</span>
+              }
+            </button>
+          </footer>
+        </div>
+      </section>
+    }
   </main>
 
   <!-- Modal de Edição de Plano e Permissão do Usuário -->
