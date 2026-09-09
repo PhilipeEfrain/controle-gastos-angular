@@ -185,6 +185,8 @@
                 id="input-pix-cpf"
                 class="form-input"
                 placeholder="000.000.000-00"
+                maxlength="18"
+                inputmode="numeric"
                 [value]="customerCpf()"
                 (input)="onCpfInput($event)"
               />
@@ -282,7 +284,7 @@
               class="form-input"
               placeholder="Ex: PHILIPE E F GONZALEZ"
               [value]="cardHolderName()"
-              (input)="cardHolderName.set($any($event.target).value)"
+              (input)="onCardHolderNameInput($event)"
               required
             />
           </div>
@@ -293,9 +295,10 @@
               type="text"
               class="form-input"
               placeholder="0000 0000 0000 0000"
-              maxlength="19"
+              maxlength="23"
+              inputmode="numeric"
               [value]="cardNumber()"
-              (input)="cardNumber.set($any($event.target).value)"
+              (input)="onCardNumberInput($event)"
               required
             />
           </div>
@@ -308,8 +311,9 @@
                 class="form-input"
                 placeholder="12/28"
                 maxlength="5"
+                inputmode="numeric"
                 [value]="cardExpiry()"
-                (input)="cardExpiry.set($any($event.target).value)"
+                (input)="onCardExpiryInput($event)"
                 required
               />
             </div>
@@ -320,8 +324,9 @@
                 class="form-input"
                 placeholder="123"
                 maxlength="4"
+                inputmode="numeric"
                 [value]="cardCvv()"
-                (input)="cardCvv.set($any($event.target).value)"
+                (input)="onCardCvvInput($event)"
                 required
               />
             </div>
@@ -333,6 +338,8 @@
               type="text"
               class="form-input"
               placeholder="000.000.000-00"
+              maxlength="18"
+              inputmode="numeric"
               [value]="customerCpf()"
               (input)="onCpfInput($event)"
               required

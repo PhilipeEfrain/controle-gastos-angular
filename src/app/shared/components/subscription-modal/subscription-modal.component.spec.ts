@@ -111,4 +111,67 @@ describe('SubscriptionModalComponent (Checkout de Assinaturas)', () => {
     expect(component.step()).toBe('success');
     expect(mockNotificationService.success).toHaveBeenCalled();
   });
+
+  it('Cenário BDD 5: deve aplicar máscaras nos campos do cartão de crédito', () => {
+    const inputNumber = { value: '5555555555555555' } as HTMLInputElement;
+    component.onCardNumberInput({ target: inputNumber } as any);
+    expect(component.cardNumber()).toBe('5555 5555 5555 5555');
+    expect(inputNumber.value).toBe('5555 5555 5555 5555');
+
+    const inputExpiry = { value: '1228' } as HTMLInputElement;
+    component.onCardExpiryInput({ target: inputExpiry } as any);
+    expect(component.cardExpiry()).toBe('12/28');
+    expect(inputExpiry.value).toBe('12/28');
+
+    const inputCvv = { value: '12345' } as HTMLInputElement;
+    component.onCardCvvInput({ target: inputCvv } as any);
+    expect(component.cardCvv()).toBe('1234');
+    expect(inputCvv.value).toBe('1234');
+
+    const inputName = { value: 'joão silva 123' } as HTMLInputElement;
+    component.onCardHolderNameInput({ target: inputName } as any);
+    expect(component.cardHolderName()).toBe('JOÃO SILVA ');
+    expect(inputName.value).toBe('JOÃO SILVA ');
+
+    const inputCpf = { value: '52998224725' } as HTMLInputElement;
+    component.onCpfInput({ target: inputCpf } as any);
+    expect(component.customerCpf()).toBe('529.982.247-25');
+    expect(inputCpf.value).toBe('529.982.247-25');
+  });
+
+  it('Cenário BDD 6: deve validar o formulário e processar pagamento com cartão de crédito', async () => {
+    component.goToCheckout();
+    component.setPaymentMethod('CREDIT_CARD');
+
+    component.cardHolderName.set('CLIENTE TESTE');
+    component.cardNumber.set('5555 5555 5555 5555');
+    component.cardExpiry.set('12/28');
+    component.cardCvv.set('123');
+    component.customerCpf.set('529.982.247-25');
+
+    expect(component.isCardFormValid()).toBe(true);
+
+    await component.processCreditCardPayment();
+
+    expect(mockAsaasService.createCustomer).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cpfCnpj: '529.982.247-25'
+      })
+    );
+    expect(mockAsaasService.createSubscription).toHaveBeenCalledWith(
+      expect.objectContaining({
+        billingType: 'CREDIT_CARD',
+        cardData: expect.objectContaining({
+          holderName: 'CLIENTE TESTE',
+          number: '5555555555555555',
+          expiryMonth: '12',
+          expiryYear: '2028',
+          ccv: '123'
+        })
+      })
+    );
+    expect(component.step()).toBe('success');
+    expect(mockNotificationService.success).toHaveBeenCalled();
+  });
 });
+

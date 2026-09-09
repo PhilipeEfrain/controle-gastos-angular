@@ -18,6 +18,11 @@
 | `calculateGlobalBalance` | `src/app/core/utils/calculations.ts` | Calcula totais consolidados do mês, saldos e análise de cobertura de déficit considerando rendas extras. | `(rendaQ1: number, rendaQ2: number, items: Expense[]): MonthBalanceSummary` |
 | `addMonthsToYearMonth` | `src/app/core/utils/calculations.ts` | Projeta N meses à frente/atrás no formato `YYYY-MM` para parcelamentos e navegação. | `(yearMonth: string, count: number): string` |
 | `getFortnightFromDay` | `src/app/core/utils/date.ts` | Retorna se um determinado dia do mês pertence à Quinzena 1 ou Quinzena 2. | `(date: Date \| string): 1 \| 2` |
+| `maskCpfCnpj` | `src/app/core/utils/formatters.ts` | Aplica máscara dinâmica de CPF (`000.000.000-00`) ou CNPJ (`00.000.000/0000-00`). | `(value: string \| null \| undefined): string` |
+| `maskCardNumber` | `src/app/core/utils/formatters.ts` | Aplica máscara de número de cartão com blocos de 4 dígitos (`0000 0000 0000 0000`). | `(value: string \| null \| undefined): string` |
+| `maskCardExpiry` | `src/app/core/utils/formatters.ts` | Formata validade do cartão no formato `MM/AA`. | `(value: string \| null \| undefined): string` |
+| `maskCardCvv` | `src/app/core/utils/formatters.ts` | Sanitiza e limita o CVV para até 4 dígitos numéricos. | `(value: string \| null \| undefined): string` |
+| `maskCardHolderName` | `src/app/core/utils/formatters.ts` | Sanitiza e converte o nome do titular para maiúsculas (apenas letras e espaços). | `(value: string \| null \| undefined): string` |
 
 ---
 

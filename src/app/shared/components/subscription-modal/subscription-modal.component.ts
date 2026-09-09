@@ -15,7 +15,15 @@ import { AuthStore } from '../../../core/state/auth.store';
 import { NotificationService } from '../../../core/services/notification.service';
 import { BillingCycle, PaymentBillingType } from '../../../core/models/payment.model';
 import { PlanType } from '../../../core/models/user.model';
-import { formatBRL } from '../../../core/utils/formatters';
+import {
+  formatBRL,
+  maskCpfCnpj,
+  maskCardNumber,
+  maskCardExpiry,
+  maskCardCvv,
+  maskCardHolderName
+} from '../../../core/utils/formatters';
+
 
 @Component({
   selector: 'app-subscription-modal',
@@ -100,8 +108,39 @@ export class SubscriptionModalComponent implements OnInit {
 
   onCpfInput(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.customerCpf.set(input.value);
+    const formatted = maskCpfCnpj(input.value);
+    input.value = formatted;
+    this.customerCpf.set(formatted);
   }
+
+  onCardHolderNameInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const formatted = maskCardHolderName(input.value);
+    input.value = formatted;
+    this.cardHolderName.set(formatted);
+  }
+
+  onCardNumberInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const formatted = maskCardNumber(input.value);
+    input.value = formatted;
+    this.cardNumber.set(formatted);
+  }
+
+  onCardExpiryInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const formatted = maskCardExpiry(input.value);
+    input.value = formatted;
+    this.cardExpiry.set(formatted);
+  }
+
+  onCardCvvInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const formatted = maskCardCvv(input.value);
+    input.value = formatted;
+    this.cardCvv.set(formatted);
+  }
+
 
   /**
    * Gera a transação PIX com QR Code e Copia-e-Cola
