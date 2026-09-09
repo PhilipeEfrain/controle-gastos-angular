@@ -1,5 +1,5 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
-import { UserProfile } from '../models/user.model';
+import { UserProfile, PlanType, PlanStatus } from '../models/user.model';
 import { AuthService } from '../services/auth.service';
 import { FinanceStore } from './finance.store';
 
@@ -118,6 +118,34 @@ export class AuthStore {
       });
     }
   }
+
+  /**
+   * Atualiza a assinatura do usuário tanto em memória quanto no Firestore para persistência definitiva (resistente ao F5)
+   */
+  async upgradeSubscription(subscriptionData: {
+    plan: PlanType;
+    planStatus: PlanStatus;
+    asaasCustomerId?: string;
+    asaasSubscriptionId?: string;
+    planExpiresAt?: string | null;
+  }): Promise<void> {
+    const user = this._currentUser();
+    if (!user) {
+      throw new Error('Usuário não autenticado para atualização de plano.');
+    }
+
+    await this.authService.updateUserSubscription(user.uid, subscriptionData);
+
+    this._currentUser.set({
+      ...user,
+      plan: subscriptionData.plan,
+      planStatus: subscriptionData.planStatus,
+      asaasCustomerId: subscriptionData.asaasCustomerId ?? user.asaasCustomerId,
+      asaasSubscriptionId: subscriptionData.asaasSubscriptionId ?? user.asaasSubscriptionId,
+      planExpiresAt: subscriptionData.planExpiresAt !== undefined ? subscriptionData.planExpiresAt : user.planExpiresAt
+    });
+  }
+
 
   setLoading(loading: boolean): void {
     this._isLoading.set(loading);
