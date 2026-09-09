@@ -40,6 +40,7 @@ export interface CreditCardHolderInfo {
   postalCode: string;
   addressNumber: string;
   phone: string;
+  mobilePhone?: string;
 }
 
 export interface AsaasSubscriptionPayload {
