@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
+import { isCPF, isCNPJ } from 'validation-br';
 import { LoggerService } from './logger.service';
 import {
   BillingCycle,
@@ -130,11 +131,15 @@ export class AsaasService {
     return (document || '').replace(/\D/g, '');
   }
 
-  isValidCpfCnpj(document: string): boolean {
+  /**
+   * Validador estrito de CPF e CNPJ através do algoritmo oficial de Módulo 11 (validation-br)
+   */
+  isValidCpfCnpj(document: string | null | undefined): boolean {
+    if (!document) return false;
     const clean = this.sanitizeCpfCnpj(document);
-    // CPF: 11 dígitos / CNPJ: 14 dígitos
-    return clean.length === 11 || clean.length === 14;
+    return isCPF(clean) || isCNPJ(clean);
   }
+
 
   /**
    * Registra ou recupera um cliente no gateway Asaas (POST /v3/customers)

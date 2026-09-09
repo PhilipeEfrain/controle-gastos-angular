@@ -100,7 +100,7 @@ describe('SubscriptionModalComponent (Checkout de Assinaturas)', () => {
 
   it('Cenário BDD 3: deve gerar QR Code PIX quando CPF for válido', async () => {
     component.goToCheckout();
-    component.customerCpf.set('123.456.789-00');
+    component.customerCpf.set('529.982.247-25');
 
     await component.generatePixPayment();
 

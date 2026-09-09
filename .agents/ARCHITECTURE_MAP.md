@@ -23,6 +23,7 @@
 | `maskCardExpiry` | `src/app/core/utils/formatters.ts` | Formata validade do cartão no formato `MM/AA`. | `(value: string \| null \| undefined): string` |
 | `maskCardCvv` | `src/app/core/utils/formatters.ts` | Sanitiza e limita o CVV para até 4 dígitos numéricos. | `(value: string \| null \| undefined): string` |
 | `maskCardHolderName` | `src/app/core/utils/formatters.ts` | Sanitiza e converte o nome do titular para maiúsculas (apenas letras e espaços). | `(value: string \| null \| undefined): string` |
+| `isValidCpfCnpj` | `src/app/core/utils/formatters.ts` | Validador estrito de CPF e CNPJ através do algoritmo oficial de Módulo 11 (`validation-br`). | `(document: string \| null \| undefined): boolean` |
 
 ---
 

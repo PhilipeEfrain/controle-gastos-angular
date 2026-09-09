@@ -7,7 +7,8 @@ import {
   maskCardNumber,
   maskCardExpiry,
   maskCardCvv,
-  maskCardHolderName
+  maskCardHolderName,
+  isValidCpfCnpj
 } from './formatters';
 
 describe('Formatters Utility', () => {
@@ -110,6 +111,35 @@ describe('Formatters Utility', () => {
     it('deve converter para maiúsculas e remover números e símbolos', () => {
       expect(maskCardHolderName('Philipe Gonzalez 123!')).toBe('PHILIPE GONZALEZ ');
       expect(maskCardHolderName('José da Silva')).toBe('JOSÉ DA SILVA');
+    });
+  });
+
+  describe('isValidCpfCnpj', () => {
+    it('deve validar CPFs válidos com ou sem máscara', () => {
+      expect(isValidCpfCnpj('529.982.247-25')).toBe(true);
+      expect(isValidCpfCnpj('52998224725')).toBe(true);
+    });
+
+    it('deve validar CNPJs válidos com ou sem máscara', () => {
+      expect(isValidCpfCnpj('11.222.333/0001-81')).toBe(true);
+      expect(isValidCpfCnpj('11222333000181')).toBe(true);
+    });
+
+    it('deve rejeitar CPFs com dígitos repetidos (ex: 111.111.111-11)', () => {
+      expect(isValidCpfCnpj('111.111.111-11')).toBe(false);
+      expect(isValidCpfCnpj('000.000.000-00')).toBe(false);
+    });
+
+    it('deve rejeitar CPFs com dígitos verificadores incorretos', () => {
+      expect(isValidCpfCnpj('123.456.789-00')).toBe(false);
+      expect(isValidCpfCnpj('529.982.247-99')).toBe(false);
+    });
+
+    it('deve rejeitar documentos de tamanho incorreto ou vazios', () => {
+      expect(isValidCpfCnpj('12345')).toBe(false);
+      expect(isValidCpfCnpj('')).toBe(false);
+      expect(isValidCpfCnpj(null)).toBe(false);
+      expect(isValidCpfCnpj(undefined)).toBe(false);
     });
   });
 });
