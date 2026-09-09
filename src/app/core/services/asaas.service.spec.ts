@@ -55,14 +55,25 @@ describe('AsaasService (Gateway de Pagamentos & Assinaturas)', () => {
 
   describe('Sanitização e Validação de Documento (CPF / CNPJ)', () => {
     it('deve sanitizar documento removendo caracteres especiais', () => {
-      expect(service.sanitizeCpfCnpj('123.456.789-00')).toBe('12345678900');
-      expect(service.sanitizeCpfCnpj('12.345.678/0001-90')).toBe('12345678000190');
+      expect(service.sanitizeCpfCnpj('529.982.247-25')).toBe('52998224725');
+      expect(service.sanitizeCpfCnpj('11.222.333/0001-81')).toBe('11222333000181');
     });
 
-    it('deve validar comprimento de CPF (11 dígitos) e CNPJ (14 dígitos)', () => {
-      expect(service.isValidCpfCnpj('123.456.789-00')).toBe(true);
-      expect(service.isValidCpfCnpj('12.345.678/0001-90')).toBe(true);
+    it('deve validar matematicamente CPF e CNPJ com módulo 11 oficial', () => {
+      // CPFs válidos
+      expect(service.isValidCpfCnpj('529.982.247-25')).toBe(true);
+      expect(service.isValidCpfCnpj('52998224725')).toBe(true);
+
+      // CNPJs válidos
+      expect(service.isValidCpfCnpj('11.222.333/0001-81')).toBe(true);
+      expect(service.isValidCpfCnpj('11222333000181')).toBe(true);
+
+      // Inválidos
       expect(service.isValidCpfCnpj('12345')).toBe(false);
+      expect(service.isValidCpfCnpj('111.111.111-11')).toBe(false); // dígitos repetidos
+      expect(service.isValidCpfCnpj('123.456.789-00')).toBe(false); // DV incorreto
+      expect(service.isValidCpfCnpj('')).toBe(false);
+      expect(service.isValidCpfCnpj(null as any)).toBe(false);
     });
   });
 
@@ -71,11 +82,11 @@ describe('AsaasService (Gateway de Pagamentos & Assinaturas)', () => {
       const customer = await service.createCustomer({
         name: 'Philipe Efrain',
         email: 'philipe@example.com',
-        cpfCnpj: '123.456.789-00'
+        cpfCnpj: '529.982.247-25'
       });
 
       expect(customer.id).toBeTruthy();
-      expect(customer.cpfCnpj).toBe('12345678900');
+      expect(customer.cpfCnpj).toBe('52998224725');
     });
 
     it('deve rejeitar criação de cliente com CPF inválido', async () => {
@@ -83,7 +94,7 @@ describe('AsaasService (Gateway de Pagamentos & Assinaturas)', () => {
         service.createCustomer({
           name: 'Teste',
           email: 'teste@example.com',
-          cpfCnpj: '123'
+          cpfCnpj: '111.111.111-11'
         })
       ).rejects.toThrow('CPF ou CNPJ inválido');
     });

@@ -1,3 +1,5 @@
+import { isCPF, isCNPJ } from 'validation-br';
+
 /**
  * Formata um número para Real Brasileiro (BRL)
  * Ex: 1234.56 -> "R$ 1.234,56"
@@ -105,4 +107,14 @@ export function maskCardHolderName(value: string | null | undefined): string {
   if (!value) return '';
   return value.replace(/[^a-zA-ZÀ-ÿ\s]/g, '').toUpperCase();
 }
+
+/**
+ * Validador estrito de CPF e CNPJ através do algoritmo oficial de Módulo 11 (validation-br)
+ */
+export function isValidCpfCnpj(document: string | null | undefined): boolean {
+  if (!document) return false;
+  const clean = document.replace(/\D/g, '');
+  return isCPF(clean) || isCNPJ(clean);
+}
+
 

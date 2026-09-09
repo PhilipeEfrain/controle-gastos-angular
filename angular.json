@@ -57,7 +57,10 @@
             "styles": ["src/styles.scss"],
             "stylePreprocessorOptions": {
               "includePaths": ["src/styles"]
-            }
+            },
+            "allowedCommonJsDependencies": [
+              "validation-br"
+            ]
           },
           "configurations": {
             "production": {
