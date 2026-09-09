@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { LoggerService } from './logger.service';
 import {
   BillingCycle,
@@ -33,11 +34,20 @@ export class AsaasService {
   };
 
   /**
-   * Retorna a URL base de acordo com o ambiente selecionado (Sandbox ou Produção)
+   * Retorna a URL base de acordo com o ambiente selecionado (Sandbox ou Produção),
+   * roteando pela URL proxy do dev-server quando em localhost para evitar bloqueios de CORS.
    */
   getBaseUrl(environment: AsaasEnvironment = 'sandbox'): string {
+    const isLocalhost = typeof window !== 'undefined' &&
+      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+    if (isLocalhost) {
+      return environment === 'production' ? '/api/asaas/production' : '/api/asaas/sandbox';
+    }
+
     return environment === 'production' ? this.API_CONFIG.productionUrl : this.API_CONFIG.sandboxUrl;
   }
+
 
   /**
    * Tabela Oficial de Preços e Recursos do Quinzena App
@@ -129,7 +139,11 @@ export class AsaasService {
   /**
    * Registra ou recupera um cliente no gateway Asaas (POST /v3/customers)
    */
-  async createCustomer(customer: AsaasCustomerData, apiKey?: string): Promise<AsaasCustomerData> {
+  async createCustomer(
+    customer: AsaasCustomerData,
+    apiKey?: string,
+    environment: AsaasEnvironment = 'sandbox'
+  ): Promise<AsaasCustomerData> {
     const cleanCpf = this.sanitizeCpfCnpj(customer.cpfCnpj);
     if (!this.isValidCpfCnpj(cleanCpf)) {
       throw new Error('CPF ou CNPJ inválido para registro no gateway de pagamento.');
@@ -148,11 +162,16 @@ export class AsaasService {
           'Content-Type': 'application/json',
           'access_token': apiKey
         });
-        const url = `${this.API_CONFIG.sandboxUrl}/customers`;
-        return await this.http.post<AsaasCustomerData>(url, payload, { headers }).toPromise() as AsaasCustomerData;
-      } catch (err) {
+        const url = `${this.getBaseUrl(environment)}/customers`;
+        return await firstValueFrom(this.http.post<AsaasCustomerData>(url, payload, { headers }));
+      } catch (err: any) {
         this.logger.error('Erro na API Asaas ao criar cliente:', err);
-        throw err;
+        const description =
+          err?.error?.errors?.[0]?.description ||
+          err?.error?.message ||
+          err?.message ||
+          'Erro ao registrar cliente no Asaas.';
+        throw new Error(description);
       }
     }
 
@@ -174,7 +193,8 @@ export class AsaasService {
       cardData?: CreditCardData;
       holderInfo?: CreditCardHolderInfo;
     },
-    apiKey?: string
+    apiKey?: string,
+    environment: AsaasEnvironment = 'sandbox'
   ): Promise<AsaasSubscriptionResponse> {
     const value = this.getPlanPrice(params.plan, params.cycle);
     if (value <= 0) {
@@ -202,11 +222,16 @@ export class AsaasService {
           'Content-Type': 'application/json',
           'access_token': apiKey
         });
-        const url = `${this.API_CONFIG.sandboxUrl}/subscriptions`;
-        return await this.http.post<AsaasSubscriptionResponse>(url, payload, { headers }).toPromise() as AsaasSubscriptionResponse;
-      } catch (err) {
+        const url = `${this.getBaseUrl(environment)}/subscriptions`;
+        return await firstValueFrom(this.http.post<AsaasSubscriptionResponse>(url, payload, { headers }));
+      } catch (err: any) {
         this.logger.error('Erro na API Asaas ao criar assinatura:', err);
-        throw err;
+        const description =
+          err?.error?.errors?.[0]?.description ||
+          err?.error?.message ||
+          err?.message ||
+          'Erro ao processar assinatura no Asaas.';
+        throw new Error(description);
       }
     }
 
@@ -225,15 +250,24 @@ export class AsaasService {
   /**
    * Obtém QR Code PIX e chave copia-e-cola de uma cobrança (GET /v3/payments/{id}/pixQrCode)
    */
-  async getPixQrCodeForPayment(paymentId: string, apiKey?: string): Promise<AsaasPixQrCodeResponse> {
+  async getPixQrCodeForPayment(
+    paymentId: string,
+    apiKey?: string,
+    environment: AsaasEnvironment = 'sandbox'
+  ): Promise<AsaasPixQrCodeResponse> {
     if (this.http && apiKey) {
       try {
         const headers = new HttpHeaders({ 'access_token': apiKey });
-        const url = `${this.API_CONFIG.sandboxUrl}/payments/${paymentId}/pixQrCode`;
-        return await this.http.get<AsaasPixQrCodeResponse>(url, { headers }).toPromise() as AsaasPixQrCodeResponse;
-      } catch (err) {
+        const url = `${this.getBaseUrl(environment)}/payments/${paymentId}/pixQrCode`;
+        return await firstValueFrom(this.http.get<AsaasPixQrCodeResponse>(url, { headers }));
+      } catch (err: any) {
         this.logger.error('Erro ao buscar QR Code PIX no Asaas:', err);
-        throw err;
+        const description =
+          err?.error?.errors?.[0]?.description ||
+          err?.error?.message ||
+          err?.message ||
+          'Erro ao buscar QR Code PIX.';
+        throw new Error(description);
       }
     }
 
@@ -247,6 +281,7 @@ export class AsaasService {
       expirationDate: expiration.toISOString()
     };
   }
+
 
   /**
    * Processamento e validação de Webhooks do Asaas com verificação de token de segurança

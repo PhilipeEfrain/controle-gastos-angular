@@ -54,7 +54,7 @@
 
 | Serviço | Arquivo | Descrição |
 | :--- | :--- | :--- |
-| `AuthService` | `src/app/core/services/auth.service.ts` | Gerenciamento de login (Google, E-mail/Senha), cadastro, logout e signal do usuário atual. |
+| `AuthService` | `src/app/core/services/auth.service.ts` | Gerenciamento de login (Google, E-mail/Senha), cadastro, logout, signal do usuário atual e persistência definitiva de assinaturas no Firestore (`updateUserSubscription`). |
 | `MonthlyCycleService` | `src/app/core/services/monthly-cycle.service.ts` | CRUD e stream em tempo real para `users/{userId}/ciclos_mensais/{mesAno}`. |
 | `ExpenseService` | `src/app/core/services/expense.service.ts` | CRUD de despesas, alternância de pagamento, atualização de comprovante, gestão e sincronização automática de despesas recorrentes (`syncRecurringExpensesForMonth`) e geração em lote de parcelas (`createInstallments`). |
 | `TaxService` | `src/app/core/services/tax.service.ts` | CRUD e sincronização em tempo real de tributos em `users/{userId}/tributos_e_parcelas`. |
@@ -67,7 +67,7 @@
 | `NotificationService` | `src/app/core/services/notification.service.ts` | Notificações reativas do tipo Toast com Signals (`success`, `error`, `warning`, `info`). |
 | `LoggerService` | `src/app/core/services/logger.service.ts` | Logging seguro com supressão de stacktraces e dados de exceção em ambiente de produção (CWE-532). |
 | `AdminService` | `src/app/core/services/admin.service.ts` | Gestão administrativa de usuários, papéis RBAC, planos SaaS, cálculo de KPIs de MRR/conversão e persistência/teste de conectividade da integração Asaas (`getAsaasConfig`, `saveAsaasConfig`, `testAsaasConnection`). |
-| `AsaasService` | `src/app/core/services/asaas.service.ts` | Integração com Gateway Asaas API v3: tabela oficial de preços, URLs base por ambiente (`getBaseUrl`), criação de clientes, assinaturas recorrentes (PIX e Cartão) e processamento seguro de Webhooks. |
+| `AsaasService` | `src/app/core/services/asaas.service.ts` | Integração com Gateway Asaas API v3: tabela oficial de preços, URLs base dinâmicas por ambiente (`getBaseUrl` com proxy dev-server), criação de clientes, assinaturas recorrentes (PIX e Cartão) e processamento seguro de Webhooks. |
 | `PlanLimitsService` | `src/app/core/services/plan-limits.service.ts` | Validação de regras e limites da matriz de planos SaaS (Free: máx 3 recorrentes, 3 parcelamentos, 1 tributo, 1 viagem, 2 meses histórico; Pro/Duo: ilimitado, 13 meses e PDF). |
 
 ---
@@ -77,7 +77,8 @@
 | Store / Signal State | Arquivo | Descrição |
 | :--- | :--- | :--- |
 | `FinanceStore` | `src/app/core/state/finance.store.ts` | Store centralizada baseada em Signals contendo o mês selecionado (`selectedMonth`), ciclo ativo, despesas da Q1/Q2 e `computed()` com o `MonthBalanceSummary`. |
-| `AuthStore` | `src/app/core/state/auth.store.ts` | Estado reativo da sessão do usuário autenticado e flags de carregamento. |
+| `AuthStore` | `src/app/core/state/auth.store.ts` | Estado reativo da sessão do usuário autenticado, upgrade persistente de plano (`upgradeSubscription`) e flags de carregamento. |
+
 
 ---
 

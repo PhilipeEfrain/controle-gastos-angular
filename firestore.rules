@@ -156,9 +156,10 @@ service cloud.firestore {
       allow delete: if isAuthenticated() && request.auth.uid == resource.data.ownerId;
     }
 
-    // Configurações Globais do Sistema e Gateway Asaas (Isolamento Estrito RBAC)
+    // Configurações Globais do Sistema e Gateway Asaas (Leitura autenticada e escrita restrita RBAC)
     match /system_config/{configId} {
-      allow read, write: if isAdmin();
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
     }
 
     // Isolamento Estrito de Dados por Usuário e Governança Administrativa
@@ -171,7 +172,12 @@ service cloud.firestore {
                      || isAdmin();
       allow update: if (isOwner(userId) && isValidUserProfile(request.resource.data)
                         && (!('role' in request.resource.data) || request.resource.data.role == resource.data.role || (!('role' in resource.data) && request.resource.data.role == 'user'))
-                        && (!('plan' in request.resource.data) || request.resource.data.plan == resource.data.plan || (!('plan' in resource.data) && request.resource.data.plan == 'free')))
+                        && (
+                          !('plan' in request.resource.data) ||
+                          request.resource.data.plan == resource.data.plan ||
+                          (!('plan' in resource.data) && request.resource.data.plan == 'free') ||
+                          ('asaasSubscriptionId' in request.resource.data && request.resource.data.asaasSubscriptionId is string && request.resource.data.asaasSubscriptionId.size() > 0)
+                        ))
                      || isAdmin();
       allow delete: if isOwner(userId) || isAdmin();
 

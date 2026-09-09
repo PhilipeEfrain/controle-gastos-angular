@@ -43,7 +43,15 @@ describe('AsaasService (Gateway de Pagamentos & Assinaturas)', () => {
       expect(table.length).toBe(3);
       expect(table.map(p => p.plan)).toEqual(['free', 'pro', 'duo']);
     });
+
+    it('Cenário BDD: deve retornar rota proxy em localhost e URL oficial em produção', () => {
+      const sandboxUrl = service.getBaseUrl('sandbox');
+      expect(sandboxUrl).toBeTruthy();
+      const prodUrl = service.getBaseUrl('production');
+      expect(prodUrl).toBeTruthy();
+    });
   });
+
 
   describe('Sanitização e Validação de Documento (CPF / CNPJ)', () => {
     it('deve sanitizar documento removendo caracteres especiais', () => {

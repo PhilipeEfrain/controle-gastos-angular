@@ -131,4 +131,26 @@ describe('AuthStore (Signals State)', () => {
     expect(store.isProOrDuo()).toBe(true);
     expect(store.isDuo()).toBe(true);
   });
+
+  it('Cenário BDD: deve persistir e atualizar assinatura via upgradeSubscription', async () => {
+    mockAuthService.updateUserSubscription = vi.fn().mockResolvedValue(undefined);
+    store.setUser(mockUser);
+
+    await store.upgradeSubscription({
+      plan: 'pro',
+      planStatus: 'active',
+      asaasCustomerId: 'cus_xyz',
+      asaasSubscriptionId: 'sub_xyz'
+    });
+
+    expect(mockAuthService.updateUserSubscription).toHaveBeenCalledWith('user-123', {
+      plan: 'pro',
+      planStatus: 'active',
+      asaasCustomerId: 'cus_xyz',
+      asaasSubscriptionId: 'sub_xyz'
+    });
+    expect(store.currentPlan()).toBe('pro');
+    expect(store.currentUser()?.asaasSubscriptionId).toBe('sub_xyz');
+    expect(store.currentUser()?.asaasCustomerId).toBe('cus_xyz');
+  });
 });
