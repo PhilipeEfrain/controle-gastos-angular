@@ -179,13 +179,13 @@
         <div class="pix-checkout-view">
           @if (!pixGenerated()) {
             <div class="cpf-form">
-              <label for="input-pix-cpf" class="form-label">Informe seu CPF ou CNPJ para emissão do PIX</label>
+              <label for="input-pix-cpf" class="form-label">Informe seu CPF para emissão do PIX</label>
               <input
                 type="text"
                 id="input-pix-cpf"
                 class="form-input"
                 placeholder="000.000.000-00"
-                maxlength="18"
+                maxlength="14"
                 inputmode="numeric"
                 [value]="customerCpf()"
                 (input)="onCpfInput($event)"
@@ -338,7 +338,7 @@
               type="text"
               class="form-input"
               placeholder="000.000.000-00"
-              maxlength="18"
+              maxlength="14"
               inputmode="numeric"
               [value]="customerCpf()"
               (input)="onCpfInput($event)"

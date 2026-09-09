@@ -53,27 +53,29 @@ describe('AsaasService (Gateway de Pagamentos & Assinaturas)', () => {
   });
 
 
-  describe('Sanitização e Validação de Documento (CPF / CNPJ)', () => {
+  describe('Sanitização e Validação de Documento (CPF Exclusivo)', () => {
     it('deve sanitizar documento removendo caracteres especiais', () => {
       expect(service.sanitizeCpfCnpj('529.982.247-25')).toBe('52998224725');
       expect(service.sanitizeCpfCnpj('11.222.333/0001-81')).toBe('11222333000181');
     });
 
-    it('deve validar matematicamente CPF e CNPJ com módulo 11 oficial', () => {
+    it('deve validar matematicamente CPF com módulo 11 oficial e REJEITAR CNPJ', () => {
       // CPFs válidos
+      expect(service.isValidCpf('529.982.247-25')).toBe(true);
+      expect(service.isValidCpf('52998224725')).toBe(true);
       expect(service.isValidCpfCnpj('529.982.247-25')).toBe(true);
-      expect(service.isValidCpfCnpj('52998224725')).toBe(true);
 
-      // CNPJs válidos
-      expect(service.isValidCpfCnpj('11.222.333/0001-81')).toBe(true);
-      expect(service.isValidCpfCnpj('11222333000181')).toBe(true);
+      // CNPJs devem ser estritamente rejeitados
+      expect(service.isValidCpf('11.222.333/0001-81')).toBe(false);
+      expect(service.isValidCpf('11222333000181')).toBe(false);
+      expect(service.isValidCpfCnpj('11.222.333/0001-81')).toBe(false);
 
       // Inválidos
-      expect(service.isValidCpfCnpj('12345')).toBe(false);
-      expect(service.isValidCpfCnpj('111.111.111-11')).toBe(false); // dígitos repetidos
-      expect(service.isValidCpfCnpj('123.456.789-00')).toBe(false); // DV incorreto
-      expect(service.isValidCpfCnpj('')).toBe(false);
-      expect(service.isValidCpfCnpj(null as any)).toBe(false);
+      expect(service.isValidCpf('12345')).toBe(false);
+      expect(service.isValidCpf('111.111.111-11')).toBe(false); // dígitos repetidos
+      expect(service.isValidCpf('123.456.789-00')).toBe(false); // DV incorreto
+      expect(service.isValidCpf('')).toBe(false);
+      expect(service.isValidCpf(null as any)).toBe(false);
     });
   });
 
@@ -89,6 +91,16 @@ describe('AsaasService (Gateway de Pagamentos & Assinaturas)', () => {
       expect(customer.cpfCnpj).toBe('52998224725');
     });
 
+    it('deve rejeitar criação de cliente com CNPJ (apenas pessoa física permitida)', async () => {
+      await expect(
+        service.createCustomer({
+          name: 'Empresa Teste',
+          email: 'empresa@example.com',
+          cpfCnpj: '11.222.333/0001-81'
+        })
+      ).rejects.toThrow('Cadastro permitido exclusivamente para pessoa física (CPF)');
+    });
+
     it('deve rejeitar criação de cliente com CPF inválido', async () => {
       await expect(
         service.createCustomer({
@@ -96,7 +108,7 @@ describe('AsaasService (Gateway de Pagamentos & Assinaturas)', () => {
           email: 'teste@example.com',
           cpfCnpj: '111.111.111-11'
         })
-      ).rejects.toThrow('CPF ou CNPJ inválido');
+      ).rejects.toThrow('CPF inválido');
     });
 
     it('Cenário BDD 2: deve criar assinatura para plano Pro via PIX', async () => {

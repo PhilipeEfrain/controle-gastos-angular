@@ -132,14 +132,21 @@ export class AsaasService {
   }
 
   /**
-   * Validador estrito de CPF e CNPJ através do algoritmo oficial de Módulo 11 (validation-br)
+   * Validador estrito exclusivo para CPF (rejeita CNPJ) através de Módulo 11 (validation-br)
    */
-  isValidCpfCnpj(document: string | null | undefined): boolean {
+  isValidCpf(document: string | null | undefined): boolean {
     if (!document) return false;
     const clean = this.sanitizeCpfCnpj(document);
-    return isCPF(clean) || isCNPJ(clean);
+    if (clean.length !== 11) return false;
+    return isCPF(clean);
   }
 
+  /**
+   * Validador de documento para cadastro/assinatura: restrito a CPF (rejeita CNPJ)
+   */
+  isValidCpfCnpj(document: string | null | undefined): boolean {
+    return this.isValidCpf(document);
+  }
 
   /**
    * Registra ou recupera um cliente no gateway Asaas (POST /v3/customers)
@@ -150,8 +157,11 @@ export class AsaasService {
     environment: AsaasEnvironment = 'sandbox'
   ): Promise<AsaasCustomerData> {
     const cleanCpf = this.sanitizeCpfCnpj(customer.cpfCnpj);
-    if (!this.isValidCpfCnpj(cleanCpf)) {
-      throw new Error('CPF ou CNPJ inválido para registro no gateway de pagamento.');
+    if (cleanCpf.length === 14 || isCNPJ(cleanCpf)) {
+      throw new Error('Cadastro permitido exclusivamente para pessoa física (CPF). CNPJ não é aceito.');
+    }
+    if (!this.isValidCpf(cleanCpf)) {
+      throw new Error('CPF inválido para registro no gateway de pagamento.');
     }
 
     const payload: AsaasCustomerData = {

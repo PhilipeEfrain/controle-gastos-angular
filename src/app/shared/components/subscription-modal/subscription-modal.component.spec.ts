@@ -23,6 +23,7 @@ describe('SubscriptionModalComponent (Checkout de Assinaturas)', () => {
         return 0;
       }),
       isValidCpfCnpj: vi.fn((cpf: string) => cpf.replace(/\D/g, '').length === 11),
+      isValidCpf: vi.fn((cpf: string) => cpf.replace(/\D/g, '').length === 11),
       createCustomer: vi.fn().mockResolvedValue({ id: 'cus_123', name: 'Teste' }),
       createSubscription: vi.fn().mockResolvedValue({ id: 'sub_123', value: 9.90 }),
       getPixQrCodeForPayment: vi.fn().mockResolvedValue({
