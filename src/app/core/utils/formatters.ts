@@ -51,6 +51,18 @@ export function formatPercent(value: number | null | undefined): string {
 }
 
 /**
+ * Aplica máscara estrita de CPF (000.000.000-00), limitando a 11 dígitos numéricos
+ */
+export function maskCpf(value: string | null | undefined): string {
+  if (!value) return '';
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  return digits
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+}
+
+/**
  * Aplica máscara dinâmica de CPF (000.000.000-00) ou CNPJ (00.000.000/0000-00)
  */
 export function maskCpfCnpj(value: string | null | undefined): string {
@@ -109,12 +121,21 @@ export function maskCardHolderName(value: string | null | undefined): string {
 }
 
 /**
- * Validador estrito de CPF e CNPJ através do algoritmo oficial de Módulo 11 (validation-br)
+ * Validador estrito exclusivo para CPF através do algoritmo oficial de Módulo 11 (validation-br).
+ * Rejeita qualquer CNPJ ou documento com comprimento diferente de 11 dígitos.
  */
-export function isValidCpfCnpj(document: string | null | undefined): boolean {
+export function isValidCpf(document: string | null | undefined): boolean {
   if (!document) return false;
   const clean = document.replace(/\D/g, '');
-  return isCPF(clean) || isCNPJ(clean);
+  if (clean.length !== 11) return false;
+  return isCPF(clean);
+}
+
+/**
+ * Validador para formulários de cadastro e checkout: restrito estritamente a CPF (rejeita CNPJ)
+ */
+export function isValidCpfCnpj(document: string | null | undefined): boolean {
+  return isValidCpf(document);
 }
 
 

@@ -18,7 +18,7 @@ import { BillingCycle, PaymentBillingType } from '../../../core/models/payment.m
 import { PlanType } from '../../../core/models/user.model';
 import {
   formatBRL,
-  maskCpfCnpj,
+  maskCpf,
   maskCardNumber,
   maskCardExpiry,
   maskCardCvv,
@@ -111,7 +111,7 @@ export class SubscriptionModalComponent implements OnInit {
 
   onCpfInput(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const formatted = maskCpfCnpj(input.value);
+    const formatted = maskCpf(input.value);
     input.value = formatted;
     this.customerCpf.set(formatted);
   }
@@ -150,7 +150,7 @@ export class SubscriptionModalComponent implements OnInit {
    */
   async generatePixPayment(): Promise<void> {
     if (!this.isCpfValid()) {
-      this.notificationService.error('Por favor, informe um CPF ou CNPJ válido.');
+      this.notificationService.error('Por favor, informe um CPF válido (apenas pessoa física).');
       return;
     }
 

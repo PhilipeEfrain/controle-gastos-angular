@@ -3,11 +3,13 @@ import {
   formatBRL,
   parseBRL,
   formatPercent,
+  maskCpf,
   maskCpfCnpj,
   maskCardNumber,
   maskCardExpiry,
   maskCardCvv,
   maskCardHolderName,
+  isValidCpf,
   isValidCpfCnpj
 } from './formatters';
 
@@ -46,6 +48,23 @@ describe('Formatters Utility', () => {
     it('deve formatar números em percentual formatado', () => {
       expect(formatPercent(50.5)).toContain('50,5%');
       expect(formatPercent(0)).toContain('0,0%');
+    });
+  });
+
+  describe('maskCpf', () => {
+    it('deve formatar CPF com pontuação correta', () => {
+      expect(maskCpf('52998224725')).toBe('529.982.247-25');
+      expect(maskCpf('529.982.247-25')).toBe('529.982.247-25');
+      expect(maskCpf('529982247')).toBe('529.982.247');
+    });
+
+    it('deve limitar estritamente a 11 dígitos numéricos, impedindo digitação de CNPJ', () => {
+      expect(maskCpf('12345678000199')).toBe('123.456.780-00');
+    });
+
+    it('deve lidar com valores vazios', () => {
+      expect(maskCpf('')).toBe('');
+      expect(maskCpf(null)).toBe('');
     });
   });
 
@@ -114,32 +133,42 @@ describe('Formatters Utility', () => {
     });
   });
 
-  describe('isValidCpfCnpj', () => {
-    it('deve validar CPFs válidos com ou sem máscara', () => {
-      expect(isValidCpfCnpj('529.982.247-25')).toBe(true);
-      expect(isValidCpfCnpj('52998224725')).toBe(true);
+  describe('isValidCpf', () => {
+    it('deve validar CPFs matematicamente válidos', () => {
+      expect(isValidCpf('529.982.247-25')).toBe(true);
+      expect(isValidCpf('52998224725')).toBe(true);
     });
 
-    it('deve validar CNPJs válidos com ou sem máscara', () => {
-      expect(isValidCpfCnpj('11.222.333/0001-81')).toBe(true);
-      expect(isValidCpfCnpj('11222333000181')).toBe(true);
+    it('deve REJEITAR CNPJs mesmo que sejam válidos (restrição exclusiva a pessoa física)', () => {
+      expect(isValidCpf('11.222.333/0001-81')).toBe(false);
+      expect(isValidCpf('11222333000181')).toBe(false);
     });
 
     it('deve rejeitar CPFs com dígitos repetidos (ex: 111.111.111-11)', () => {
-      expect(isValidCpfCnpj('111.111.111-11')).toBe(false);
-      expect(isValidCpfCnpj('000.000.000-00')).toBe(false);
+      expect(isValidCpf('111.111.111-11')).toBe(false);
+      expect(isValidCpf('000.000.000-00')).toBe(false);
     });
 
     it('deve rejeitar CPFs com dígitos verificadores incorretos', () => {
-      expect(isValidCpfCnpj('123.456.789-00')).toBe(false);
-      expect(isValidCpfCnpj('529.982.247-99')).toBe(false);
+      expect(isValidCpf('123.456.789-00')).toBe(false);
+      expect(isValidCpf('529.982.247-99')).toBe(false);
     });
 
     it('deve rejeitar documentos de tamanho incorreto ou vazios', () => {
-      expect(isValidCpfCnpj('12345')).toBe(false);
-      expect(isValidCpfCnpj('')).toBe(false);
-      expect(isValidCpfCnpj(null)).toBe(false);
-      expect(isValidCpfCnpj(undefined)).toBe(false);
+      expect(isValidCpf('12345')).toBe(false);
+      expect(isValidCpf('')).toBe(false);
+      expect(isValidCpf(null)).toBe(false);
+      expect(isValidCpf(undefined)).toBe(false);
+    });
+  });
+
+  describe('isValidCpfCnpj', () => {
+    it('deve aceitar CPF válido', () => {
+      expect(isValidCpfCnpj('529.982.247-25')).toBe(true);
+    });
+
+    it('deve rejeitar CNPJ (bloqueio no cadastro)', () => {
+      expect(isValidCpfCnpj('11.222.333/0001-81')).toBe(false);
     });
   });
 });
