@@ -172,6 +172,13 @@ describe('AsaasService (Gateway de Pagamentos & Assinaturas)', () => {
       expect(pix.payload).toContain('br.gov.bcb.pix');
       expect(pix.expirationDate).toBeTruthy();
     });
+
+    it('deve aceitar identificador de assinatura sub_ e gerar PIX com sucesso', async () => {
+      const pix = await service.getPixQrCodeForPayment('sub_4ag5595mjrb1wdfh');
+      expect(pix.encodedImage).toContain('data:image/png;base64');
+      expect(pix.payload).toContain('br.gov.bcb.pix');
+      expect(pix.expirationDate).toBeTruthy();
+    });
   });
 
   describe('Processamento e Segurança de Webhooks', () => {
