@@ -239,4 +239,23 @@ describe('DashboardComponent', () => {
       resourceName: 'Histórico de 13 Meses'
     }));
   });
+
+  describe('Cenário BDD Onboarding: Checklist de Primeiro Acesso', () => {
+    it('deve exibir o checklist de onboarding por padrão se não foi dispensado', () => {
+      expect(component.showOnboardingChecklist()).toBe(true);
+      expect(component.hasExpenses()).toBe(true);
+      expect(component.hasIncomes()).toBe(true);
+    });
+
+    it('deve ocultar o checklist de onboarding quando onDismissOnboarding() for chamado', () => {
+      component.onDismissOnboarding();
+      expect(component.showOnboardingChecklist()).toBe(false);
+    });
+
+    it('deve marcar recurso como explorado e navegar para /parcelamentos', () => {
+      component.onExploreFeaturesFromOnboarding();
+      expect(component.hasExploredFeatures()).toBe(true);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/parcelamentos']);
+    });
+  });
 });

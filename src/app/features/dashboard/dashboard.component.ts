@@ -35,6 +35,7 @@ import { MonthlyEvolutionChartComponent } from './components/monthly-evolution-c
 import { ExportModalComponent } from './components/export-modal/export-modal.component';
 import { LimitReachedModalComponent } from '../../shared/components/limit-reached-modal/limit-reached-modal.component';
 import { SubscriptionModalComponent } from '../../shared/components/subscription-modal/subscription-modal.component';
+import { OnboardingChecklistComponent } from './components/onboarding-checklist/onboarding-checklist.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -54,7 +55,8 @@ import { SubscriptionModalComponent } from '../../shared/components/subscription
     LimitReachedModalComponent,
     SubscriptionModalComponent,
     DuoPairingModalComponent,
-    DuoSettlementCardComponent
+    DuoSettlementCardComponent,
+    OnboardingChecklistComponent
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
@@ -165,6 +167,42 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  // Onboarding & Guia de Primeiro Acesso
+  readonly isOnboardingDismissed = signal<boolean>(false);
+  readonly hasExploredFeatures = signal<boolean>(false);
+
+  readonly hasIncomes = computed<boolean>(() => {
+    const cycle = this.financeStore.currentCycle();
+    const q1 = Number(cycle?.renda_quinzena_1 || 0);
+    const q2 = Number(cycle?.renda_quinzena_2 || 0);
+    return q1 > 0 || q2 > 0;
+  });
+
+  readonly hasExpenses = computed<boolean>(() => {
+    return this.financeStore.expenses().length > 0;
+  });
+
+  readonly showOnboardingChecklist = computed<boolean>(() => {
+    return !this.isOnboardingDismissed();
+  });
+
+  onExploreFeaturesFromOnboarding(): void {
+    this.hasExploredFeatures.set(true);
+    try {
+      const user = this.authStore.currentUser();
+      if (user?.uid) {
+        localStorage.setItem(`onboarding_explored_${user.uid}`, 'true');
+      }
+    } catch {
+      // Ignora erro
+    }
+    this.goToInstallments();
+  }
+
+  onDismissOnboarding(): void {
+    this.isOnboardingDismissed.set(true);
+  }
+
   async ngOnInit(): Promise<void> {
     const user = this.authStore.currentUser();
     if (user) {
@@ -174,6 +212,19 @@ export class DashboardComponent implements OnInit {
         this.duoGroup.set(group);
       } catch (e) {
         console.error('Erro ao buscar grupo Duo:', e);
+      }
+
+      try {
+        const dismissed = localStorage.getItem(`onboarding_dismissed_${user.uid}`);
+        if (dismissed === 'true') {
+          this.isOnboardingDismissed.set(true);
+        }
+        const explored = localStorage.getItem(`onboarding_explored_${user.uid}`);
+        if (explored === 'true') {
+          this.hasExploredFeatures.set(true);
+        }
+      } catch {
+        // Ignora erro
       }
     }
   }

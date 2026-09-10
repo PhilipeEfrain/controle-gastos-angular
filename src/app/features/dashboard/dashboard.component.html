@@ -169,6 +169,20 @@
       (regularize)="openSubscriptionModal()"
     />
 
+    <!-- Guia de Onboarding e Primeiros Passos -->
+    @if (showOnboardingChecklist()) {
+      <app-onboarding-checklist
+        [userId]="authStore.currentUser()?.uid || null"
+        [hasIncomes]="hasIncomes()"
+        [hasExpenses]="hasExpenses()"
+        [hasExploredFeatures]="hasExploredFeatures()"
+        (defineIncomes)="openIncomeModal()"
+        (addExpense)="openNewExpenseModal(1)"
+        (exploreFeatures)="onExploreFeaturesFromOnboarding()"
+        (dismissed)="onDismissOnboarding()"
+      />
+    }
+
     <!-- Top Summary Cards (4 colunas) -->
     <section class="summary-cards-grid">
       <!-- Card 1: Renda Prevista -->
