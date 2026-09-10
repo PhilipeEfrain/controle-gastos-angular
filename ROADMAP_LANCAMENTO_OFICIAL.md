@@ -160,6 +160,7 @@ FASE 2: CONFORMIDADE, SELF-SERVICE & VISIBILIDADE DE VENCIMENTOS (P1) - 100% CON
 [x] CARD-042: Visibilidade de Vencimentos, Próxima Cobrança e Auditoria de Assinaturas no Painel Admin (/admin)
 [x] CARD-043: Páginas públicas de Termos de Uso, Política de Privacidade e Consentimento LGPD (/termos e /privacidade)
 [x] CARD-044: Checklist guiado de Onboarding e Primeiro Acesso com Empty State Interativo
+[x] CARD-046: Flexibilidade de Data de Pagamento no Regime Mensal Único (5º dia útil e datas customizadas)
 [ ] CARD-045: Widget e Canal de Suporte / Atendimento ao Cliente no App
 
 ================================================================================
@@ -181,6 +182,8 @@ FASE 3: LANÇAMENTO OFICIAL & GO-LIVE (P2)
 - [x] Tanto o usuário (/settings) quanto o admin (/admin) conseguem ver com clareza quando a assinatura irá expirar ou ser cobrada.
 - [x] Links para Termos de Uso e Privacidade estão ativos e visíveis no rodapé e no formulário de cadastro.
 - [x] O guia de onboarding interativo direciona novos usuários na configuração inicial com checklist gamificado de 0 a 100%.
+- [x] Flexibilidade de datas de pagamento salarial (5º dia útil CLT e dias 1 a 31) no regime Mensal Único.
 - [ ] A conta Asaas está validada para transações com dinheiro real no ambiente de Produção.
 - [ ] O domínio próprio responde com HTTPS e certificado SSL válido.
-- [x] A suíte com 365 testes unitários passa com 100% de sucesso.
+- [x] A suíte com 368 testes unitários passa com 100% de sucesso.
+
