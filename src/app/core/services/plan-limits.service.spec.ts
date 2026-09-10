@@ -9,16 +9,19 @@ describe('PlanLimitsService', () => {
   let mockCurrentPlan: WritableSignal<PlanType>;
   let mockIsProOrDuo: WritableSignal<boolean>;
   let mockIsDuo: WritableSignal<boolean>;
+  let mockIsPlanSuspended: WritableSignal<boolean>;
 
   beforeEach(() => {
     mockCurrentPlan = signal<PlanType>('free');
     mockIsProOrDuo = signal<boolean>(false);
     mockIsDuo = signal<boolean>(false);
+    mockIsPlanSuspended = signal<boolean>(false);
 
     const mockAuthStore = {
       currentPlan: mockCurrentPlan,
       isProOrDuo: mockIsProOrDuo,
-      isDuo: mockIsDuo
+      isDuo: mockIsDuo,
+      isPlanSuspended: mockIsPlanSuspended
     };
 
     TestBed.configureTestingModule({
@@ -110,6 +113,34 @@ describe('PlanLimitsService', () => {
 
     it('deve permitir exportação em PDF', () => {
       expect(service.canExportPdf()).toBe(true);
+    });
+  });
+
+  describe('Cenários BDD (Plano Suspenso por Inadimplência Expirada - CARD-040)', () => {
+    beforeEach(() => {
+      mockCurrentPlan.set('pro');
+      mockIsProOrDuo.set(false); // Carência expirada
+      mockIsDuo.set(false);
+      mockIsPlanSuspended.set(true);
+    });
+
+    it('deve restringir cotas ao plano Free quando o PRO estiver suspenso', () => {
+      expect(service.checkRecurringExpenseLimit(3).allowed).toBe(false);
+      expect(service.checkRecurringExpenseLimit(3).limitMessage).toContain('suspensa');
+
+      expect(service.checkInstallmentLimit(3).allowed).toBe(false);
+      expect(service.checkInstallmentLimit(3).limitMessage).toContain('suspensa');
+
+      expect(service.checkTaxLimit(1).allowed).toBe(false);
+      expect(service.checkTaxLimit(1).limitMessage).toContain('suspensa');
+
+      expect(service.checkTripLimit(1).allowed).toBe(false);
+      expect(service.checkTripLimit(1).limitMessage).toContain('suspensa');
+    });
+
+    it('deve restringir histórico e exportação em PDF quando o plano estiver suspenso', () => {
+      expect(service.isHistoryMonthAllowed(-2)).toBe(false);
+      expect(service.canExportPdf()).toBe(false);
     });
   });
 });

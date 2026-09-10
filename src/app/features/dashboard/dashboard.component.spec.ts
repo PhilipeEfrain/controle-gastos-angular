@@ -46,6 +46,10 @@ describe('DashboardComponent', () => {
       currentUser: signal<UserProfile | null>(mockUser),
       isProOrDuo: signal<boolean>(false),
       currentPlan: signal<'free' | 'pro' | 'duo'>('free'),
+      isDuo: signal<boolean>(false),
+      isGracePeriodActive: signal<boolean>(false),
+      isPlanSuspended: signal<boolean>(false),
+      gracePeriodDeadlineFormatted: signal<string>(''),
       logout: vi.fn().mockResolvedValue(undefined)
     };
 
