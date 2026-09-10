@@ -16,6 +16,7 @@ export interface UserProfile {
   plan?: PlanType;
   planStatus?: PlanStatus;
   planExpiresAt?: string | null;
+  gracePeriodExpiresAt?: string | null;
   asaasCustomerId?: string | null;
   asaasSubscriptionId?: string | null;
   preferences?: UserPreferences;

@@ -44,7 +44,7 @@ service cloud.firestore {
     function isValidUserProfile(data) {
       return data.keys().hasOnly([
         'uid', 'id', 'email', 'displayName', 'photoURL',
-        'role', 'plan', 'planStatus', 'planExpiresAt',
+        'role', 'plan', 'planStatus', 'planExpiresAt', 'gracePeriodExpiresAt',
         'asaasCustomerId', 'asaasSubscriptionId',
         'preferences', 'createdAt', 'updatedAt'
       ])
@@ -55,6 +55,7 @@ service cloud.firestore {
         && (!('plan' in data) || data.plan in ['free', 'pro', 'duo'])
         && (!('planStatus' in data) || data.planStatus in ['active', 'canceled', 'past_due', 'trial'])
         && (!('planExpiresAt' in data) || data.planExpiresAt == null || data.planExpiresAt is string)
+        && (!('gracePeriodExpiresAt' in data) || data.gracePeriodExpiresAt == null || data.gracePeriodExpiresAt is string)
         && (!('asaasCustomerId' in data) || data.asaasCustomerId == null || data.asaasCustomerId is string)
         && (!('asaasSubscriptionId' in data) || data.asaasSubscriptionId == null || data.asaasSubscriptionId is string);
     }
@@ -160,6 +161,12 @@ service cloud.firestore {
     match /system_config/{configId} {
       allow read: if isAuthenticated();
       allow write: if isAdmin();
+    }
+
+    // Auditoria e Eventos de Sistema / Webhooks (Leitura restrita a administradores e escrita exclusiva de backend)
+    match /system_events/{allEvents=**} {
+      allow read: if isAdmin();
+      allow write: if false;
     }
 
     // Isolamento Estrito de Dados por Usuário e Governança Administrativa

@@ -44,7 +44,7 @@
 | `TravelExpenseItem` | `src/app/core/models/finance.model.ts` | Item de despesa de viagem com descrição, categoria, valor, pagador e rateio (`dividir`). |
 | `InstallmentGroup` | `src/app/core/models/finance.model.ts` | Agrupamento de compras parceladas com progresso (ex: 3/10), saldo restante e parcelas vinculadas. |
 | `InstallmentParcel` | `src/app/core/models/finance.model.ts` | Item individual de parcela com mês de referência, número, valor e status de quitação. |
-| `UserProfile` | `src/app/core/models/user.model.ts` | Modelo de perfil de usuário com suporte a papéis RBAC (`role?: 'admin' \| 'user'`), planos SaaS (`plan?: 'free' \| 'pro' \| 'duo'`), status da assinatura e identificadores Asaas. |
+| `UserProfile` | `src/app/core/models/user.model.ts` | Modelo de perfil de usuário com suporte a papéis RBAC (`role?: 'admin' \| 'user'`), planos SaaS (`plan?: 'free' \| 'pro' \| 'duo'`), status da assinatura, prazos de vigência (`planExpiresAt`, `gracePeriodExpiresAt`) e identificadores Asaas. |
 | `UserRole` / `PlanType` / `PlanStatus` | `src/app/core/models/user.model.ts` | Tipos literais estritos para controle de acesso e monetização. |
 | `PlanPricing` / `AsaasSubscriptionPayload` / `AsaasWebhookPayload` | `src/app/core/models/payment.model.ts` | Interfaces de contratos de pagamento com o gateway Asaas (API v3, PIX, Cartão e Webhooks). |
 | `AsaasConfig` / `AsaasEnvironment` | `src/app/core/models/payment.model.ts` | Modelo de governança e configuração de credenciais Asaas v3 (`environment`, `apiKey`, `webhookSecret`, `walletId`, `isActive`, `lastTestedAt`). |
@@ -72,6 +72,17 @@
 | `AdminService` | `src/app/core/services/admin.service.ts` | Gestão administrativa de usuários, papéis RBAC, planos SaaS, cálculo de KPIs de MRR/conversão e persistência/teste de conectividade da integração Asaas (`getAsaasConfig`, `saveAsaasConfig`, `testAsaasConnection`). |
 | `AsaasService` | `src/app/core/services/asaas.service.ts` | Integração com Gateway Asaas API v3: tabela oficial de preços, URLs base dinâmicas por ambiente (`getBaseUrl` com proxy dev-server), criação de clientes, assinaturas recorrentes (PIX e Cartão) e processamento seguro de Webhooks. |
 | `PlanLimitsService` | `src/app/core/services/plan-limits.service.ts` | Validação de regras e limites da matriz de planos SaaS (Free: máx 3 recorrentes, 3 parcelamentos, 1 tributo, 1 viagem, 2 meses histórico; Pro/Duo: ilimitado, 13 meses e PDF). |
+
+---
+
+## 3.1 Backend Serverless & Cloud Functions (`functions/src/`)
+
+| Função / Módulo | Arquivo | Descrição | Assinatura / Contrato |
+| :--- | :--- | :--- | :--- |
+| `asaasWebhook` | `functions/src/index.ts` | Cloud Function HTTP v2 (`POST`) para recepção e processamento automático de eventos de pagamento e assinatura disparados pelo Asaas. | `onRequest({ cors: true, maxInstances: 10 }, handler)` |
+| `handleAsaasWebhook` | `functions/src/webhook-handler.ts` | Controlador central com validação de token de acesso (CWE-306), idempotência estrita em `system_events/webhooks/{eventId}`, sincronização atômica de perfil de usuário em `users/{uid}` e gravação de trilha de auditoria. | `(headers, payload, deps): Promise<ProcessWebhookResult>` |
+| `calculatePlanExpiration` | `functions/src/webhook-handler.ts` | Utilitário para projeção estável de vencimento/expiração da assinatura (+30 dias) sem drift de timezone UTC. | `(dueDateStr?: string): string` |
+| `calculateGracePeriodExpiration` | `functions/src/webhook-handler.ts` | Utilitário para cálculo de prazo de carência de 3 dias corridos (Grace Period D+3) para inadimplência. | `(): string` |
 
 ---
 
@@ -184,7 +195,8 @@
 
 | Artefato | Arquivo | Descrição |
 | :--- | :--- | :--- |
-| `Firestore Security Rules` | `firestore.rules` | Regras com isolamento estrito por `isOwner(userId)`, RBAC administrativo (`isAdmin()`), proteção anti-elevação de privilégio (bloqueio de alteração de `role` e `plan` por usuários comuns), validação estrita de whitelisting de chaves (`keys().hasOnly([...])`) e fechamento de catch-all. |
+| `Firestore Security Rules` | `firestore.rules` | Regras com isolamento estrito por `isOwner(userId)`, RBAC administrativo (`isAdmin()`), proteção anti-elevação de privilégio (bloqueio de alteração de `role` e `plan` por usuários comuns), validação estrita de whitelisting de chaves com `gracePeriodExpiresAt` (`keys().hasOnly([...])`), proteção de auditoria em `system_events` e fechamento de catch-all. |
+| `Webhook Authentication & Idempotency` | `functions/src/webhook-handler.ts` | Autenticação estrita do webhook Asaas via header `asaas-access-token` (CWE-306) e deduplicação idempotente de eventos em `system_events/webhooks/{eventId}`. |
 | `CSV Formula Sanitizer` | `src/app/core/services/export.service.ts` | Sanitização preventiva contra CWE-1236 (CSV Formula Injection) neutralizando operadores (`=`, `+`, `-`, `@`, `\t`, `\r`, `%`) com apóstrofo antes da exportação. |
 | `HTML Sanitizer & XSS Escape` | `src/app/core/services/export.service.ts` | Função `escapeHTML()` para prevenção de DOM XSS (CWE-79) em relatórios gerados e impressos em PDF. |
 | `HTTPS URL Validator` | `src/app/features/settings/settings.component.ts` | Validação estrita de URLs seguras (`https://`) para imagens de perfil (prevenção contra CWE-79 / XSS via esquemas `javascript:` ou `http:`). |
