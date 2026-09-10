@@ -542,3 +542,360 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+// --- ABA MINHA ASSINATURA ---
+
+.plan-summary-card {
+  padding: 1.5rem;
+  border-radius: $radius-xl;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+  border: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  position: relative;
+  overflow: hidden;
+
+  &.plan-pro {
+    border-color: rgba(16, 185, 129, 0.3);
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+  }
+
+  &.plan-duo {
+    border-color: rgba(99, 102, 241, 0.3);
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.06) 0%, rgba(255, 255, 255, 0.01) 100%);
+  }
+
+  .plan-summary-header {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+    @include respond-to('sm') {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .plan-identity {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+
+      .plan-badge-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+
+        .plan-badge {
+          font-size: 0.6875rem;
+          font-weight: 800;
+          letter-spacing: 0.05em;
+          padding: 0.2rem 0.5rem;
+          border-radius: $radius-full;
+          background: rgba(255, 255, 255, 0.1);
+          color: var(--color-text-primary);
+        }
+
+        .status-badge {
+          font-size: 0.6875rem;
+          font-weight: 700;
+          padding: 0.2rem 0.5rem;
+          border-radius: $radius-full;
+
+          &.status-active {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--color-success-light);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+          }
+
+          &.status-warning {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+          }
+
+          &.status-danger {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--color-danger-light);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+          }
+
+          &.status-canceled {
+            background: rgba(148, 163, 184, 0.15);
+            color: #94a3b8;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+          }
+        }
+      }
+
+      .plan-title {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: var(--color-text-primary);
+        margin: 0;
+      }
+    }
+
+    .plan-pricing {
+      display: flex;
+      align-items: baseline;
+      gap: 0.25rem;
+
+      .price-value {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--color-text-primary);
+      }
+
+      .price-cycle {
+        font-size: $font-size-xs;
+        color: var(--color-text-muted);
+      }
+    }
+  }
+
+  .plan-expiry-highlight {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: $radius-lg;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+
+    .expiry-icon-wrap {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: $radius-md;
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--color-success-light);
+      @include flex-center;
+      flex-shrink: 0;
+
+      svg {
+        width: 1.25rem;
+        height: 1.25rem;
+      }
+    }
+
+    .expiry-content {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+
+      .expiry-label {
+        font-size: $font-size-xs;
+        color: var(--color-text-muted);
+      }
+
+      .expiry-date-value {
+        font-size: $font-size-lg;
+        font-weight: 700;
+        color: var(--color-text-primary);
+      }
+
+      .expiry-desc {
+        font-size: 0.6875rem;
+        color: var(--color-text-muted);
+        line-height: 1.3;
+      }
+    }
+  }
+
+  .grace-alert-box {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: $radius-md;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    color: #fbbf24;
+    font-size: $font-size-xs;
+
+    svg {
+      width: 1.25rem;
+      height: 1.25rem;
+      flex-shrink: 0;
+    }
+  }
+
+  .plan-actions-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    padding-top: 0.5rem;
+  }
+}
+
+.btn-outline-danger {
+  @include flex-center;
+  gap: 0.375rem;
+  padding: 0.625rem 1rem;
+  border-radius: $radius-md;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: transparent;
+  color: var(--color-danger-light);
+  font-size: $font-size-xs;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all $transition-fast;
+  white-space: nowrap;
+
+  svg {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+
+  &:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: var(--color-danger);
+    color: #fff;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.security-note-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: $radius-lg;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--color-border);
+  margin-top: 0.5rem;
+
+  .note-icon {
+    width: 2rem;
+    height: 2rem;
+    border-radius: $radius-sm;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--color-text-secondary);
+    @include flex-center;
+    flex-shrink: 0;
+
+    svg {
+      width: 1.125rem;
+      height: 1.125rem;
+    }
+  }
+
+  .note-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    strong {
+      font-size: $font-size-xs;
+      color: var(--color-text-primary);
+    }
+
+    p {
+      font-size: 0.6875rem;
+      color: var(--color-text-muted);
+      margin: 0;
+      line-height: 1.4;
+    }
+  }
+}
+
+// Modal de Troca de Cartão
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 1050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 480px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: $radius-xl;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+  .modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+
+    .modal-title-group {
+      .modal-title {
+        font-size: $font-size-lg;
+        font-weight: 700;
+        color: var(--color-text-primary);
+        margin: 0 0 0.25rem;
+      }
+
+      .modal-subtitle {
+        font-size: $font-size-xs;
+        color: var(--color-text-muted);
+        margin: 0;
+      }
+    }
+
+    .btn-close {
+      background: none;
+      border: none;
+      color: var(--color-text-muted);
+      font-size: 1.25rem;
+      cursor: pointer;
+      padding: 0.25rem;
+      line-height: 1;
+
+      &:hover {
+        color: var(--color-text-primary);
+      }
+    }
+  }
+
+  .card-form {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+    .form-row-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--color-border);
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+

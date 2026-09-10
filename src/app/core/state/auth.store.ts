@@ -100,6 +100,22 @@ export class AuthStore {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     return `${day}/${month}`;
   });
+
+  readonly planExpiresAtFormatted = computed(() => {
+    const expiresAt = this._currentUser()?.planExpiresAt;
+    if (!expiresAt) {
+      return '';
+    }
+    const date = new Date(expiresAt);
+    if (isNaN(date.getTime())) {
+      return '';
+    }
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  });
+
   readonly isDuo = computed(() => this._currentUser()?.plan === 'duo');
 
   constructor() {
@@ -208,6 +224,23 @@ export class AuthStore {
     });
   }
 
+  /**
+   * Solicita o cancelamento da assinatura recorrente do usuário.
+   * O status é alterado para 'canceled', mantendo o acesso até planExpiresAt.
+   */
+  async cancelSubscription(): Promise<void> {
+    const user = this._currentUser();
+    if (!user) {
+      throw new Error('Usuário não autenticado.');
+    }
+
+    await this.authService.cancelUserSubscription(user.uid, user.asaasSubscriptionId || undefined);
+
+    this._currentUser.set({
+      ...user,
+      planStatus: 'canceled'
+    });
+  }
 
   setLoading(loading: boolean): void {
     this._isLoading.set(loading);

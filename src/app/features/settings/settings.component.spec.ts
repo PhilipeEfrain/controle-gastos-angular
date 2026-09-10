@@ -6,6 +6,8 @@ import { AuthStore } from '../../core/state/auth.store';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { AsaasService } from '../../core/services/asaas.service';
+import { AdminService } from '../../core/services/admin.service';
 import { UserProfile } from '../../core/models/user.model';
 
 describe('SettingsComponent', () => {
@@ -17,6 +19,10 @@ describe('SettingsComponent', () => {
     email: 'dev@financas.com',
     displayName: 'Carlos Silva',
     photoURL: 'https://exemplo.com/avatar.jpg',
+    plan: 'pro',
+    planStatus: 'active',
+    planExpiresAt: '2026-10-10T00:00:00.000Z',
+    asaasSubscriptionId: 'sub_test_123',
     preferences: { theme: 'dark', currency: 'BRL' }
   };
 
@@ -24,13 +30,22 @@ describe('SettingsComponent', () => {
   let mockAuthService: any;
   let mockThemeService: any;
   let mockNotificationService: any;
+  let mockAsaasService: any;
+  let mockAdminService: any;
   let mockRouter: any;
 
   beforeEach(async () => {
     mockAuthStore = {
       currentUser: signal<UserProfile | null>(mockUser),
       userDisplayName: signal<string>('Carlos Silva'),
+      currentPlan: signal<'free' | 'pro' | 'duo'>('pro'),
+      planStatus: signal<string>('active'),
+      isGracePeriodActive: signal<boolean>(false),
+      isPlanSuspended: signal<boolean>(false),
+      planExpiresAtFormatted: signal<string>('10/10/2026'),
+      gracePeriodDeadlineFormatted: signal<string>(''),
       updateCurrentUser: vi.fn(),
+      cancelSubscription: vi.fn().mockResolvedValue(undefined),
       logout: vi.fn().mockResolvedValue(undefined)
     };
 
@@ -57,6 +72,16 @@ describe('SettingsComponent', () => {
       info: vi.fn()
     };
 
+    mockAsaasService = {
+      getPlanPrice: vi.fn().mockReturnValue(9.90),
+      updateSubscriptionCreditCard: vi.fn().mockResolvedValue({ id: 'sub_test_123', status: 'ACTIVE' }),
+      cancelSubscription: vi.fn().mockResolvedValue({ deleted: true, id: 'sub_test_123' })
+    };
+
+    mockAdminService = {
+      getAsaasConfig: vi.fn().mockResolvedValue({ apiKey: 'fake_key', environment: 'sandbox' })
+    };
+
     mockRouter = {
       navigate: vi.fn()
     };
@@ -68,6 +93,8 @@ describe('SettingsComponent', () => {
         { provide: AuthService, useValue: mockAuthService },
         { provide: ThemeService, useValue: mockThemeService },
         { provide: NotificationService, useValue: mockNotificationService },
+        { provide: AsaasService, useValue: mockAsaasService },
+        { provide: AdminService, useValue: mockAdminService },
         { provide: Router, useValue: mockRouter }
       ]
     }).compileComponents();
@@ -76,6 +103,7 @@ describe('SettingsComponent', () => {
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
+
 
   it('deve ser instanciado com sucesso', () => {
     expect(component).toBeTruthy();
@@ -193,4 +221,77 @@ describe('SettingsComponent', () => {
       expect(mockRouter.navigate).toHaveBeenCalledWith(['/auth']);
     });
   });
+
+  describe('Cenário BDD: Minha Assinatura, Vigência e Gestão de Pagamento', () => {
+    it('deve alternar para a aba subscription e exibir preço formatado', () => {
+      component.setTab('subscription');
+      expect(component.activeTab()).toBe('subscription');
+      expect(component.getPlanPriceFormatted()).toBe('R$\u00A09,90');
+    });
+
+    it('deve abrir e fechar modal de upgrade para planos pagos', () => {
+      component.openUpgradeModal();
+      expect(component.isSubscriptionModalOpen()).toBe(true);
+
+      component.closeUpgradeModal();
+      expect(component.isSubscriptionModalOpen()).toBe(false);
+    });
+
+    it('deve abrir modal de troca de cartão e validar preenchimento correto', () => {
+      component.openChangeCardModal();
+      expect(component.isChangeCardModalOpen()).toBe(true);
+      expect(component.isCardFormValid()).toBe(false);
+
+      // Simula preenchimento com máscaras
+      component.onCardNumberInput({ target: { value: '4532 1111 2222 3333' } } as any);
+      component.onCardHolderNameInput({ target: { value: 'CARLOS SILVA' } } as any);
+      component.onCardExpiryInput({ target: { value: '12/28' } } as any);
+      component.onCardCvvInput({ target: { value: '123' } } as any);
+
+      expect(component.isCardFormValid()).toBe(true);
+    });
+
+    it('deve chamar updateSubscriptionCreditCard no AsaasService e exibir toast de sucesso', async () => {
+      component.openChangeCardModal();
+      component.onCardNumberInput({ target: { value: '4532 1111 2222 3333' } } as any);
+      component.onCardHolderNameInput({ target: { value: 'CARLOS SILVA' } } as any);
+      component.onCardExpiryInput({ target: { value: '12/28' } } as any);
+      component.onCardCvvInput({ target: { value: '123' } } as any);
+
+      await component.onConfirmChangeCard();
+
+      expect(mockAsaasService.updateSubscriptionCreditCard).toHaveBeenCalledWith(
+        'sub_test_123',
+        expect.objectContaining({
+          holderName: 'CARLOS SILVA',
+          number: '4532111122223333',
+          expiryMonth: '12',
+          expiryYear: '2028',
+          ccv: '123'
+        }),
+        undefined,
+        'fake_key',
+        'sandbox'
+      );
+      expect(mockNotificationService.success).toHaveBeenCalledWith(
+        'Cartão de crédito atualizado com sucesso no gateway Asaas!'
+      );
+      expect(component.isChangeCardModalOpen()).toBe(false);
+    });
+
+    it('deve abrir modal de cancelamento e processar cancelamento assistido com preservação de dados', async () => {
+      component.openCancelSubscriptionModal();
+      expect(component.isCancelSubscriptionModalOpen()).toBe(true);
+
+      await component.onConfirmCancelSubscription();
+
+      expect(mockAsaasService.cancelSubscription).toHaveBeenCalledWith('sub_test_123', 'fake_key', 'sandbox');
+      expect(mockAuthStore.cancelSubscription).toHaveBeenCalled();
+      expect(mockNotificationService.info).toHaveBeenCalledWith(
+        expect.stringContaining('Assinatura cancelada com sucesso. Seus benefícios continuam válidos até 10/10/2026. Seus dados foram preservados.')
+      );
+      expect(component.isCancelSubscriptionModalOpen()).toBe(false);
+    });
+  });
 });
+
