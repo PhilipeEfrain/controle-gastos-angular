@@ -1,6 +1,6 @@
-import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthStore } from '../../core/state/auth.store';
 
 interface FeatureItem {
@@ -21,17 +21,18 @@ import { BrandLogoComponent } from '../../shared/components/brand-logo/brand-log
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [CommonModule, BrandLogoComponent],
+  imports: [CommonModule, RouterLink, BrandLogoComponent],
   templateUrl: './landing.component.html',
   styleUrls: ['./landing.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class LandingComponent {
+export class LandingComponent implements OnInit {
   private authStore = inject(AuthStore);
   private router = inject(Router);
 
   readonly isAuthenticated = this.authStore.isAuthenticated;
   readonly user = this.authStore.currentUser;
+  readonly showCookieConsent = signal<boolean>(false);
 
   readonly features: FeatureItem[] = [
     {
@@ -118,6 +119,26 @@ export class LandingComponent {
       queryParams.plan = plan;
     }
     this.router.navigate(['/auth'], { queryParams });
+  }
+
+  ngOnInit(): void {
+    try {
+      const consent = localStorage.getItem('cookie_consent_accepted');
+      if (consent !== 'true') {
+        this.showCookieConsent.set(true);
+      }
+    } catch {
+      // Ignora erro em ambientes restritos
+    }
+  }
+
+  acceptCookieConsent(): void {
+    try {
+      localStorage.setItem('cookie_consent_accepted', 'true');
+    } catch {
+      // Ignora erro
+    }
+    this.showCookieConsent.set(false);
   }
 
   navigateToDashboard(): void {

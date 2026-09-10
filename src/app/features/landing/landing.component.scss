@@ -1190,3 +1190,115 @@
     }
   }
 }
+
+/* Banner de Consentimento de Cookies & LGPD */
+.cookie-banner {
+  position: fixed;
+  bottom: 1.25rem;
+  left: 1rem;
+  right: 1rem;
+  z-index: 1000;
+  max-width: 1100px;
+  margin: 0 auto;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 1rem;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6);
+  padding: 1rem 1.5rem;
+  animation: slideUpCookie 0.3s ease-out;
+
+  .cookie-banner-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+
+    @include respond-to('md') {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: 2rem;
+    }
+  }
+
+  .cookie-text-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.875rem;
+
+    .cookie-icon {
+      font-size: 1.5rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.875rem;
+      line-height: 1.5;
+      color: #cbd5e1;
+
+      a {
+        color: #38bdf8;
+        text-decoration: underline;
+        font-weight: 500;
+
+        &:hover {
+          color: #7dd3fc;
+        }
+      }
+    }
+  }
+
+  .cookie-btn-box {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+
+    @include respond-to('md') {
+      width: auto;
+      flex-shrink: 0;
+    }
+  }
+
+  .btn-cookie-agree {
+    width: 100%;
+    padding: 0.625rem 1.25rem;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    transition: all 0.2s ease;
+
+    @include respond-to('md') {
+      width: auto;
+    }
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+      background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+}
+
+@keyframes slideUpCookie {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

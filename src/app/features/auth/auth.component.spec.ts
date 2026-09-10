@@ -91,4 +91,20 @@ describe('AuthComponent', () => {
     expect(mockAuthService.sendPasswordReset).toHaveBeenCalledWith('reset@exemplo.com');
     expect(component.successMessage()).toContain('Instruções de redefinição de senha enviadas');
   });
+
+  it('Cenário BDD 3: deve exibir menção legal com links de Termos e Privacidade na aba de registro', () => {
+    component.setTab('register');
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const legalNotice = compiled.querySelector('.auth-legal-notice');
+    expect(legalNotice).toBeTruthy();
+    expect(legalNotice?.textContent).toContain('Ao criar sua conta, você concorda com nossos');
+    expect(legalNotice?.textContent).toContain('Termos de Uso');
+    expect(legalNotice?.textContent).toContain('Política de Privacidade');
+
+    const links = Array.from(legalNotice?.querySelectorAll('a') || []).map(a => a.getAttribute('routerLink') || a.getAttribute('href'));
+    expect(links).toContain('/termos');
+    expect(links).toContain('/privacidade');
+  });
 });

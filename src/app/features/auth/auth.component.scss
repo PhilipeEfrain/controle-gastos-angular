@@ -275,6 +275,24 @@
   }
 }
 
+.auth-legal-notice {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0.25rem 0 1rem;
+  text-align: center;
+
+  a {
+    color: var(--color-primary);
+    text-decoration: underline;
+    font-weight: var(--font-weight-medium);
+
+    &:hover {
+      color: var(--color-primary-light, #38bdf8);
+    }
+  }
+}
+
 // Botões Submit
 .btn-submit {
   display: flex;
