@@ -161,6 +161,7 @@ FASE 2: CONFORMIDADE, SELF-SERVICE & VISIBILIDADE DE VENCIMENTOS (P1) - 100% CON
 [x] CARD-043: Páginas públicas de Termos de Uso, Política de Privacidade e Consentimento LGPD (/termos e /privacidade)
 [x] CARD-044: Checklist guiado de Onboarding e Primeiro Acesso com Empty State Interativo
 [x] CARD-046: Flexibilidade de Data de Pagamento no Regime Mensal Único (5º dia útil e datas customizadas)
+[x] CARD-047: Adaptação do Guia de Primeiros Passos aos Temas do Design System (Dark, Light, Dark-Blue)
 [ ] CARD-045: Widget e Canal de Suporte / Atendimento ao Cliente no App
 
 ================================================================================
@@ -185,5 +186,6 @@ FASE 3: LANÇAMENTO OFICIAL & GO-LIVE (P2)
 - [x] Flexibilidade de datas de pagamento salarial (5º dia útil CLT e dias 1 a 31) no regime Mensal Único.
 - [ ] A conta Asaas está validada para transações com dinheiro real no ambiente de Produção.
 - [ ] O domínio próprio responde com HTTPS e certificado SSL válido.
-- [x] A suíte com 368 testes unitários passa com 100% de sucesso.
+- [x] A suíte com 369 testes unitários passa com 100% de sucesso.
+
 
