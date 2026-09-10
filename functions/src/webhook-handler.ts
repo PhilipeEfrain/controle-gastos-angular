@@ -1,15 +1,15 @@
-import type { firestore } from 'firebase-admin';
+import type { Firestore, DocumentReference } from 'firebase-admin/firestore';
 import { AsaasWebhookPayload, ProcessWebhookResult } from './types.js';
 
 export interface WebhookHandlerDependencies {
-  db: firestore.Firestore;
+  db: Firestore;
   getWebhookSecret?: () => Promise<string | undefined>;
 }
 
 /**
  * Recupera o segredo do Webhook do Asaas (via Secret Manager / env ou Firestore)
  */
-export async function resolveWebhookSecret(db: firestore.Firestore): Promise<string | undefined> {
+export async function resolveWebhookSecret(db: Firestore): Promise<string | undefined> {
   if (process.env.ASAAS_WEBHOOK_SECRET) {
     return process.env.ASAAS_WEBHOOK_SECRET;
   }
@@ -31,9 +31,9 @@ export async function resolveWebhookSecret(db: firestore.Firestore): Promise<str
  * Localiza o documento do usuário associado ao pagamento ou assinatura do Asaas
  */
 export async function findUserDocByAsaasData(
-  db: firestore.Firestore,
+  db: Firestore,
   payload: AsaasWebhookPayload
-): Promise<firestore.DocumentReference | null> {
+): Promise<DocumentReference | null> {
   const externalRef = payload.payment?.externalReference || payload.subscription?.externalReference;
   const subscriptionId = payload.payment?.subscription || payload.subscription?.id;
   const customerId = payload.payment?.customer || payload.subscription?.customer;
