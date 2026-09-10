@@ -489,6 +489,12 @@
           <a (click)="navigateToAuth('register')">Criar Conta Gratuita</a>
           <a (click)="navigateToDashboard()">Meu Orçamento</a>
         </div>
+        <div class="footer-col">
+          <h4>Legal & Privacidade</h4>
+          <a routerLink="/termos">Termos de Uso</a>
+          <a routerLink="/privacidade">Privacidade & LGPD</a>
+          <a href="mailto:privacidade@quinzena.app">Canal do DPO</a>
+        </div>
       </div>
     </div>
 
@@ -499,4 +505,26 @@
       </div>
     </div>
   </footer>
+
+  <!-- Cookie Consent Banner (LGPD) -->
+  @if (showCookieConsent()) {
+    <aside class="cookie-banner" role="dialog" aria-label="Consentimento de Cookies e Privacidade">
+      <div class="app-container cookie-banner-inner">
+        <div class="cookie-text-box">
+          <span class="cookie-icon">🍪</span>
+          <p>
+            Utilizamos armazenamento local e tecnologias essenciais para segurança e funcionamento da aplicação.
+            Ao navegar, você concorda com nossos
+            <a routerLink="/termos" target="_blank" rel="noopener noreferrer">Termos de Uso</a> e
+            <a routerLink="/privacidade" target="_blank" rel="noopener noreferrer">Política de Privacidade (LGPD)</a>.
+          </p>
+        </div>
+        <div class="cookie-btn-box">
+          <button type="button" class="btn-cookie-agree" (click)="acceptCookieConsent()">
+            Entendi e Concordo
+          </button>
+        </div>
+      </div>
+    </aside>
+  }
 </div>

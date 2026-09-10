@@ -171,6 +171,12 @@
 | :--- | :--- | :--- |
 | `AdminComponent` | `app-admin` | Painel administrativo com abas (Visão Geral & Usuários vs. Integração Asaas), monitoramento global de métricas de SaaS, governança de planos com visibilidade de vencimentos/próxima cobrança, modal de auditoria de assinaturas Asaas em tempo real e configuração protegida do gateway de pagamentos com teste de conectividade. |
 
+### K. Feature: Legal & LGPD (`src/app/features/legal/`)
+| Componente | Seletor | Descrição |
+| :--- | :--- | :--- |
+| `TermsComponent` | `app-terms` | Página pública dos Termos de Uso e Condições Gerais, contendo regras de planos, cancelamento, período de tolerância e isenção de responsabilidade financeira. |
+| `PrivacyComponent` | `app-privacy` | Página pública da Política de Privacidade e Proteção de Dados (LGPD), detalhando bases legais, não armazenamento de cartões de crédito (PCI) e canal do DPO. |
+
 ---
 
 ## 6. Pipes e Diretivas Customizadas (`src/app/shared/`)

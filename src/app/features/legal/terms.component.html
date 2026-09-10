@@ -1,0 +1,121 @@
+<div class="legal-page-wrapper">
+  <!-- Top Navigation Bar -->
+  <header class="legal-header">
+    <div class="legal-container header-inner">
+      <app-brand-logo [size]="'sm'" [showTagline]="false" />
+      <a routerLink="/" class="btn-back-home">
+        <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+          <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/>
+        </svg>
+        <span>Voltar para o Início</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Legal Main Content Container -->
+  <main class="legal-main">
+    <div class="legal-container">
+      <article class="legal-card">
+        <header class="legal-card-header">
+          <div class="legal-badge">DOCUMENTO OFICIAL</div>
+          <h1 class="legal-title">Termos de Uso e Condições Gerais</h1>
+          <div class="legal-metadata">
+            <span>Última atualização: Março de 2026</span>
+            <span class="meta-dot">•</span>
+            <span>Versão: 1.2</span>
+            <span class="meta-dot">•</span>
+            <a routerLink="/privacidade" class="meta-link">Ver Política de Privacidade</a>
+          </div>
+        </header>
+
+        <section class="legal-section">
+          <h2>1. Aceitação dos Termos</h2>
+          <p>
+            Ao criar uma conta, acessar ou utilizar a plataforma <strong>Quinzena</strong> (disponível via web e aplicativo PWA), você expressamente concorda e adere à totalidade das disposições aqui estabelecidas, bem como à nossa <a routerLink="/privacidade">Política de Privacidade</a>. Caso não concorde com qualquer cláusula, solicitamos que não prossiga com o cadastro ou utilização dos serviços.
+          </p>
+        </section>
+
+        <section class="legal-section">
+          <h2>2. Objeto e Natureza dos Serviços</h2>
+          <p>
+            O <strong>Quinzena</strong> é um software como serviço (SaaS) voltado para a organização, planejamento e análise orçamentária pessoal e familiar sob a metodologia de ciclos quinzenais (sincronizados com o dia 31 e o dia 15). A plataforma oferece recursos de:
+          </p>
+          <ul>
+            <li>Lançamento e categorização de despesas fixas e variáveis por quinzena;</li>
+            <li>Gestão e simulação de compras parceladas com quitação antecipada;</li>
+            <li>Planejamento de tributos e despesas periódicas anuais (IPTU, IPVA, etc.);</li>
+            <li>Módulo de viagens com rateio entre múltiplos participantes e geração de cobranças;</li>
+            <li>Funcionamento com arquitetura offline-first sincronizada via nuvem.</li>
+          </ul>
+          <p class="legal-callout">
+            <strong>Aviso de Isenção Financeira:</strong> O Quinzena é uma ferramenta analítica e organizacional. A plataforma <em>não</em> é uma instituição bancária, corretora ou consultoria de investimentos, nem concede empréstimos ou aconselhamento financeiro formal. As decisões de gastos e investimentos cabem com exclusividade ao usuário.
+          </p>
+        </section>
+
+        <section class="legal-section">
+          <h2>3. Cadastro, Credenciais e Segurança</h2>
+          <p>
+            Para usufruir dos recursos da plataforma, é obrigatória a criação de uma conta com fornecimento de e-mail verídico e senha confidencial, ou através de autenticação federada com Google Sign-In. O titular da conta é integralmente responsável por manter a confidencialidade de suas credenciais de acesso e por todas as operações realizadas em seu perfil.
+          </p>
+          <p>
+            Caso identifique qualquer uso não autorizado ou quebra de segurança de sua conta, o usuário deve notificar imediatamente a equipe de suporte através do e-mail <code>suporte@quinzena.app</code>.
+          </p>
+        </section>
+
+        <section class="legal-section">
+          <h2>4. Planos, Cobrança e Cancelamento</h2>
+          <p>
+            A plataforma disponibiliza um plano gratuito (<strong>Plano Free</strong>) com cotas essenciais de uso, e planos por assinatura com recursos avançados e ilimitados (<strong>Plano PRO</strong> e <strong>Plano DUO</strong>):
+          </p>
+          <ul>
+            <li>
+              <strong>Processamento de Pagamento:</strong> As cobranças recorrentes (mensais ou anuais) são processadas por gateway parceiro devidamente certificado e em conformidade com o padrão PCI-DSS (Asaas Gestão Financeira). Não armazenamos números de cartão de crédito ou códigos de segurança (CVV) em nossos servidores.
+            </li>
+            <li>
+              <strong>Renovação Automática:</strong> As assinaturas são renovadas automaticamente ao término de cada período contratado (mensal ou anual), a menos que canceladas previamente pelo usuário através da aba <em>Minha Assinatura</em> em seu painel de configurações.
+            </li>
+            <li>
+              <strong>Período de Tolerância (Grace Period):</strong> Em caso de falha no débito recorrente, a plataforma concede um período de tolerância de até 3 dias (D+3) para regularização antes da suspensão do acesso às funcionalidades premium.
+            </li>
+            <li>
+              <strong>Cancelamento e Histórico:</strong> O cancelamento da assinatura pode ser efetuado a qualquer momento sem incidência de multas. O acesso aos recursos pagos permanece ativo até a data final do ciclo vigente já quitado, sendo preservado integralmente o histórico de dados já lançados.
+            </li>
+          </ul>
+        </section>
+
+        <section class="legal-section">
+          <h2>5. Propriedade Intelectual</h2>
+          <p>
+            Todos os direitos sobre a marca, design visual, interface, ilustrações, códigos-fonte, arquitetura e conteúdo do <strong>Quinzena</strong> pertencem aos seus desenvolvedores e mantenedores, protegidos pela legislação de direitos autorais e propriedade intelectual. É vedada qualquer engenharia reversa, cópia ou exploração comercial não autorizada.
+          </p>
+        </section>
+
+        <section class="legal-section">
+          <h2>6. Encerramento de Conta e Direito ao Esquecimento</h2>
+          <p>
+            O usuário tem total autonomia para encerrar sua conta a qualquer instante através do botão <em>Excluir Minha Conta</em> presente na área de configurações. Em conformidade com o Artigo 18 da Lei Geral de Proteção de Dados (LGPD), a solicitação de exclusão remove permanentemente todos os registros, preferências e lançamentos financeiros associados ao usuário.
+          </p>
+        </section>
+
+        <section class="legal-section">
+          <h2>7. Alterações destes Termos</h2>
+          <p>
+            Reservamo-nos o direito de atualizar ou modificar estes Termos de Uso periodicamente para refletir melhorias do produto ou adequações legais. Notificaremos os usuários sobre mudanças substanciais por meio de aviso na aplicação ou por e-mail. O uso continuado após a entrada em vigor das alterações constitui aceitação dos novos termos.
+          </p>
+        </section>
+
+        <section class="legal-section">
+          <h2>8. Legislação Aplicável e Foro</h2>
+          <p>
+            Estes Termos são regidos pelas leis da República Federativa do Brasil, em particular o Marco Civil da Internet (Lei nº 12.965/2014) e a Lei Geral de Proteção de Dados (Lei nº 13.709/2018). Fica eleito o foro da Comarca do domicílio do usuário para dirimir eventuais litígios oriundos deste instrumento.
+          </p>
+        </section>
+
+        <footer class="legal-card-footer">
+          <p>Dúvidas sobre estes Termos? Fale com nossa equipe:</p>
+          <a href="mailto:suporte@quinzena.app" class="contact-email">suporte@quinzena.app</a>
+        </footer>
+      </article>
+    </div>
+  </main>
+</div>

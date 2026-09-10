@@ -1,7 +1,7 @@
 import { Component, ChangeDetectionStrategy, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { AuthStore } from '../../core/state/auth.store';
 import { AppCardComponent } from '../../shared/components/app-card/app-card.component';
@@ -12,7 +12,7 @@ export type AuthTab = 'login' | 'register' | 'forgot';
 @Component({
   selector: 'app-auth',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, AppCardComponent, BrandLogoComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, AppCardComponent, BrandLogoComponent],
   templateUrl: './auth.component.html',
   styleUrl: './auth.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

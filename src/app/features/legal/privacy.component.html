@@ -1,0 +1,156 @@
+<div class="legal-page-wrapper">
+  <!-- Top Navigation Bar -->
+  <header class="legal-header">
+    <div class="legal-container header-inner">
+      <app-brand-logo [size]="'sm'" [showTagline]="false" />
+      <a routerLink="/" class="btn-back-home">
+        <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+          <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/>
+        </svg>
+        <span>Voltar para o Início</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Legal Main Content Container -->
+  <main class="legal-main">
+    <div class="legal-container">
+      <article class="legal-card">
+        <header class="legal-card-header">
+          <div class="legal-badge legal-badge--privacy">CONFORMIDADE LGPD (LEI 13.709/2018)</div>
+          <h1 class="legal-title">Política de Privacidade e Proteção de Dados</h1>
+          <div class="legal-metadata">
+            <span>Última atualização: Março de 2026</span>
+            <span class="meta-dot">•</span>
+            <span>Versão: 1.2</span>
+            <span class="meta-dot">•</span>
+            <a routerLink="/termos" class="meta-link">Ver Termos de Uso</a>
+          </div>
+        </header>
+
+        <section class="legal-section">
+          <h2>1. Introdução e Compromisso com a sua Privacidade</h2>
+          <p>
+            O <strong>Quinzena</strong> valoriza profundamente a confiança depositada por você ao utilizar nossa plataforma. Esta Política de Privacidade descreve de forma clara e transparente como coletamos, tratamos, protegemos e armazenamos seus dados pessoais em total consonância com a Lei Geral de Proteção de Dados Pessoais (LGPD — Lei nº 13.709/2018).
+          </p>
+        </section>
+
+        <section class="legal-section">
+          <h2>2. Controlador dos Dados e Encarregado de Proteção (DPO)</h2>
+          <p>
+            Para os fins da legislação aplicável, o controlador responsável pelo tratamento dos seus dados pessoais é a equipe de engenharia e gestão da plataforma Quinzena. Para dúvidas, solicitações ou exercício de direitos de titular, você pode contatar nosso Encarregado pelo Tratamento de Dados Pessoais (DPO) através do e-mail:
+          </p>
+          <p class="legal-callout">
+            <strong>Canal Oficial do DPO:</strong> <code>privacidade@quinzena.app</code>
+          </p>
+        </section>
+
+        <section class="legal-section">
+          <h2>3. Quais Dados Coletamos e para Quais Finalidades</h2>
+          <p>
+            Apenas coletamos as informações estritamente necessárias para a prestação dos serviços contratados:
+          </p>
+          <div class="legal-table-wrapper">
+            <table class="legal-table">
+              <thead>
+                <tr>
+                  <th>Categoria de Dado</th>
+                  <th>Dados Específicos</th>
+                  <th>Finalidade do Tratamento</th>
+                  <th>Base Legal (LGPD)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Identificação e Cadastro</strong></td>
+                  <td>Nome completo, endereço de e-mail e foto de perfil (quando autenticado via Google).</td>
+                  <td>Autenticação da conta, controle de acesso e comunicação operacional sobre sua assinatura.</td>
+                  <td>Execução de Contrato (Art. 7º, V)</td>
+                </tr>
+                <tr>
+                  <td><strong>Lançamentos Financeiros</strong></td>
+                  <td>Descrições de despesas, valores, datas de vencimento, categorias, status de parcelas e tributos.</td>
+                  <td>Cálculo do fluxo quinzenal, gráficos de controle orçamentário e projeção de faturas.</td>
+                  <td>Consentimento & Execução de Contrato (Art. 7º, I e V)</td>
+                </tr>
+                <tr>
+                  <td><strong>Faturamento e Assinaturas</strong></td>
+                  <td>CPF (apenas se informado no checkout), histórico de transações e status de plano (Free, Pro, Duo).</td>
+                  <td>Processamento de cobrança, emissão de faturas e cumprimento de obrigações tributárias.</td>
+                  <td>Cumprimento de Obrigação Legal e Execução de Contrato (Art. 7º, II e V)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="legal-section">
+          <h2>4. Segurança e Não Armazenamento de Dados de Pagamento</h2>
+          <p>
+            Garantimos os mais elevados padrões de segurança da informação (InfoSec):
+          </p>
+          <ul>
+            <li>
+              <strong>Cartões de Crédito (PCI-DSS):</strong> Toda a captura e validação de dados de cartão de crédito é realizada de ponta a ponta pelo gateway homologado <strong>Asaas Gestão Financeira</strong>. O Quinzena <em>nunca</em> armazena em seus servidores número completo de cartão (PAN), data de validade ou código de segurança (CVV).
+            </li>
+            <li>
+              <strong>Criptografia Forte:</strong> Todo o tráfego é protegido por criptografia TLS 1.3 em trânsito e criptografia AES-256 em repouso no Google Cloud Firestore.
+            </li>
+            <li>
+              <strong>Isolamento Lógico (Multitenancy):</strong> Cada usuário possui isolamento rígido garantido por Firestore Security Rules, impedindo que qualquer usuário acesse ou visualize dados de terceiros.
+            </li>
+          </ul>
+        </section>
+
+        <section class="legal-section">
+          <h2>5. Armazenamento Local, Cache e Cookies Essenciais</h2>
+          <p>
+            O Quinzena utiliza tecnologias de armazenamento do navegador (<code>localStorage</code> e <code>IndexedDB</code>) com o único propósito de viabilizar a arquitetura <strong>Offline-First PWA</strong> e manter você conectado com segurança sem a necessidade de logins repetitivos. Não utilizamos cookies de terceiros para rastreamento publicitário ou perfilhamento de consumo para fins comerciais externos.
+          </p>
+        </section>
+
+        <section class="legal-section">
+          <h2>6. Direitos do Titular dos Dados (Artigo 18 da LGPD)</h2>
+          <p>
+            Você possui pleno controle sobre suas informações. A qualquer momento, você pode exercer os seguintes direitos:
+          </p>
+          <ul>
+            <li><strong>Acesso e Confirmação:</strong> Consultar seus dados e relatórios diretamente na aplicação ou solicitar cópia consolidada;</li>
+            <li><strong>Correção:</strong> Atualizar dados incorretos, incompletos ou desatualizados diretamente na tela de configurações;</li>
+            <li><strong>Direito ao Esquecimento / Exclusão Permanente:</strong> Você pode excluir sua conta a qualquer momento em <em>Configurações &gt; Zona de Perigo &gt; Excluir Conta</em>. Essa ação aciona a deleção imediata e irreversível de todo o seu histórico no Firestore e no Firebase Auth;</li>
+            <li><strong>Revogação do Consentimento:</strong> Descontinuar o uso da ferramenta a qualquer tempo mediante exclusão do cadastro.</li>
+          </ul>
+        </section>
+
+        <section class="legal-section">
+          <h2>7. Compartilhamento Restrito com Provedores de Serviço</h2>
+          <p>
+            Seus dados nunca são vendidos, alugados ou compartilhados com corretoras, anunciantes ou terceiros para fins de marketing. O compartilhamento ocorre estritamente com os provedores de infraestrutura necessários para a operação do sistema:
+          </p>
+          <ul>
+            <li><strong>Google Cloud / Firebase:</strong> Hospedagem segura de banco de dados, autenticação e funções em nuvem;</li>
+            <li><strong>Asaas Gestão Financeira:</strong> Processamento de cobranças via PIX e cartão de crédito para assinantes dos planos pagos.</li>
+          </ul>
+        </section>
+
+        <section class="legal-section">
+          <h2>8. Contato e Canal com o Titular</h2>
+          <p>
+            Para exercer qualquer um dos seus direitos ou tirar dúvidas sobre esta Política de Privacidade, entre em contato com nosso Encarregado através do canal:
+          </p>
+          <div class="legal-contact-box">
+            <span>📧</span>
+            <div>
+              <strong>Encarregado de Proteção de Dados (DPO)</strong>
+              <p><a href="mailto:privacidade@quinzena.app">privacidade@quinzena.app</a></p>
+            </div>
+          </div>
+        </section>
+
+        <footer class="legal-card-footer">
+          <p>Sua privacidade e segurança financeira são as nossas maiores prioridades.</p>
+        </footer>
+      </article>
+    </div>
+  </main>
+</div>

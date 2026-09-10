@@ -217,6 +217,12 @@
             }
           </div>
 
+          <p class="auth-legal-notice">
+            Ao criar sua conta, você concorda com nossos
+            <a routerLink="/termos" target="_blank" rel="noopener noreferrer">Termos de Uso</a> e
+            <a routerLink="/privacidade" target="_blank" rel="noopener noreferrer">Política de Privacidade</a>.
+          </p>
+
           <button type="submit" class="btn-submit btn-submit--success" [disabled]="isLoading()">
             @if (isLoading()) {
               <span class="spinner"></span>

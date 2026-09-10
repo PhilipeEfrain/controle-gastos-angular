@@ -82,4 +82,38 @@ describe('LandingComponent', () => {
       queryParams: { tab: 'register', plan: 'pro' }
     });
   });
+
+  describe('Cenário BDD 2: Banner de Consentimento de Cookies e Termos na Landing Page', () => {
+    it('deve exibir o banner de cookies caso não haja consentimento prévio', () => {
+      vi.spyOn(Storage.prototype, 'getItem').mockReturnValue(null);
+      component.ngOnInit();
+      fixture.detectChanges();
+
+      expect(component.showCookieConsent()).toBe(true);
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.querySelector('.cookie-banner')).toBeTruthy();
+      expect(compiled.querySelector('.cookie-banner')?.textContent).toContain('Termos de Uso');
+      expect(compiled.querySelector('.cookie-banner')?.textContent).toContain('Política de Privacidade');
+    });
+
+    it('deve gravar consentimento no localStorage e ocultar o banner ao aceitar', () => {
+      const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
+      component.showCookieConsent.set(true);
+      fixture.detectChanges();
+
+      component.acceptCookieConsent();
+      fixture.detectChanges();
+
+      expect(setItemSpy).toHaveBeenCalledWith('cookie_consent_accepted', 'true');
+      expect(component.showCookieConsent()).toBe(false);
+    });
+
+    it('deve renderizar links para /termos e /privacidade no rodapé', () => {
+      fixture.detectChanges();
+      const compiled = fixture.nativeElement as HTMLElement;
+      const links = Array.from(compiled.querySelectorAll('.footer-col a')).map(a => a.textContent?.trim());
+      expect(links).toContain('Termos de Uso');
+      expect(links).toContain('Privacidade & LGPD');
+    });
+  });
 });
