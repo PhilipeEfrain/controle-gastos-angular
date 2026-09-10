@@ -24,6 +24,7 @@ describe('AuthStore (Signals State)', () => {
     mockAuthService = {
       authState$: vi.fn(() => authStateSubject.asObservable()),
       syncUserProfile: vi.fn(async () => mockUser),
+      cancelUserSubscription: vi.fn(async () => {}),
       logout: vi.fn(async () => {})
     };
 
@@ -200,4 +201,41 @@ describe('AuthStore (Signals State)', () => {
     expect(store.isGracePeriodActive()).toBe(false);
     expect(store.isPlanSuspended()).toBe(true);
   });
+
+  describe('Cenários BDD (CARD-041): Vencimento e Cancelamento de Assinatura', () => {
+    it('deve formatar a data de expiração no formato DD/MM/AAAA', () => {
+      store.setUser({
+        ...mockUser,
+        plan: 'pro',
+        planExpiresAt: '2026-10-15T12:00:00.000Z'
+      });
+
+      expect(store.planExpiresAtFormatted()).toBe('15/10/2026');
+    });
+
+    it('deve retornar string vazia se planExpiresAt for nulo ou indefinido', () => {
+      store.setUser({
+        ...mockUser,
+        plan: 'free',
+        planExpiresAt: null
+      });
+
+      expect(store.planExpiresAtFormatted()).toBe('');
+    });
+
+    it('deve executar cancelSubscription chamando authService e marcando planStatus=canceled', async () => {
+      store.setUser({
+        ...mockUser,
+        plan: 'pro',
+        planStatus: 'active',
+        asaasSubscriptionId: 'sub_xyz_999'
+      });
+
+      await store.cancelSubscription();
+
+      expect(mockAuthService.cancelUserSubscription).toHaveBeenCalledWith('user-123', 'sub_xyz_999');
+      expect(store.planStatus()).toBe('canceled');
+    });
+  });
 });
+

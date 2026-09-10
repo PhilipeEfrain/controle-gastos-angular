@@ -231,4 +231,35 @@ describe('AsaasService (Gateway de Pagamentos & Assinaturas)', () => {
       expect(result.newPlanStatus).toBe('canceled');
     });
   });
+
+  describe('Gerenciamento e Consulta de Assinatura (API v3)', () => {
+    it('Cenário BDD: deve consultar assinatura por ID', async () => {
+      const sub = await service.getSubscription('sub_123456');
+      expect(sub).toBeDefined();
+      expect(sub.id).toBe('sub_123456');
+      expect(sub.status).toBe('ACTIVE');
+      expect(sub.billingType).toBe('CREDIT_CARD');
+    });
+
+    it('Cenário BDD: deve cancelar assinatura por ID', async () => {
+      const result = await service.cancelSubscription('sub_123456');
+      expect(result).toBeDefined();
+      expect(result.deleted).toBe(true);
+      expect(result.id).toBe('sub_123456');
+    });
+
+    it('Cenário BDD: deve atualizar cartão de crédito de assinatura', async () => {
+      const updated = await service.updateSubscriptionCreditCard('sub_123456', {
+        holderName: 'CARLOS SILVA',
+        number: '4532111122223333',
+        expiryMonth: '12',
+        expiryYear: '2028',
+        ccv: '123'
+      });
+      expect(updated).toBeDefined();
+      expect(updated.id).toBe('sub_123456');
+      expect(updated.status).toBe('ACTIVE');
+    });
+  });
 });
+

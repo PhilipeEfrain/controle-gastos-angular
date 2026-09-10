@@ -203,6 +203,26 @@ export class AuthService {
   }
 
   /**
+   * Cancela a assinatura do usuário: atualiza o status para 'canceled' no Firestore
+   * O usuário mantém acesso aos benefícios até a data limite planExpiresAt e nenhum dado histórico é apagado.
+   */
+  async cancelUserSubscription(userId: string, subscriptionId?: string): Promise<void> {
+    const userDocRef = doc(this.firestore, `users/${userId}`);
+    const updatePayload: Record<string, any> = {
+      planStatus: 'canceled',
+      updatedAt: new Date().toISOString()
+    };
+
+    try {
+      await setDoc(userDocRef, updatePayload, { merge: true });
+    } catch (err) {
+      this.logger.error('Erro ao cancelar assinatura no Firestore:', err);
+      throw err;
+    }
+  }
+
+
+  /**
    * Atualiza dados de perfil (nome, foto e preferências) no Firebase Auth e Firestore
    */
   async updateProfileData(

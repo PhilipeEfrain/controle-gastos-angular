@@ -433,4 +433,112 @@ export class AsaasService {
         };
     }
   }
+
+  /**
+   * Obtém os detalhes de uma assinatura específica no Asaas (GET /v3/subscriptions/{id})
+   */
+  async getSubscription(
+    subscriptionId: string,
+    apiKey?: string,
+    environment: AsaasEnvironment = 'sandbox'
+  ): Promise<AsaasSubscriptionResponse> {
+    if (this.http && apiKey) {
+      try {
+        const headers = new HttpHeaders({ 'access_token': apiKey });
+        const url = `${this.getBaseUrl(environment)}/subscriptions/${subscriptionId}`;
+        return await firstValueFrom(this.http.get<AsaasSubscriptionResponse>(url, { headers }));
+      } catch (err: any) {
+        this.logger.error('Erro ao consultar assinatura no Asaas:', err);
+        throw new Error(err?.error?.errors?.[0]?.description || err?.error?.message || 'Erro ao consultar assinatura.');
+      }
+    }
+
+    return {
+      id: subscriptionId,
+      customer: 'cus_simulated',
+      status: 'ACTIVE',
+      value: 9.90,
+      cycle: 'MONTHLY',
+      nextDueDate: new Date().toISOString().split('T')[0],
+      billingType: 'CREDIT_CARD',
+      dateCreated: new Date().toISOString()
+    };
+  }
+
+  /**
+   * Cancela uma assinatura recorrente no Asaas (DELETE /v3/subscriptions/{id})
+   */
+  async cancelSubscription(
+    subscriptionId: string,
+    apiKey?: string,
+    environment: AsaasEnvironment = 'sandbox'
+  ): Promise<{ deleted: boolean; id: string }> {
+    if (this.http && apiKey) {
+      try {
+        const headers = new HttpHeaders({ 'access_token': apiKey });
+        const url = `${this.getBaseUrl(environment)}/subscriptions/${subscriptionId}`;
+        return await firstValueFrom(this.http.delete<{ deleted: boolean; id: string }>(url, { headers }));
+      } catch (err: any) {
+        this.logger.error('Erro ao cancelar assinatura no Asaas:', err);
+        throw new Error(err?.error?.errors?.[0]?.description || err?.error?.message || 'Erro ao cancelar assinatura no gateway.');
+      }
+    }
+
+    return {
+      deleted: true,
+      id: subscriptionId
+    };
+  }
+
+  /**
+   * Atualiza o cartão de crédito associado a uma assinatura existente (PUT /v3/subscriptions/{id})
+   */
+  async updateSubscriptionCreditCard(
+    subscriptionId: string,
+    cardData: CreditCardData,
+    holderInfo?: CreditCardHolderInfo,
+    apiKey?: string,
+    environment: AsaasEnvironment = 'sandbox'
+  ): Promise<AsaasSubscriptionResponse> {
+    const payload: {
+      creditCard: CreditCardData;
+      creditCardHolderInfo?: CreditCardHolderInfo;
+    } = {
+      creditCard: cardData,
+      creditCardHolderInfo: holderInfo
+    };
+
+    if (this.http && apiKey) {
+      try {
+        const headers = new HttpHeaders({
+          'Content-Type': 'application/json',
+          'access_token': apiKey
+        });
+        const url = `${this.getBaseUrl(environment)}/subscriptions/${subscriptionId}`;
+        return await firstValueFrom(this.http.put<AsaasSubscriptionResponse>(url, payload, { headers }));
+      } catch (err: any) {
+        this.logger.error('Erro ao atualizar cartão de crédito da assinatura no Asaas:', err);
+        const apiErrors = err?.error?.errors;
+        let description = 'Erro ao atualizar dados do cartão.';
+        if (Array.isArray(apiErrors) && apiErrors.length > 0) {
+          description = apiErrors.map((e: any) => e.description || e.message).join(' | ');
+        } else if (err?.error?.message) {
+          description = err.error.message;
+        }
+        throw new Error(description);
+      }
+    }
+
+    return {
+      id: subscriptionId,
+      customer: 'cus_simulated',
+      status: 'ACTIVE',
+      value: 9.90,
+      cycle: 'MONTHLY',
+      nextDueDate: new Date().toISOString().split('T')[0],
+      billingType: 'CREDIT_CARD',
+      dateCreated: new Date().toISOString()
+    };
+  }
 }
+
