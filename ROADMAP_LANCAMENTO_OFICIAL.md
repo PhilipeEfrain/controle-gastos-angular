@@ -145,21 +145,22 @@ Apesar da riqueza funcional do aplicativo, existem lacunas que separam o projeto
 
 ```
 ================================================================================
-FASE 1: AUTOMAÇÃO DE MONETIZAÇÃO & SEGURANÇA (P0)
+FASE 1: AUTOMAÇÃO DE MONETIZAÇÃO & SEGURANÇA (P0) - 100% CONCLUÍDA
 ================================================================================
 [x] CARD-037: Envio obrigatório de creditCardHolderInfo no Asaas (Concluído)
 [x] CARD-038: Resolução de ID de cobrança para PIX dinâmico (Concluído)
-[ ] CARD-039: Endpoint de Webhook do Asaas via Firebase Cloud Functions (Ready)
-[ ] CARD-040: Política de Inadimplência, Grace Period e Banner no Frontend (Ready)
+[x] CARD-039: Endpoint de Webhook do Asaas via Firebase Cloud Functions (Concluído)
+[x] CARD-040: Política de Inadimplência, Grace Period e Banner no Frontend (Concluído)
 [ ] Configuração e homologação das credenciais de Produção do Asaas
 
 ================================================================================
-FASE 2: CONFORMIDADE, SELF-SERVICE & ONBOARDING (P1)
+FASE 2: CONFORMIDADE, SELF-SERVICE & VISIBILIDADE DE VENCIMENTOS (P1)
 ================================================================================
-[ ] CARD-041: Painel "Minha Assinatura" em /settings (Troca de cartão e cancelamento)
-[ ] CARD-042: Páginas públicas de Termos de Uso e Política de Privacidade (LGPD)
-[ ] CARD-043: Checklist guiado de Onboarding e Primeiro Acesso
-[ ] Widget ou link de Suporte / Atendimento ao Cliente
+[ ] CARD-041: Painel "Minha Assinatura" em /settings (Data de Expiração, Próxima Cobrança, Troca de Cartão e Cancelamento)
+[ ] CARD-042: Visibilidade de Vencimentos, Próxima Cobrança e Auditoria de Assinaturas no Painel Admin (/admin)
+[ ] CARD-043: Páginas públicas de Termos de Uso, Política de Privacidade e Consentimento LGPD
+[ ] CARD-044: Checklist guiado de Onboarding e Primeiro Acesso com Empty State Interativo
+[ ] CARD-045: Widget e Canal de Suporte / Atendimento ao Cliente no App
 
 ================================================================================
 FASE 3: LANÇAMENTO OFICIAL & GO-LIVE (P2)
