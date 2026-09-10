@@ -108,4 +108,20 @@ describe('OnboardingChecklistComponent', () => {
     component.onStep3Click();
     expect(exploreEmitted).toBe(true);
   });
+
+  it('deve possuir a estrutura de classes semânticas para adaptação aos temas do Design System', () => {
+    const compiled = fixture.nativeElement as HTMLElement;
+    const card = compiled.querySelector('.onboarding-card');
+    const header = compiled.querySelector('.onboarding-header');
+    const badge = compiled.querySelector('.step-badge');
+    const track = compiled.querySelector('.progress-track');
+    const stepCards = compiled.querySelectorAll('.step-card');
+
+    expect(card).toBeTruthy();
+    expect(header).toBeTruthy();
+    expect(badge).toBeTruthy();
+    expect(track).toBeTruthy();
+    expect(stepCards.length).toBe(3);
+  });
 });
+

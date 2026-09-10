@@ -132,7 +132,7 @@
 | `CategoryDonutChartComponent` | `app-category-donut-chart` | Gráfico Donut em SVG com cálculo proporcional por categoria, tooltips reativos e legenda com percentuais. |
 | `MonthlyEvolutionChartComponent` | `app-monthly-evolution-chart` | Gráfico de evolução histórica mensal em barras SVG comparativas (Rendas vs. Gastos vs. Saldo). |
 | `ExportModalComponent` | `app-export-modal` | Modal para seleção de formato de exportação (Planilha Excel/CSV ou Relatório PDF/Impressão) com prévia do resumo financeiro. |
-| `OnboardingChecklistComponent` | `app-onboarding-checklist` | Checklist guiado de onboarding e primeiro acesso com progresso gamificado (0% a 100%), 3 passos fundamentais de configuração, celebração reativa e dispensa memorizada localmente. |
+| `OnboardingChecklistComponent` | `app-onboarding-checklist` | Checklist guiado de onboarding e primeiro acesso com progresso gamificado (0% a 100%), 3 passos fundamentais de configuração, celebração reativa e estilização dinâmica integrada aos temas do Design System (Dark, Light e Dark-Blue). |
 
 ### D. Feature: Tributos Anuais (`src/app/features/taxes/`)
 | Componente | Seletor | Descrição |
