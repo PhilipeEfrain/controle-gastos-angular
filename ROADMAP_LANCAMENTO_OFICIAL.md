@@ -162,6 +162,7 @@ FASE 2: CONFORMIDADE, SELF-SERVICE & VISIBILIDADE DE VENCIMENTOS (P1) - 100% CON
 [x] CARD-044: Checklist guiado de Onboarding e Primeiro Acesso com Empty State Interativo
 [x] CARD-046: Flexibilidade de Data de Pagamento no Regime Mensal Único (5º dia útil e datas customizadas)
 [x] CARD-047: Adaptação do Guia de Primeiros Passos aos Temas do Design System (Dark, Light, Dark-Blue)
+[x] CARD-048: Adaptação do Modal de Rendas e Dia do Recebimento Salarial aos Temas do Design System
 [ ] CARD-045: Widget e Canal de Suporte / Atendimento ao Cliente no App
 
 ================================================================================
