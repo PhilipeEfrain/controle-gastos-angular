@@ -10,6 +10,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminService, SaaSMetrics } from '../../core/services/admin.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { AsaasService } from '../../core/services/asaas.service';
 import { AuthStore } from '../../core/state/auth.store';
 import { UserProfile, PlanType, PlanStatus, UserRole } from '../../core/models/user.model';
 import { AsaasConfig, AsaasEnvironment } from '../../core/models/payment.model';
@@ -27,6 +28,7 @@ import { parseFirestoreDate } from '../../core/utils/date';
 export class AdminComponent implements OnInit {
   private adminService = inject(AdminService);
   private notificationService = inject(NotificationService);
+  private asaasService = inject(AsaasService);
   private authStore = inject(AuthStore);
 
   // Navegação em Abas (Tabs)
@@ -62,6 +64,14 @@ export class AdminComponent implements OnInit {
   readonly editPlan = signal<PlanType>('free');
   readonly editStatus = signal<PlanStatus>('active');
   readonly editRole = signal<UserRole>('user');
+  readonly editExpiresAt = signal<string>('');
+
+  // Estados do Modal de Auditoria de Assinatura Asaas (CARD-042)
+  readonly selectedUserForAudit = signal<UserProfile | null>(null);
+  readonly isAuditLoading = signal<boolean>(false);
+  readonly liveSubscriptionDetails = signal<any | null>(null);
+  readonly auditError = signal<string | null>(null);
+
 
   // Métricas Globais Computadas do SaaS (MRR, Total, Conversão)
   readonly metrics = computed<SaaSMetrics>(() => {
@@ -304,6 +314,16 @@ export class AdminComponent implements OnInit {
     this.editPlan.set(user.plan || 'free');
     this.editStatus.set(user.planStatus || 'active');
     this.editRole.set(user.role || 'user');
+    if (user.planExpiresAt) {
+      const expDate = parseFirestoreDate(user.planExpiresAt);
+      if (expDate && !isNaN(expDate.getTime())) {
+        this.editExpiresAt.set(expDate.toISOString().split('T')[0]);
+      } else {
+        this.editExpiresAt.set('');
+      }
+    } else {
+      this.editExpiresAt.set('');
+    }
   }
 
   closeEditModal(): void {
@@ -320,6 +340,11 @@ export class AdminComponent implements OnInit {
     this.editRole.set(select.value as UserRole);
   }
 
+  onExpiresAtChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.editExpiresAt.set(input.value);
+  }
+
   /**
    * Salva alterações manuais de plano e papel no Firestore
    */
@@ -332,9 +357,11 @@ export class AdminComponent implements OnInit {
       const newPlan = this.editPlan();
       const newStatus = this.editStatus();
       const newRole = this.editRole();
+      const rawExp = this.editExpiresAt();
+      const newExpiresAt = rawExp ? new Date(`${rawExp}T23:59:59.999Z`).toISOString() : null;
 
-      // Atualiza plano e status
-      await this.adminService.updateUserPlan(target.uid, newPlan, newStatus);
+      // Atualiza plano, status e data de expiração
+      await this.adminService.updateUserPlan(target.uid, newPlan, newStatus, newExpiresAt);
 
       // Atualiza papel RBAC se modificado
       if (newRole !== target.role) {
@@ -349,6 +376,7 @@ export class AdminComponent implements OnInit {
                 ...u,
                 plan: newPlan,
                 planStatus: newStatus,
+                planExpiresAt: newExpiresAt,
                 role: newRole,
                 updatedAt: new Date().toISOString()
               }
@@ -363,6 +391,78 @@ export class AdminComponent implements OnInit {
     } finally {
       this.isSaving.set(false);
     }
+  }
+
+  // --- MÉTODOS DE AUDITORIA DE ASSINATURA ASAAS (CARD-042) ---
+
+  openAuditModal(user: UserProfile): void {
+    this.selectedUserForAudit.set(user);
+    this.liveSubscriptionDetails.set(null);
+    this.auditError.set(null);
+    if (user.asaasSubscriptionId) {
+      this.fetchLiveSubscriptionDetails();
+    }
+  }
+
+  closeAuditModal(): void {
+    this.selectedUserForAudit.set(null);
+    this.liveSubscriptionDetails.set(null);
+    this.auditError.set(null);
+  }
+
+  async fetchLiveSubscriptionDetails(): Promise<void> {
+    const user = this.selectedUserForAudit();
+    if (!user || !user.asaasSubscriptionId) return;
+
+    this.isAuditLoading.set(true);
+    this.auditError.set(null);
+
+    try {
+      const asaasConfig = await this.adminService.getAsaasConfig();
+      const apiKey = asaasConfig?.apiKey || undefined;
+      const environment = asaasConfig?.environment || 'sandbox';
+
+      const details = await this.asaasService.getSubscription(user.asaasSubscriptionId, apiKey, environment);
+      this.liveSubscriptionDetails.set(details);
+    } catch (err: any) {
+      this.auditError.set(err.message || 'Erro ao consultar detalhes da assinatura no gateway.');
+    } finally {
+      this.isAuditLoading.set(false);
+    }
+  }
+
+  formatExpirationDate(dateVal?: string | null): string {
+    if (!dateVal) return '-';
+    // Se for string no formato ISO (YYYY-MM-DD...), divide para evitar drift de fuso horário UTC
+    if (typeof dateVal === 'string' && dateVal.includes('-')) {
+      const datePart = dateVal.split('T')[0];
+      const parts = datePart.split('-');
+      if (parts.length === 3 && parts[0].length === 4) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+    }
+    const date = parseFirestoreDate(dateVal);
+    if (!date || isNaN(date.getTime())) return '-';
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
+  isExpiringSoon(user: UserProfile): boolean {
+    if (!user.planExpiresAt || user.plan === 'free' || user.planStatus === 'canceled') return false;
+    const expDate = parseFirestoreDate(user.planExpiresAt);
+    if (!expDate || isNaN(expDate.getTime())) return false;
+    const now = new Date();
+    const diffDays = Math.ceil((expDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    return diffDays >= 0 && diffDays <= 7;
+  }
+
+  isExpired(user: UserProfile): boolean {
+    if (!user.planExpiresAt || user.plan === 'free') return false;
+    const expDate = parseFirestoreDate(user.planExpiresAt);
+    if (!expDate || isNaN(expDate.getTime())) return false;
+    return expDate < new Date();
   }
 
   // Helpers de Interface

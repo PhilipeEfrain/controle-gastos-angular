@@ -224,6 +224,7 @@
                 <th>E-mail</th>
                 <th>Papel (RBAC)</th>
                 <th>Plano</th>
+                <th>Expira / Renova em</th>
                 <th>Status</th>
                 <th>Cadastro</th>
                 <th class="text-right">Ações</th>
@@ -279,12 +280,38 @@
                     }
                   </td>
 
+                  <!-- Expira / Renova em (CARD-042) -->
+                  <td class="col-expires">
+                    @if (user.plan === 'free') {
+                      <span class="expires-text text-muted">-</span>
+                    } @else {
+                      <div class="expires-cell">
+                        <span class="expires-date">{{ formatExpirationDate(user.planExpiresAt) }}</span>
+                        @if (isExpiringSoon(user)) {
+                          <span class="badge-expiring-soon" title="Vencimento próximo (< 7 dias)">⚠️ Próximo</span>
+                        } @else if (isExpired(user)) {
+                          <span class="badge-expired" title="Assinatura vencida">Expirado</span>
+                        }
+                      </div>
+                    }
+                  </td>
+
                   <!-- Status -->
                   <td class="col-status">
                     @if (user.planStatus === 'active') {
                       <span class="status-indicator status-active">
                         <span class="dot"></span>
                         <span>Ativo</span>
+                      </span>
+                    } @else if (user.planStatus === 'past_due') {
+                      <span class="status-indicator status-warning">
+                        <span class="dot"></span>
+                        <span>Em Carência</span>
+                      </span>
+                    } @else if (user.planStatus === 'trial') {
+                      <span class="status-indicator status-trial">
+                        <span class="dot"></span>
+                        <span>Trial</span>
                       </span>
                     } @else {
                       <span class="status-indicator status-canceled">
@@ -301,18 +328,33 @@
 
                   <!-- Ações -->
                   <td class="col-actions text-right">
-                    <button
-                      type="button"
-                      class="btn-action-edit"
-                      (click)="openEditModal(user)"
-                      title="Gerenciar plano e permissões do usuário"
-                      [id]="'btn-edit-user-' + user.uid"
-                    >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                      </svg>
-                      <span>Gerenciar</span>
-                    </button>
+                    <div class="actions-group">
+                      <button
+                        type="button"
+                        class="btn-action-audit"
+                        (click)="openAuditModal(user)"
+                        title="Auditoria de Assinatura Asaas"
+                        [id]="'btn-audit-user-' + user.uid"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
+                        </svg>
+                        <span>Auditoria</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        class="btn-action-edit"
+                        (click)="openEditModal(user)"
+                        title="Gerenciar plano e permissões do usuário"
+                        [id]="'btn-edit-user-' + user.uid"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                        </svg>
+                        <span>Gerenciar</span>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               }
@@ -794,6 +836,21 @@
             </p>
           </div>
 
+          <!-- Data de Expiração do Plano (CARD-042) -->
+          <div class="form-group">
+            <label for="edit-user-expires" class="form-label">Data de Expiração / Próxima Cobrança</label>
+            <input
+              id="edit-user-expires"
+              type="date"
+              class="form-input"
+              [value]="editExpiresAt()"
+              (input)="onExpiresAtChange($event)"
+            />
+            <p class="field-hint">
+              Define ou prorroga manualmente a vigência do plano do cliente. Deixe vazio para contas permanentes ou gratuitas.
+            </p>
+          </div>
+
           <footer class="modal-footer">
             <button
               type="button"
@@ -818,6 +875,116 @@
             </button>
           </footer>
         </form>
+      </div>
+    </div>
+  }
+
+  <!-- Modal de Auditoria de Assinatura Asaas (CARD-042) -->
+  @if (selectedUserForAudit(); as auditUser) {
+    <div class="modal-backdrop" (click)="closeAuditModal()">
+      <div class="modal-card modal-audit-card" (click)="$event.stopPropagation()">
+        <header class="modal-header">
+          <div class="modal-title-group">
+            <div class="modal-tag">🔍 Auditoria Gateway Asaas</div>
+            <h2>Assinatura & Faturamento</h2>
+            <p class="modal-subtitle">{{ auditUser.displayName }} ({{ auditUser.email }})</p>
+          </div>
+          <button type="button" class="btn-close-modal" (click)="closeAuditModal()" aria-label="Fechar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </header>
+
+        <div class="modal-body">
+          <!-- Identificadores Locais no Firestore -->
+          <div class="audit-summary-grid">
+            <div class="audit-item">
+              <span class="audit-label">Plano Cadastrado</span>
+              <strong class="audit-value text-uppercase">{{ auditUser.plan || 'free' }}</strong>
+            </div>
+            <div class="audit-item">
+              <span class="audit-label">Status Local</span>
+              <strong class="audit-value text-uppercase">{{ auditUser.planStatus || 'active' }}</strong>
+            </div>
+            <div class="audit-item">
+              <span class="audit-label">Expiração / Renovação</span>
+              <strong class="audit-value">{{ formatExpirationDate(auditUser.planExpiresAt) }}</strong>
+            </div>
+            <div class="audit-item">
+              <span class="audit-label">ID Cliente Asaas</span>
+              <code class="audit-code">{{ auditUser.asaasCustomerId || 'Não registrado' }}</code>
+            </div>
+            <div class="audit-item full-width">
+              <span class="audit-label">ID Assinatura Asaas</span>
+              <code class="audit-code">{{ auditUser.asaasSubscriptionId || 'Nenhuma assinatura recorrente vinculada' }}</code>
+            </div>
+          </div>
+
+          <!-- Consulta em Tempo Real junto à API Asaas -->
+          <div class="live-audit-section">
+            <div class="live-audit-header">
+              <h4>Status em Tempo Real (API Asaas v3)</h4>
+              @if (auditUser.asaasSubscriptionId) {
+                <button
+                  type="button"
+                  class="btn-refresh-audit"
+                  (click)="fetchLiveSubscriptionDetails()"
+                  [disabled]="isAuditLoading()"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" [class.spinning]="isAuditLoading()">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                  </svg>
+                  <span>Atualizar</span>
+                </button>
+              }
+            </div>
+
+            @if (!auditUser.asaasSubscriptionId) {
+              <div class="audit-empty-notice">
+                <p>Este usuário não possui identificador de assinatura ativo no Asaas (plano gratuito ou registro anterior ao gateway).</p>
+              </div>
+            } @else if (isAuditLoading()) {
+              <div class="audit-loading">
+                <div class="spinner"></div>
+                <span>Consultando endpoint /v3/subscriptions no Asaas...</span>
+              </div>
+            } @else if (auditError()) {
+              <div class="audit-error-notice">
+                <p>⚠️ {{ auditError() }}</p>
+              </div>
+            } @else if (liveSubscriptionDetails(); as live) {
+              <div class="live-details-card">
+                <div class="live-field">
+                  <span class="live-label">Status Gateway:</span>
+                  <span class="live-badge" [class.live-active]="live.status === 'ACTIVE'">{{ live.status }}</span>
+                </div>
+                <div class="live-field">
+                  <span class="live-label">Valor Recorrente:</span>
+                  <strong class="live-value">{{ formatBRL(live.value) }}</strong>
+                </div>
+                <div class="live-field">
+                  <span class="live-label">Periodicidade:</span>
+                  <span class="live-value">{{ live.cycle }}</span>
+                </div>
+                <div class="live-field">
+                  <span class="live-label">Próximo Vencimento:</span>
+                  <strong class="live-value text-highlight">{{ live.nextDueDate }}</strong>
+                </div>
+                <div class="live-field">
+                  <span class="live-label">Forma de Pagamento:</span>
+                  <span class="live-value">{{ live.billingType }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" class="btn-secondary" (click)="closeAuditModal()">
+            Fechar
+          </button>
+        </footer>
       </div>
     </div>
   }

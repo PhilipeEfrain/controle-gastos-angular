@@ -169,7 +169,7 @@
 ### J. Feature: Administração SaaS (`src/app/features/admin/`)
 | Componente | Seletor | Descrição |
 | :--- | :--- | :--- |
-| `AdminComponent` | `app-admin` | Painel administrativo com abas (Visão Geral & Usuários vs. Integração Asaas), monitoramento global de métricas de SaaS, governança de planos e configuração protegida do gateway de pagamentos com teste de conectividade em tempo real. |
+| `AdminComponent` | `app-admin` | Painel administrativo com abas (Visão Geral & Usuários vs. Integração Asaas), monitoramento global de métricas de SaaS, governança de planos com visibilidade de vencimentos/próxima cobrança, modal de auditoria de assinaturas Asaas em tempo real e configuração protegida do gateway de pagamentos com teste de conectividade. |
 
 ---
 
