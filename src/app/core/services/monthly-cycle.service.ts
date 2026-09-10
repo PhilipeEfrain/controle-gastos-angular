@@ -53,7 +53,9 @@ export class MonthlyCycleService {
     mesAno: string,
     rendaQ1: number,
     rendaQ2: number,
-    regime?: string
+    regime?: string,
+    diaPagamento?: number | string,
+    descricaoDiaPagamento?: string
   ): Promise<MonthlyCycle> {
     const cycleDocRef = doc(this.firestore, `users/${userId}/ciclos_mensais/${mesAno}`);
     const safeQ1 = roundBRL(rendaQ1 || 0);
@@ -72,6 +74,14 @@ export class MonthlyCycleService {
       cycleData.regime_salarial = regime as any;
     }
 
+    if (diaPagamento !== undefined && diaPagamento !== null) {
+      cycleData.dia_pagamento = diaPagamento;
+    }
+
+    if (descricaoDiaPagamento !== undefined && descricaoDiaPagamento !== null) {
+      cycleData.descricao_dia_pagamento = descricaoDiaPagamento;
+    }
+
     await setDoc(cycleDocRef, cycleData, { merge: true });
 
     return {
@@ -82,7 +92,9 @@ export class MonthlyCycleService {
       total_renda: totalRenda,
       total_gastos: 0,
       saldo_final: totalRenda,
-      regime_salarial: regime as any
+      regime_salarial: regime as any,
+      dia_pagamento: diaPagamento,
+      descricao_dia_pagamento: descricaoDiaPagamento
     };
   }
 

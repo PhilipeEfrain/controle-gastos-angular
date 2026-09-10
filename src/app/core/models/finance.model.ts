@@ -30,7 +30,7 @@ export interface RecurringExpense {
   updatedAt?: string;
 }
 
-export type SalaryRegime = 'quinzenal' | 'mensal_q1' | 'mensal_q2' | 'divisao_50_50';
+export type SalaryRegime = 'quinzenal' | 'mensal_q1' | 'mensal_q2' | 'divisao_50_50' | 'mensal_unico';
 
 export interface MonthlyCycle {
   id?: string;
@@ -41,6 +41,8 @@ export interface MonthlyCycle {
   total_gastos: number;
   saldo_final: number;
   regime_salarial?: SalaryRegime;
+  dia_pagamento?: number | string; // Ex: 5, 10, 20 ou '5_dia_util'
+  descricao_dia_pagamento?: string; // Ex: '5º dia útil', 'Dia 10', 'Dia 20'
   updatedAt?: string;
 }
 

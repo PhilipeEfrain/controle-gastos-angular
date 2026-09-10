@@ -62,14 +62,14 @@ service cloud.firestore {
 
     // Validador de Ciclo Mensal com Suporte a Renda, Totais e Regime Salarial
     function isValidMonthlyCycle(data) {
-      return data.keys().hasOnly(['id', 'mesAno', 'renda_quinzena_1', 'renda_quinzena_2', 'total_renda', 'total_gastos', 'saldo_final', 'regime_salarial', 'createdAt', 'updatedAt'])
+      return data.keys().hasOnly(['id', 'mesAno', 'renda_quinzena_1', 'renda_quinzena_2', 'total_renda', 'total_gastos', 'saldo_final', 'regime_salarial', 'dia_pagamento', 'descricao_dia_pagamento', 'createdAt', 'updatedAt'])
         && (!('renda_quinzena_1' in data) || isValidPositiveNumber(data.renda_quinzena_1))
         && (!('renda_quinzena_2' in data) || isValidPositiveNumber(data.renda_quinzena_2))
         && (!('total_renda' in data) || isValidPositiveNumber(data.total_renda))
         && (!('total_gastos' in data) || isValidPositiveNumber(data.total_gastos))
         && (!('saldo_final' in data) || isValidNumber(data.saldo_final))
         && (!('mesAno' in data) || isValidYearMonth(data.mesAno))
-        && (!('regime_salarial' in data) || data.regime_salarial in ['quinzenal', 'mensal_q1', 'mensal_q2', 'divisao_50_50']);
+        && (!('regime_salarial' in data) || data.regime_salarial in ['quinzenal', 'mensal_q1', 'mensal_q2', 'divisao_50_50', 'mensal_unico']);
     }
 
     // Validador de Despesa / Renda Extra com Suporte a Parcelamentos, Recorrências e Comprovantes

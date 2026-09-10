@@ -189,7 +189,14 @@
       <app-card>
         <div class="summary-card-inner">
           <div class="summary-info">
-            <span class="summary-label">Renda Total do Mês</span>
+            <div class="summary-label-row">
+              <span class="summary-label">Renda Total do Mês</span>
+              @if (financeStore.currentCycle()?.descricao_dia_pagamento) {
+                <span class="summary-chip-payment" title="Previsão de recebimento salarial">
+                  {{ financeStore.currentCycle()?.descricao_dia_pagamento }}
+                </span>
+              }
+            </div>
             <span class="summary-value text-emerald">{{ formattedTotalRenda() }}</span>
           </div>
           <div class="summary-icon bg-emerald-light">
@@ -369,6 +376,8 @@
   [currentQ1]="financeStore.currentCycle()?.renda_quinzena_1 ?? 0"
   [currentQ2]="financeStore.currentCycle()?.renda_quinzena_2 ?? 0"
   [currentRegime]="financeStore.currentCycle()?.regime_salarial ?? 'quinzenal'"
+  [currentDiaPagamento]="financeStore.currentCycle()?.dia_pagamento ?? null"
+  [currentDescricaoDiaPagamento]="financeStore.currentCycle()?.descricao_dia_pagamento ?? null"
   (close)="isIncomeModalOpen.set(false)"
   (saved)="onIncomeSaved()"
 />
