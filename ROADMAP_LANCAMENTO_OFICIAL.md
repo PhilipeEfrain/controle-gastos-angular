@@ -11,14 +11,14 @@
 O aplicativo atingiu um patamar de maturidade técnica e funcional de nível sênior, com arquitetura reativa moderna baseada em Angular Standalone Components, Signals, Firebase Modular SDK e isolamento estrito por usuário no Cloud Firestore.
 
 ### Indicadores de Qualidade Atual
-- **Cobertura de Testes:** 54 suítes de testes unitários com **318 testes passando com 100% de sucesso**.
+- **Cobertura de Testes:** 58 suítes de testes unitários com **365 testes passando com 100% de sucesso**.
 - **Compilação de Produção:** Build de produção (`ng build`) verde, com divisão inteligente de chunks via lazy-loading.
 - **Segurança da Informação:**
   - Hardening de cabeçalhos HTTP e CSP rígida no `firebase.json`.
   - Regras de segurança no Firestore (`firestore.rules`) com RBAC e validação estrita de whitelisting de chaves.
   - Sanitização preventiva contra injeção de fórmulas em planilhas (CWE-1236) e prevenção de DOM XSS (CWE-79).
   - Supressão de vazamento de credenciais e stacktraces em logs de produção (CWE-532).
-  - Conformidade com LGPD para exclusão definitiva de conta (Direito ao Esquecimento).
+  - Conformidade com LGPD para exclusão definitiva de conta (Direito ao Esquecimento) e páginas públicas de Termos e Privacidade.
 
 ---
 
@@ -154,12 +154,12 @@ FASE 1: AUTOMAÇÃO DE MONETIZAÇÃO & SEGURANÇA (P0) - 100% CONCLUÍDA
 [ ] Configuração e homologação das credenciais de Produção do Asaas
 
 ================================================================================
-FASE 2: CONFORMIDADE, SELF-SERVICE & VISIBILIDADE DE VENCIMENTOS (P1)
+FASE 2: CONFORMIDADE, SELF-SERVICE & VISIBILIDADE DE VENCIMENTOS (P1) - 100% CONCLUÍDA
 ================================================================================
-[ ] CARD-041: Painel "Minha Assinatura" em /settings (Data de Expiração, Próxima Cobrança, Troca de Cartão e Cancelamento)
-[ ] CARD-042: Visibilidade de Vencimentos, Próxima Cobrança e Auditoria de Assinaturas no Painel Admin (/admin)
-[ ] CARD-043: Páginas públicas de Termos de Uso, Política de Privacidade e Consentimento LGPD
-[ ] CARD-044: Checklist guiado de Onboarding e Primeiro Acesso com Empty State Interativo
+[x] CARD-041: Painel "Minha Assinatura" em /settings (Data de Expiração, Próxima Cobrança, Troca de Cartão e Cancelamento)
+[x] CARD-042: Visibilidade de Vencimentos, Próxima Cobrança e Auditoria de Assinaturas no Painel Admin (/admin)
+[x] CARD-043: Páginas públicas de Termos de Uso, Política de Privacidade e Consentimento LGPD (/termos e /privacidade)
+[x] CARD-044: Checklist guiado de Onboarding e Primeiro Acesso com Empty State Interativo
 [ ] CARD-045: Widget e Canal de Suporte / Atendimento ao Cliente no App
 
 ================================================================================
@@ -175,10 +175,12 @@ FASE 3: LANÇAMENTO OFICIAL & GO-LIVE (P2)
 
 ## 5. Checklist de Verificação para o Lançamento (Definition of Done)
 
-- [ ] Todas as cobranças PIX e Cartão ativam o plano PRO imediatamente no Firestore via Webhook sem interferência manual.
-- [ ] Usuários inadimplentes recebem aviso amigável de tolerância de 3 dias antes do bloqueio de novas criações.
-- [ ] 100% dos dados históricos dos usuários permanecem seguros e acessíveis mesmo se o plano for cancelado.
-- [ ] Links para Termos de Uso e Privacidade estão ativos e visíveis no rodapé.
+- [x] Todas as cobranças PIX e Cartão ativam o plano PRO imediatamente no Firestore via Webhook sem interferência manual.
+- [x] Usuários inadimplentes recebem aviso amigável de tolerância de 3 dias antes do bloqueio de novas criações.
+- [x] 100% dos dados históricos dos usuários permanecem seguros e acessíveis mesmo se o plano for cancelado.
+- [x] Tanto o usuário (/settings) quanto o admin (/admin) conseguem ver com clareza quando a assinatura irá expirar ou ser cobrada.
+- [x] Links para Termos de Uso e Privacidade estão ativos e visíveis no rodapé e no formulário de cadastro.
+- [x] O guia de onboarding interativo direciona novos usuários na configuração inicial com checklist gamificado de 0 a 100%.
 - [ ] A conta Asaas está validada para transações com dinheiro real no ambiente de Produção.
 - [ ] O domínio próprio responde com HTTPS e certificado SSL válido.
-- [ ] A suíte com 318 testes unitários continua passando com 100% de sucesso.
+- [x] A suíte com 365 testes unitários passa com 100% de sucesso.
