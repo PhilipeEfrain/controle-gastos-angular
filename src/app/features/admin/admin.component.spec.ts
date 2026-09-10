@@ -7,6 +7,7 @@ import { AdminService } from '../../core/services/admin.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { PwaService } from '../../core/services/pwa.service';
+import { AsaasService } from '../../core/services/asaas.service';
 import { UserProfile } from '../../core/models/user.model';
 import { signal } from '@angular/core';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
@@ -16,6 +17,7 @@ describe('AdminComponent (Painel Administrativo)', () => {
   let fixture: ComponentFixture<AdminComponent>;
   let mockAdminService: any;
   let mockNotificationService: any;
+  let mockAsaasService: any;
 
   const mockUsers: UserProfile[] = [
     {
@@ -26,6 +28,9 @@ describe('AdminComponent (Painel Administrativo)', () => {
       role: 'admin',
       plan: 'pro',
       planStatus: 'active',
+      planExpiresAt: '2026-10-15T00:00:00.000Z',
+      asaasCustomerId: 'cus_admin_1',
+      asaasSubscriptionId: 'sub_admin_1',
       createdAt: '2026-01-01T00:00:00.000Z'
     },
     {
@@ -46,6 +51,9 @@ describe('AdminComponent (Painel Administrativo)', () => {
       role: 'user',
       plan: 'duo',
       planStatus: 'active',
+      planExpiresAt: '2026-09-12T00:00:00.000Z', // < 7 dias (vencimento próximo)
+      asaasCustomerId: 'cus_maria_3',
+      asaasSubscriptionId: 'sub_maria_3',
       createdAt: '2026-03-10T00:00:00.000Z'
     }
   ];
@@ -83,37 +91,28 @@ describe('AdminComponent (Painel Administrativo)', () => {
         lastTestMessage: 'Conexão bem-sucedida'
       }),
       saveAsaasConfig: vi.fn().mockResolvedValue(undefined),
-      testAsaasConnection: vi.fn().mockResolvedValue({ success: true, message: 'Conectado com sucesso!' })
+      testAsaasConnection: vi.fn().mockResolvedValue({
+        success: true,
+        message: 'Conexão autorizada com sucesso!'
+      })
+    };
+
+    mockAsaasService = {
+      getSubscription: vi.fn().mockResolvedValue({
+        id: 'sub_maria_3',
+        status: 'ACTIVE',
+        value: 19.90,
+        cycle: 'MONTHLY',
+        nextDueDate: '2026-09-12',
+        billingType: 'CREDIT_CARD'
+      })
     };
 
     mockNotificationService = {
       success: vi.fn(),
       error: vi.fn(),
-      info: vi.fn(),
-      warning: vi.fn()
-    };
-
-    const mockAuthStore = {
-      currentUser: signal(mockUsers[0]),
-      isAuthenticated: signal(true),
-      isAdmin: signal(true),
-      logout: vi.fn().mockResolvedValue(undefined)
-    };
-
-    const mockAuthService = {
-      logout: vi.fn().mockResolvedValue(undefined)
-    };
-
-    const mockThemeService = {
-      currentTheme: signal('dark'),
-      isDark: signal(true),
-      toggleTheme: vi.fn()
-    };
-
-    const mockPwaService = {
-      isOnline: signal(true),
-      canInstall: signal(false),
-      installApp: vi.fn().mockResolvedValue(true)
+      warning: vi.fn(),
+      info: vi.fn()
     };
 
     await TestBed.configureTestingModule({
@@ -121,11 +120,17 @@ describe('AdminComponent (Painel Administrativo)', () => {
       providers: [
         provideRouter([]),
         { provide: AdminService, useValue: mockAdminService },
+        { provide: AsaasService, useValue: mockAsaasService },
         { provide: NotificationService, useValue: mockNotificationService },
-        { provide: AuthStore, useValue: mockAuthStore },
-        { provide: AuthService, useValue: mockAuthService },
-        { provide: ThemeService, useValue: mockThemeService },
-        { provide: PwaService, useValue: mockPwaService }
+        {
+          provide: AuthStore,
+          useValue: {
+            currentUser: signal(mockUsers[0])
+          }
+        },
+        { provide: AuthService, useValue: {} },
+        { provide: ThemeService, useValue: {} },
+        { provide: PwaService, useValue: {} }
       ]
     }).compileComponents();
 
@@ -198,7 +203,7 @@ describe('AdminComponent (Painel Administrativo)', () => {
     component.editPlan.set('pro');
     await component.saveUserChanges();
 
-    expect(mockAdminService.updateUserPlan).toHaveBeenCalledWith('uid-user-2', 'pro', 'active');
+    expect(mockAdminService.updateUserPlan).toHaveBeenCalledWith('uid-user-2', 'pro', 'active', null);
     expect(mockNotificationService.success).toHaveBeenCalled();
     expect(component.selectedUserForEdit()).toBeNull();
 
@@ -272,5 +277,72 @@ describe('AdminComponent (Painel Administrativo)', () => {
       expect(mockNotificationService.success).toHaveBeenCalledWith('Configurações do Asaas salvas com sucesso no Firebase!');
     });
   });
+
+  describe('Cenários BDD (CARD-042): Vencimento, Próxima Cobrança e Auditoria Asaas', () => {
+    it('Cenário BDD 1: deve formatar a data de expiração/renovação no padrão DD/MM/AAAA ou retornar hífen para Free', () => {
+      expect(component.formatExpirationDate('2026-10-15T00:00:00.000Z')).toBe('15/10/2026');
+      expect(component.formatExpirationDate(null)).toBe('-');
+      expect(component.formatExpirationDate(undefined)).toBe('-');
+    });
+
+    it('Cenário BDD 2: deve detectar corretamente vencimento próximo (< 7 dias) e expirado', () => {
+      const now = new Date();
+
+      // Vencimento em 3 dias
+      const in3Days = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString();
+      const userSoon: UserProfile = { ...mockUsers[0], plan: 'pro', planExpiresAt: in3Days };
+      expect(component.isExpiringSoon(userSoon)).toBe(true);
+      expect(component.isExpired(userSoon)).toBe(false);
+
+      // Vencimento em 30 dias (não é próximo)
+      const in30Days = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      const userNormal: UserProfile = { ...mockUsers[0], plan: 'pro', planExpiresAt: in30Days };
+      expect(component.isExpiringSoon(userNormal)).toBe(false);
+
+      // Usuário Free nunca é considerado próximo
+      const userFree: UserProfile = { ...mockUsers[1], planExpiresAt: in3Days };
+      expect(component.isExpiringSoon(userFree)).toBe(false);
+
+      // Vencimento no passado
+      const inPast = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString();
+      const userExpired: UserProfile = { ...mockUsers[0], plan: 'pro', planExpiresAt: inPast };
+      expect(component.isExpired(userExpired)).toBe(true);
+    });
+
+    it('Cenário BDD 3: deve abrir modal de auditoria e carregar detalhes em tempo real do Asaas', async () => {
+      const payingUser = mockUsers[2]; // Maria Santos com asaasSubscriptionId
+      component.openAuditModal(payingUser);
+
+      expect(component.selectedUserForAudit()?.uid).toBe('uid-user-3');
+
+      await component.fetchLiveSubscriptionDetails();
+      expect(mockAsaasService.getSubscription).toHaveBeenCalledWith('sub_maria_3', '$aact_test_key_12345', 'sandbox');
+      expect(component.liveSubscriptionDetails()?.id).toBe('sub_maria_3');
+      expect(component.liveSubscriptionDetails()?.value).toBe(19.90);
+
+      component.closeAuditModal();
+      expect(component.selectedUserForAudit()).toBeNull();
+    });
+
+    it('Cenário BDD 4: deve permitir definir data de expiração no modal de edição e salvar no backend', async () => {
+      component.openEditModal(mockUsers[0]);
+      expect(component.selectedUserForEdit()).toBeTruthy();
+
+      component.onExpiresAtChange({ target: { value: '2026-12-31' } } as any);
+      expect(component.editExpiresAt()).toBe('2026-12-31');
+
+      await component.saveUserChanges();
+
+      expect(mockAdminService.updateUserPlan).toHaveBeenCalledWith(
+        'uid-admin-1',
+        'pro',
+        'active',
+        expect.stringContaining('2026-12-31')
+      );
+      expect(mockNotificationService.success).toHaveBeenCalled();
+      expect(component.selectedUserForEdit()).toBeNull();
+    });
+  });
 });
+
 
