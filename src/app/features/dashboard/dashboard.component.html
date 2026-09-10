@@ -161,6 +161,14 @@
       </div>
     </header>
 
+    <!-- Banner de Inadimplência e Regularização (Grace Period ou Suspensão) -->
+    <app-dunning-banner
+      [isGracePeriodActive]="authStore.isGracePeriodActive()"
+      [isPlanSuspended]="authStore.isPlanSuspended()"
+      [deadlineFormatted]="authStore.gracePeriodDeadlineFormatted()"
+      (regularize)="openSubscriptionModal()"
+    />
+
     <!-- Top Summary Cards (4 colunas) -->
     <section class="summary-cards-grid">
       <!-- Card 1: Renda Prevista -->
@@ -384,6 +392,14 @@
     [message]="data.message"
     [resourceName]="data.resourceName"
     (close)="limitModalData.set(null)"
+  />
+}
+
+<!-- Modal de Assinatura e Regularização de Pagamento -->
+@if (isSubscriptionModalOpen()) {
+  <app-subscription-modal
+    (close)="isSubscriptionModalOpen.set(false)"
+    (subscribed)="onSubscriptionSuccess()"
   />
 }
 

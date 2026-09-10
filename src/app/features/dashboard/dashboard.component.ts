@@ -25,6 +25,7 @@ import { DuoPairingModalComponent } from './components/duo-pairing-modal/duo-pai
 import { DuoSettlementCardComponent } from './components/duo-settlement-card/duo-settlement-card.component';
 import { AppCardComponent } from '../../shared/components/app-card/app-card.component';
 import { DeficitAlertBannerComponent } from '../../shared/components/deficit-alert-banner/deficit-alert-banner.component';
+import { DunningBannerComponent } from '../../shared/components/dunning-banner/dunning-banner.component';
 import { FortnightCardComponent } from './components/fortnight-card/fortnight-card.component';
 import { ExpenseFormModalComponent } from './components/expense-form-modal/expense-form-modal.component';
 import { IncomeFormModalComponent } from './components/income-form-modal/income-form-modal.component';
@@ -33,6 +34,7 @@ import { CategoryDonutChartComponent } from './components/category-donut-chart/c
 import { MonthlyEvolutionChartComponent } from './components/monthly-evolution-chart/monthly-evolution-chart.component';
 import { ExportModalComponent } from './components/export-modal/export-modal.component';
 import { LimitReachedModalComponent } from '../../shared/components/limit-reached-modal/limit-reached-modal.component';
+import { SubscriptionModalComponent } from '../../shared/components/subscription-modal/subscription-modal.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -41,6 +43,7 @@ import { LimitReachedModalComponent } from '../../shared/components/limit-reache
     CommonModule,
     AppCardComponent,
     DeficitAlertBannerComponent,
+    DunningBannerComponent,
     FortnightCardComponent,
     ExpenseFormModalComponent,
     IncomeFormModalComponent,
@@ -49,6 +52,7 @@ import { LimitReachedModalComponent } from '../../shared/components/limit-reache
     MonthlyEvolutionChartComponent,
     ExportModalComponent,
     LimitReachedModalComponent,
+    SubscriptionModalComponent,
     DuoPairingModalComponent,
     DuoSettlementCardComponent
   ],
@@ -123,6 +127,7 @@ export class DashboardComponent implements OnInit {
   readonly selectedExpenseForReceipt = signal<Expense | null>(null);
 
   readonly isExportModalOpen = signal<boolean>(false);
+  readonly isSubscriptionModalOpen = signal<boolean>(false);
 
   // Formatações computadas para os Top Cards
   readonly formattedTotalRenda = computed(() =>
@@ -310,6 +315,15 @@ export class DashboardComponent implements OnInit {
 
   goToInstallments(): void {
     this.router.navigate(['/parcelamentos']);
+  }
+
+  openSubscriptionModal(): void {
+    this.isSubscriptionModalOpen.set(true);
+  }
+
+  onSubscriptionSuccess(): void {
+    this.isSubscriptionModalOpen.set(false);
+    this.notificationService.success('Assinatura confirmada com sucesso! Seus recursos foram atualizados.');
   }
 
   async onLogout(): Promise<void> {

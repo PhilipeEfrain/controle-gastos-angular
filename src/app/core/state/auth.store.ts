@@ -35,8 +35,70 @@ export class AuthStore {
   readonly currentPlan = computed(() => this._currentUser()?.plan ?? 'free');
   readonly planStatus = computed(() => this._currentUser()?.planStatus ?? 'active');
   readonly isProOrDuo = computed(() => {
-    const plan = this._currentUser()?.plan;
-    return plan === 'pro' || plan === 'duo';
+    const user = this._currentUser();
+    const plan = user?.plan;
+    if (plan !== 'pro' && plan !== 'duo') {
+      return false;
+    }
+
+    const status = user?.planStatus ?? 'active';
+    if (status === 'canceled') {
+      return false;
+    }
+
+    if (status === 'past_due') {
+      if (!user?.gracePeriodExpiresAt) {
+        return false;
+      }
+      const graceDate = new Date(user.gracePeriodExpiresAt);
+      return !isNaN(graceDate.getTime()) && new Date() <= graceDate;
+    }
+
+    return true;
+  });
+
+  readonly isGracePeriodActive = computed(() => {
+    const user = this._currentUser();
+    const plan = user?.plan;
+    if ((plan === 'pro' || plan === 'duo') && user?.planStatus === 'past_due' && user?.gracePeriodExpiresAt) {
+      const graceDate = new Date(user.gracePeriodExpiresAt);
+      return !isNaN(graceDate.getTime()) && new Date() <= graceDate;
+    }
+    return false;
+  });
+
+  readonly isPlanSuspended = computed(() => {
+    const user = this._currentUser();
+    const plan = user?.plan;
+    if (plan !== 'pro' && plan !== 'duo') {
+      return false;
+    }
+    const status = user?.planStatus;
+    if (status === 'canceled') {
+      return true;
+    }
+    if (status === 'past_due') {
+      if (!user?.gracePeriodExpiresAt) {
+        return true;
+      }
+      const graceDate = new Date(user.gracePeriodExpiresAt);
+      return isNaN(graceDate.getTime()) || new Date() > graceDate;
+    }
+    return false;
+  });
+
+  readonly gracePeriodDeadlineFormatted = computed(() => {
+    const expiresAt = this._currentUser()?.gracePeriodExpiresAt;
+    if (!expiresAt) {
+      return '';
+    }
+    const date = new Date(expiresAt);
+    if (isNaN(date.getTime())) {
+      return '';
+    }
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    return `${day}/${month}`;
   });
   readonly isDuo = computed(() => this._currentUser()?.plan === 'duo');
 

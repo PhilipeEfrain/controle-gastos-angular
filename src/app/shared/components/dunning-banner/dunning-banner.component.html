@@ -1,0 +1,62 @@
+@if (shouldShow()) {
+  <div
+    class="dunning-banner"
+    [class.dunning-banner--warning]="isGracePeriodActive() && !isPlanSuspended()"
+    [class.dunning-banner--critical]="isPlanSuspended()"
+    role="alert"
+    aria-live="polite"
+  >
+    <div class="dunning-banner__icon">
+      @if (isPlanSuspended()) {
+        <!-- Ícone alert-octagon (Estado 2: Suspenso) -->
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+      } @else {
+        <!-- Ícone alert-triangle (Estado 1: Tolerância / Grace Period) -->
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+          <line x1="12" y1="9" x2="12" y2="13" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
+      }
+    </div>
+
+    <div class="dunning-banner__content">
+      @if (isPlanSuspended()) {
+        <strong class="dunning-banner__title">Assinatura Suspensa</strong>
+        <p class="dunning-banner__message">
+          Sua assinatura PRO está suspensa devido a pagamento pendente. Seus dados históricos estão 100% preservados e seguros.
+        </p>
+      } @else {
+        <strong class="dunning-banner__title">Aviso de Pagamento Pendente</strong>
+        <p class="dunning-banner__message">
+          Identificamos uma pendência no pagamento da sua assinatura. Seus recursos continuam liberados
+          @if (deadlineFormatted()) {
+            até <strong>{{ deadlineFormatted() }}</strong>.
+          } @else {
+            pelo período de tolerância.
+          }
+        </p>
+      }
+    </div>
+
+    <div class="dunning-banner__actions">
+      <button
+        type="button"
+        class="dunning-banner__btn"
+        (click)="onRegularizeClick()"
+        id="btn-regularize-subscription"
+        aria-label="Regularizar Assinatura"
+      >
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <rect x="2" y="5" width="20" height="14" rx="2" />
+          <line x1="2" y1="10" x2="22" y2="10" />
+        </svg>
+        <span>Regularizar Assinatura</span>
+      </button>
+    </div>
+  </div>
+}

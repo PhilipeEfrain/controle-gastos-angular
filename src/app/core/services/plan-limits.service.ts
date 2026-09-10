@@ -61,6 +61,10 @@ export class PlanLimitsService {
   readonly isDuo = computed<boolean>(() => this.authStore.isDuo());
 
   readonly currentFeatures = computed<PlanFeatures>(() => {
+    // Se o plano estiver suspenso por inadimplência expirada ou cancelamento, aplica cotas do plano Free
+    if (!this.isProOrDuo()) {
+      return PLAN_CONFIGS.free;
+    }
     const plan = this.currentPlan();
     return PLAN_CONFIGS[plan] || PLAN_CONFIGS.free;
   });
@@ -80,7 +84,9 @@ export class PlanLimitsService {
       resourceName: 'Despesas Fixas Recorrentes',
       limitMessage: allowed
         ? ''
-        : `Você atingiu o limite de ${max} contas fixas recorrentes do plano Gratuito. Faça upgrade para o PRO para cadastros ilimitados.`
+        : this.authStore.isPlanSuspended()
+          ? 'Sua assinatura PRO está suspensa devido a pagamento pendente. Regularize sua assinatura para cadastrar contas fixas ilimitadas.'
+          : `Você atingiu o limite de ${max} contas fixas recorrentes do plano Gratuito. Faça upgrade para o PRO para cadastros ilimitados.`
     };
   }
 
@@ -99,7 +105,9 @@ export class PlanLimitsService {
       resourceName: 'Compras Parceladas',
       limitMessage: allowed
         ? ''
-        : `Você atingiu o limite de ${max} compras parceladas ativas do plano Gratuito. Faça upgrade para o PRO para compras parceladas ilimitadas.`
+        : this.authStore.isPlanSuspended()
+          ? 'Sua assinatura PRO está suspensa devido a pagamento pendente. Regularize sua assinatura para cadastrar compras parceladas ilimitadas.'
+          : `Você atingiu o limite de ${max} compras parceladas ativas do plano Gratuito. Faça upgrade para o PRO para compras parceladas ilimitadas.`
     };
   }
 
@@ -118,7 +126,9 @@ export class PlanLimitsService {
       resourceName: 'Tributos & Gastos Anuais',
       limitMessage: allowed
         ? ''
-        : `Você atingiu o limite de ${max} tributo anual cadastrado do plano Gratuito. Faça upgrade para o PRO para controlar IPVA, IPTU, Seguros e Anuidades ilimitados.`
+        : this.authStore.isPlanSuspended()
+          ? 'Sua assinatura PRO está suspensa devido a pagamento pendente. Regularize sua assinatura para controlar tributos e despesas anuais ilimitadas.'
+          : `Você atingiu o limite de ${max} tributo anual cadastrado do plano Gratuito. Faça upgrade para o PRO para controlar IPVA, IPTU, Seguros e Anuidades ilimitados.`
     };
   }
 
@@ -137,7 +147,9 @@ export class PlanLimitsService {
       resourceName: 'Viagens & Rateios',
       limitMessage: allowed
         ? ''
-        : `Você atingiu o limite de ${max} viagem do plano Gratuito. Faça upgrade para o PRO para viagens e rateios ilimitados.`
+        : this.authStore.isPlanSuspended()
+          ? 'Sua assinatura PRO está suspensa devido a pagamento pendente. Regularize sua assinatura para controlar viagens e rateios ilimitados.'
+          : `Você atingiu o limite de ${max} viagem do plano Gratuito. Faça upgrade para o PRO para viagens e rateios ilimitados.`
     };
   }
 

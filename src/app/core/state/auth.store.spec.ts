@@ -153,4 +153,51 @@ describe('AuthStore (Signals State)', () => {
     expect(store.currentUser()?.asaasSubscriptionId).toBe('sub_xyz');
     expect(store.currentUser()?.asaasCustomerId).toBe('cus_xyz');
   });
+
+  it('Cenário BDD 1 (CARD-040): deve manter isProOrDuo=true e isGracePeriodActive=true durante o Grace Period', () => {
+    // Tolerância expira amanhã (no futuro)
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 2);
+
+    store.setUser({
+      ...mockUser,
+      plan: 'pro',
+      planStatus: 'past_due',
+      gracePeriodExpiresAt: futureDate.toISOString()
+    });
+
+    expect(store.isProOrDuo()).toBe(true);
+    expect(store.isGracePeriodActive()).toBe(true);
+    expect(store.isPlanSuspended()).toBe(false);
+    expect(store.gracePeriodDeadlineFormatted()).toBeTruthy();
+  });
+
+  it('Cenário BDD 2 (CARD-040): deve rebaixar isProOrDuo=false e marcar isPlanSuspended=true após o Grace Period expirar', () => {
+    // Tolerância expirou ontem (no passado)
+    const pastDate = new Date();
+    pastDate.setDate(pastDate.getDate() - 1);
+
+    store.setUser({
+      ...mockUser,
+      plan: 'pro',
+      planStatus: 'past_due',
+      gracePeriodExpiresAt: pastDate.toISOString()
+    });
+
+    expect(store.isProOrDuo()).toBe(false);
+    expect(store.isGracePeriodActive()).toBe(false);
+    expect(store.isPlanSuspended()).toBe(true);
+  });
+
+  it('Cenário BDD 3 (CARD-040): deve marcar isPlanSuspended=true e isProOrDuo=false para plano cancelado', () => {
+    store.setUser({
+      ...mockUser,
+      plan: 'pro',
+      planStatus: 'canceled'
+    });
+
+    expect(store.isProOrDuo()).toBe(false);
+    expect(store.isGracePeriodActive()).toBe(false);
+    expect(store.isPlanSuspended()).toBe(true);
+  });
 });

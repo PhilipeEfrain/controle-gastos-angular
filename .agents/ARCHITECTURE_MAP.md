@@ -91,7 +91,7 @@
 | Store / Signal State | Arquivo | Descrição |
 | :--- | :--- | :--- |
 | `FinanceStore` | `src/app/core/state/finance.store.ts` | Store centralizada baseada em Signals contendo o mês selecionado (`selectedMonth`), ciclo ativo, despesas da Q1/Q2 e `computed()` com o `MonthBalanceSummary`. |
-| `AuthStore` | `src/app/core/state/auth.store.ts` | Estado reativo da sessão do usuário autenticado, upgrade persistente de plano (`upgradeSubscription`) e flags de carregamento. |
+| `AuthStore` | `src/app/core/state/auth.store.ts` | Estado reativo da sessão do usuário autenticado, upgrade persistente de plano (`upgradeSubscription`), controle temporal de Grace Period (`isGracePeriodActive`, `isPlanSuspended`, `gracePeriodDeadlineFormatted`) e flags de carregamento. |
 
 
 ---
@@ -111,6 +111,7 @@
 | `BrandLogoComponent` | `app-brand-logo` | Componente de identidade visual que renderiza dinamicamente o símbolo oficial Quinzena (vetor Dark no tema claro e vetor White no tema escuro) com suporte a tamanhos e slogan. |
 | `SubscriptionModalComponent` | `app-subscription-modal` | Modal responsivo de checkout e assinatura com planos PRO/DUO mensais sem fidelidade, pagamentos PIX/Cartão e ativação imediata. |
 | `LimitReachedModalComponent` | `app-limit-reached-modal` | Modal de bloqueio amigável de limites do plano Free com destaque de benefícios PRO e conversão direta para checkout. |
+| `DunningBannerComponent` | `app-dunning-banner` | Banner de alerta de inadimplência e regularização com estados reativos para carência ativa (aviso âmbar com prazo) e suspensão de plano (alerta vermelho com preservação de histórico). |
 
 ### B. Core & Navegação (`src/app/core/components/`)
 | Componente | Seletor | Descrição |
