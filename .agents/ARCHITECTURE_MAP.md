@@ -127,7 +127,7 @@
 | `FortnightCardComponent` | `app-fortnight-card` | Card quinzenal completo com resumo de entrada/saída, barra de progresso e listagem de despesas. |
 | `ExpenseItemRowComponent` | `app-expense-item-row` | Linha de despesa com checkbox de quitação, badge de categoria, indicador de comprovante e ações de edição/exclusão. |
 | `ExpenseFormModalComponent` | `app-expense-form-modal` | Modal com formulário reativo para criação/edição de despesas simples ou em lote parcelado. |
-| `IncomeFormModalComponent` | `app-income-form-modal` | Modal para configuração das rendas de Q1 e Q2 com suporte a múltiplos regimes salariais (`quinzenal`, `divisao_50_50`, `mensal_q1`, `mensal_q2`) e distribuição automática. |
+| `IncomeFormModalComponent` | `app-income-form-modal` | Modal para configuração das rendas de Q1 e Q2 com suporte a múltiplos regimes salariais (`quinzenal`, `divisao_50_50`, `mensal_unico`), seleção de data de pagamento (5º dia útil, Virada/31, 10, 15, 20 ou dia livre 1-31) e alocação automática de quinzena. |
 | `ReceiptModalComponent` | `app-receipt-modal` | Diálogo rápido para inserção/alteração do código de comprovante da transação. |
 | `CategoryDonutChartComponent` | `app-category-donut-chart` | Gráfico Donut em SVG com cálculo proporcional por categoria, tooltips reativos e legenda com percentuais. |
 | `MonthlyEvolutionChartComponent` | `app-monthly-evolution-chart` | Gráfico de evolução histórica mensal em barras SVG comparativas (Rendas vs. Gastos vs. Saldo). |

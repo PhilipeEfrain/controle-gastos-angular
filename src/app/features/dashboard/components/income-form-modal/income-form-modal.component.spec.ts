@@ -78,7 +78,9 @@ describe('IncomeFormModalComponent', () => {
       '2025-03',
       3500,
       2200,
-      'quinzenal'
+      'quinzenal',
+      undefined,
+      undefined
     );
     expect(savedEmitted).toBe(true);
   });
@@ -98,7 +100,9 @@ describe('IncomeFormModalComponent', () => {
       '2025-03',
       6000,
       0,
-      'mensal_q1'
+      'mensal_q1',
+      undefined,
+      undefined
     );
   });
 
@@ -117,7 +121,92 @@ describe('IncomeFormModalComponent', () => {
       '2025-03',
       2500,
       2500,
-      'divisao_50_50'
+      'divisao_50_50',
+      undefined,
+      undefined
     );
+  });
+
+  describe('Cenários BDD (CARD-046): Flexibilidade de Data no Regime Mensal Único', () => {
+    it('Cenário BDD 1: deve alocar na 1ª Quinzena ao escolher Mensal Único com 5º dia útil', async () => {
+      component.setRegime('mensal_unico');
+      component.setPaymentDayPreset('5_dia_util');
+      component.form.patchValue({ salarioTotal: 5000 });
+      component.onSalarioTotalChange();
+
+      expect(component.paymentDayInfo().quinzena).toBe(1);
+      expect(component.paymentDayInfo().descricao).toBe('5º dia útil');
+      expect(component.form.get('rendaQ1')?.value).toBe(5000);
+      expect(component.form.get('rendaQ2')?.value).toBe(0);
+
+      await component.onSubmit();
+
+      expect(mockCycleService.saveIncome).toHaveBeenCalledWith(
+        'user-456',
+        '2025-03',
+        5000,
+        0,
+        'mensal_unico',
+        '5_dia_util',
+        '5º dia útil'
+      );
+    });
+
+    it('Cenário BDD 2: deve alocar na 2ª Quinzena ao escolher Dia 20', async () => {
+      component.setRegime('mensal_unico');
+      component.setPaymentDayPreset('20');
+      component.form.patchValue({ salarioTotal: 4500 });
+      component.onSalarioTotalChange();
+
+      expect(component.paymentDayInfo().quinzena).toBe(2);
+      expect(component.paymentDayInfo().descricao).toBe('Dia 20');
+      expect(component.form.get('rendaQ1')?.value).toBe(0);
+      expect(component.form.get('rendaQ2')?.value).toBe(4500);
+
+      await component.onSubmit();
+
+      expect(mockCycleService.saveIncome).toHaveBeenCalledWith(
+        'user-456',
+        '2025-03',
+        0,
+        4500,
+        'mensal_unico',
+        20,
+        'Dia 20'
+      );
+    });
+
+    it('Cenário BDD 3: deve suportar dia customizado livremente (ex: dia 8 na Q1, dia 22 na Q2)', async () => {
+      component.setRegime('mensal_unico');
+      component.setPaymentDayPreset('custom');
+      component.form.patchValue({ diaCustomizado: 8, salarioTotal: 7000 });
+      component.onDiaCustomizadoChange();
+
+      expect(component.paymentDayInfo().quinzena).toBe(1);
+      expect(component.paymentDayInfo().descricao).toBe('Dia 8');
+      expect(component.form.get('rendaQ1')?.value).toBe(7000);
+      expect(component.form.get('rendaQ2')?.value).toBe(0);
+
+      // Agora muda para dia 22
+      component.form.patchValue({ diaCustomizado: 22 });
+      component.onDiaCustomizadoChange();
+
+      expect(component.paymentDayInfo().quinzena).toBe(2);
+      expect(component.paymentDayInfo().descricao).toBe('Dia 22');
+      expect(component.form.get('rendaQ1')?.value).toBe(0);
+      expect(component.form.get('rendaQ2')?.value).toBe(7000);
+
+      await component.onSubmit();
+
+      expect(mockCycleService.saveIncome).toHaveBeenCalledWith(
+        'user-456',
+        '2025-03',
+        0,
+        7000,
+        'mensal_unico',
+        22,
+        'Dia 22'
+      );
+    });
   });
 });

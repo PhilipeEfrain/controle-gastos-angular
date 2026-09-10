@@ -296,6 +296,13 @@
   min-width: 0;
 }
 
+.summary-label-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .summary-label {
   font-size: $font-size-xs;
   font-weight: 500;
@@ -303,6 +310,18 @@
   text-transform: uppercase;
   letter-spacing: 0.03em;
   white-space: nowrap;
+}
+
+.summary-chip-payment {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.15rem 0.45rem;
+  border-radius: 9999px;
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--color-success-light, #34d399);
+  border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
 .summary-value {

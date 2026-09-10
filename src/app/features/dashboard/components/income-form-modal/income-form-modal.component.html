@@ -64,24 +64,68 @@
             <button
               type="button"
               class="regime-btn"
-              [class.active]="form.get('regime')?.value === 'mensal_q1'"
-              (click)="setRegime('mensal_q1')"
+              [class.active]="form.get('regime')?.value === 'mensal_unico' || form.get('regime')?.value === 'mensal_q1' || form.get('regime')?.value === 'mensal_q2'"
+              (click)="setRegime('mensal_unico')"
             >
-              <span class="regime-title">Mensal Único (Q1)</span>
-              <span class="regime-desc">Recebimento no Dia 31</span>
-            </button>
-
-            <button
-              type="button"
-              class="regime-btn"
-              [class.active]="form.get('regime')?.value === 'mensal_q2'"
-              (click)="setRegime('mensal_q2')"
-            >
-              <span class="regime-title">Mensal Único (Q2)</span>
-              <span class="regime-desc">Recebimento no Dia 15</span>
+              <span class="regime-title">Mensal Único</span>
+              <span class="regime-desc">Salário integral no mês</span>
             </button>
           </div>
         </div>
+
+        <!-- Opções de Data no Regime Mensal Único -->
+        @if (form.get('regime')?.value === 'mensal_unico' || form.get('regime')?.value === 'mensal_q1' || form.get('regime')?.value === 'mensal_q2') {
+          <div class="payment-day-box">
+            <div class="payment-day-header">
+              <label class="form-label mb-0">Dia do Recebimento Salarial</label>
+              <span class="badge-quinzena-target">
+                Entrada na {{ paymentDayInfo().quinzena }}ª Quinzena
+              </span>
+            </div>
+
+            <div class="presets-chips-grid">
+              @for (preset of paymentDayPresets; track preset.id) {
+                <button
+                  type="button"
+                  class="chip-btn"
+                  [class.active]="form.get('diaPagamentoPreset')?.value === preset.id"
+                  (click)="setPaymentDayPreset(preset.id)"
+                >
+                  <span class="chip-label">{{ preset.label }}</span>
+                  <span class="chip-sublabel">{{ preset.sublabel }}</span>
+                </button>
+              }
+            </div>
+
+            <!-- Input para Dia Personalizado -->
+            @if (form.get('diaPagamentoPreset')?.value === 'custom') {
+              <div class="custom-day-input-row">
+                <label for="diaCustomizado" class="custom-day-label">Informe o dia do mês (1 a 31):</label>
+                <input
+                  id="diaCustomizado"
+                  type="number"
+                  min="1"
+                  max="31"
+                  formControlName="diaCustomizado"
+                  (input)="onDiaCustomizadoChange()"
+                  class="form-input custom-day-input"
+                  placeholder="Ex: 8"
+                />
+              </div>
+            }
+
+            <div class="payment-day-insight">
+              <span class="insight-icon">💡</span>
+              <p>
+                @if (paymentDayInfo().quinzena === 1) {
+                  Seu salário é creditado em <strong>{{ paymentDayInfo().descricao }}</strong> (1ª Quinzena). Como seus compromissos continuam ao longo do mês, o saldo positivo da 1ª quinzena cobrirá as despesas da 2ª quinzena automaticamente.
+                } @else {
+                  Seu salário é creditado em <strong>{{ paymentDayInfo().descricao }}</strong> (2ª Quinzena). Suas despesas do início do mês podem ser cobertas pela reserva do ciclo anterior.
+                }
+              </p>
+            </div>
+          </div>
+        }
 
         <!-- Campo Salário Total (se regime for automatizado) -->
         @if (form.get('regime')?.value !== 'quinzenal') {
@@ -105,10 +149,8 @@
             <p class="auto-calc-hint">
               @if (form.get('regime')?.value === 'divisao_50_50') {
                 Distribuído automaticamente: 50% na 1ª Quinzena e 50% na 2ª Quinzena.
-              } @else if (form.get('regime')?.value === 'mensal_q1') {
-                Todo o valor será alocado na 1ª Quinzena (Dia 31). A cobertura cobrirá a 2ª Quinzena.
-              } @else if (form.get('regime')?.value === 'mensal_q2') {
-                Todo o valor será alocado na 2ª Quinzena (Dia 15).
+              } @else {
+                Valor total alocado automaticamente na {{ paymentDayInfo().quinzena }}ª Quinzena ({{ paymentDayInfo().descricao }}).
               }
             </p>
           </div>
@@ -119,7 +161,7 @@
           <!-- Quinzena 1 -->
           <div class="form-group flex-1">
             <label class="form-label" for="rendaQ1">
-              1ª Quinzena (Dia 31) *
+              1ª Quinzena (Dia 31 a 15) *
             </label>
             <div class="input-prefix-wrapper">
               <span class="currency-prefix">R$</span>
@@ -142,7 +184,7 @@
           <!-- Quinzena 2 -->
           <div class="form-group flex-1">
             <label class="form-label" for="rendaQ2">
-              2ª Quinzena (Dia 15) *
+              2ª Quinzena (Dia 16 a 30) *
             </label>
             <div class="input-prefix-wrapper">
               <span class="currency-prefix">R$</span>
@@ -163,14 +205,16 @@
           </div>
         </div>
 
-        <!-- Total Consolidado Preview -->
-        <div class="total-income-preview">
-          <span class="total-label">Renda Total Prevista:</span>
-          <strong class="total-value">{{ totalRendaCalculada() }}</strong>
+        <!-- Resumo Visual Total -->
+        <div class="income-summary-card">
+          <div class="summary-line">
+            <span class="summary-label">Renda Mensal Total:</span>
+            <span class="summary-val">{{ totalRendaCalculada() }}</span>
+          </div>
         </div>
 
-        <!-- Actions -->
-        <div class="modal-footer">
+        <!-- Footer / Ações -->
+        <div class="modal-actions">
           <button
             type="button"
             class="btn-cancel"
@@ -179,7 +223,6 @@
           >
             Cancelar
           </button>
-
           <button
             type="submit"
             class="btn-submit"
