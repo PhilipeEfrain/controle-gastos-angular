@@ -1,0 +1,118 @@
+@if (!isDismissedLocally()) {
+  <aside class="onboarding-card" [class.onboarding-card--completed]="isAllCompleted()" role="region" aria-label="Guia de Primeiros Passos">
+    <div class="onboarding-header">
+      <div class="header-titles">
+        <div class="title-row">
+          <span class="onboarding-icon">🚀</span>
+          <h2 class="onboarding-title">Primeiros Passos no Quinzena</h2>
+          <span class="step-badge">{{ completedCount() }}/3 concluídos</span>
+        </div>
+        <p class="onboarding-subtitle">
+          Configure seu fluxo em menos de 2 minutos para dominar suas finanças nas duas quinzenas do mês.
+        </p>
+      </div>
+
+      <button type="button" class="btn-dismiss-onboarding" (click)="dismiss()" title="Dispensar guia de introdução" aria-label="Dispensar guia">
+        <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Barra de Progresso Gamificada -->
+    <div class="progress-track-wrapper">
+      <div class="progress-info-row">
+        <span class="progress-label">Progresso da Configuração</span>
+        <span class="progress-percentage">{{ progressPercentage() }}%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" [style.width.%]="progressPercentage()"></div>
+      </div>
+    </div>
+
+    <!-- Celebração ao completar 100% -->
+    @if (isAllCompleted()) {
+      <div class="celebration-banner">
+        <div class="celebration-content">
+          <span class="celebration-icon">🎉</span>
+          <div>
+            <strong>Parabéns! Seu orçamento quinzenal está configurado.</strong>
+            <p>Agora você tem previsibilidade total de fluxo de caixa para este mês!</p>
+          </div>
+        </div>
+        <button type="button" class="btn-celebration-close" (click)="dismiss()">
+          Concluir e Começar
+        </button>
+      </div>
+    } @else {
+      <!-- Passos do Checklist -->
+      <div class="steps-grid">
+        <!-- Passo 1: Rendas -->
+        <div class="step-card" [class.step-card--done]="step1Done()" (click)="onStep1Click()">
+          <div class="step-status">
+            @if (step1Done()) {
+              <span class="check-icon">✓</span>
+            } @else {
+              <span class="step-num">1</span>
+            }
+          </div>
+          <div class="step-body">
+            <h3 class="step-heading">Definir suas Rendas</h3>
+            <p class="step-desc">Informe quanto recebe no Dia 31 (Q1) e no Dia 15 (Q2).</p>
+          </div>
+          <div class="step-action">
+            @if (step1Done()) {
+              <span class="badge-done">Feito</span>
+            } @else {
+              <span class="btn-step-action">Adicionar &rarr;</span>
+            }
+          </div>
+        </div>
+
+        <!-- Passo 2: Primeira Despesa -->
+        <div class="step-card" [class.step-card--done]="step2Done()" (click)="onStep2Click()">
+          <div class="step-status">
+            @if (step2Done()) {
+              <span class="check-icon">✓</span>
+            } @else {
+              <span class="step-num">2</span>
+            }
+          </div>
+          <div class="step-body">
+            <h3 class="step-heading">Lançar 1ª Despesa</h3>
+            <p class="step-desc">Cadastre um gasto fixo (aluguel, conta) ou variável na quinzena.</p>
+          </div>
+          <div class="step-action">
+            @if (step2Done()) {
+              <span class="badge-done">Feito</span>
+            } @else {
+              <span class="btn-step-action">Lançar &rarr;</span>
+            }
+          </div>
+        </div>
+
+        <!-- Passo 3: Parcelas ou Tributos -->
+        <div class="step-card" [class.step-card--done]="step3Done()" (click)="onStep3Click()">
+          <div class="step-status">
+            @if (step3Done()) {
+              <span class="check-icon">✓</span>
+            } @else {
+              <span class="step-num">3</span>
+            }
+          </div>
+          <div class="step-body">
+            <h3 class="step-heading">Explorar Recursos Extras</h3>
+            <p class="step-desc">Conheça o controle de compras parceladas, tributos ou viagens.</p>
+          </div>
+          <div class="step-action">
+            @if (step3Done()) {
+              <span class="badge-done">Feito</span>
+            } @else {
+              <span class="btn-step-action">Explorar &rarr;</span>
+            }
+          </div>
+        </div>
+      </div>
+    }
+  </aside>
+}
