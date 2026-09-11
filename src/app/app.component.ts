@@ -30,13 +30,20 @@ export class App {
     ).subscribe(event => {
       this.currentUrl.set(event.urlAfterRedirects || event.url);
     });
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('hashchange', () => {
+        this.currentUrl.set(window.location.pathname + window.location.search + window.location.hash);
+      });
+    }
   }
 
   readonly showNavbar = computed(() => {
-    const rawUrl = this.currentUrl() || this.router.url || '';
-    const url = rawUrl.split('?')[0];
-    const isAuthPage = url.startsWith('/auth');
-    const isLandingPage = url === '/' || url === '';
-    return this.authStore.isAuthenticated() && !isAuthPage && !isLandingPage;
+    const rawUrl = this.currentUrl() || this.router.url || (typeof window !== 'undefined' ? window.location.pathname + window.location.hash : '');
+    const cleanUrl = rawUrl.split('?')[0].split('#')[0];
+    const isAuthPage = cleanUrl.startsWith('/auth');
+    const isLandingPage = cleanUrl === '/' || cleanUrl === '';
+    const isLegalPage = cleanUrl === '/termos' || cleanUrl === '/privacidade';
+    return this.authStore.isAuthenticated() && !isAuthPage && !isLandingPage && !isLegalPage;
   });
 }

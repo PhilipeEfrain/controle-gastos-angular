@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { App } from './app.component';
@@ -66,8 +67,11 @@ describe('App', () => {
       imports: [App],
       providers: [
         provideRouter([
+          { path: '', children: [] },
           { path: 'auth', children: [] },
-          { path: 'dashboard', children: [] }
+          { path: 'dashboard', children: [] },
+          { path: 'termos', children: [] },
+          { path: 'privacidade', children: [] }
         ]),
         { provide: AuthStore, useValue: mockAuthStore },
         { provide: AuthService, useValue: mockAuthService },
@@ -119,6 +123,29 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     const app = fixture.componentInstance;
 
+    expect(app.showNavbar()).toBe(false);
+  });
+
+  it('não deve exibir a Navbar na landing page com âncora /#recursos mesmo se autenticado', async () => {
+    isAuthenticatedSignal.set(true);
+    await router.navigate(['/'], { fragment: 'recursos' });
+
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+
+    expect(app.showNavbar()).toBe(false);
+  });
+
+  it('não deve exibir a Navbar nas páginas legais (/termos, /privacidade)', async () => {
+    isAuthenticatedSignal.set(true);
+    await router.navigate(['/termos']);
+
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+
+    expect(app.showNavbar()).toBe(false);
+
+    await router.navigate(['/privacidade']);
     expect(app.showNavbar()).toBe(false);
   });
 });
