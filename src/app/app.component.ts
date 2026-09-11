@@ -6,6 +6,7 @@ import { NavbarComponent } from './core/components/navbar/navbar.component';
 import { ToastContainerComponent } from './shared/components/toast-container/toast-container.component';
 import { OfflineBannerComponent } from './shared/components/offline-banner/offline-banner.component';
 import { AuthStore } from './core/state/auth.store';
+import { AnalyticsService } from './core/services/analytics.service';
 
 @Component({
   selector: 'app-root',
@@ -18,6 +19,7 @@ import { AuthStore } from './core/state/auth.store';
 export class App {
   private authStore = inject(AuthStore);
   private router = inject(Router);
+  private analytics = inject(AnalyticsService);
 
   protected readonly title = signal('controle-gastos-angular');
   private readonly currentUrl = signal<string>(this.router.url || '');

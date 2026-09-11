@@ -5,6 +5,7 @@ import { AuthStore } from './core/state/auth.store';
 import { AuthService } from './core/services/auth.service';
 import { NotificationService } from './core/services/notification.service';
 import { PwaService } from './core/services/pwa.service';
+import { AnalyticsService } from './core/services/analytics.service';
 import { signal, WritableSignal } from '@angular/core';
 
 describe('App', () => {
@@ -18,11 +19,22 @@ describe('App', () => {
     activateUpdate: ReturnType<typeof vi.fn>;
     installApp: ReturnType<typeof vi.fn>;
   };
+  let mockAnalyticsService: Partial<AnalyticsService>;
   let isAuthenticatedSignal: WritableSignal<boolean>;
   let router: Router;
 
   beforeEach(async () => {
     isAuthenticatedSignal = signal(false);
+
+    mockAnalyticsService = {
+      init: vi.fn().mockResolvedValue(true),
+      trackPageView: vi.fn(),
+      trackEvent: vi.fn(),
+      setUserId: vi.fn(),
+      setUserProperties: vi.fn(),
+      updateConsent: vi.fn(),
+      isReady: vi.fn().mockReturnValue(true)
+    };
 
     mockAuthStore = {
       currentUser: signal(null),
@@ -60,7 +72,8 @@ describe('App', () => {
         { provide: AuthStore, useValue: mockAuthStore },
         { provide: AuthService, useValue: mockAuthService },
         { provide: NotificationService, useValue: mockNotificationService },
-        { provide: PwaService, useValue: mockPwaService }
+        { provide: PwaService, useValue: mockPwaService },
+        { provide: AnalyticsService, useValue: mockAnalyticsService }
       ]
     }).compileComponents();
 
