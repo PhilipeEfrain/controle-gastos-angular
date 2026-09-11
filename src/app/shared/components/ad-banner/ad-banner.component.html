@@ -1,0 +1,38 @@
+@if (isFreeUser()) {
+  <aside class="ad-banner-wrapper" role="complementary" aria-label="Espaço publicitário">
+    <div class="ad-banner-card">
+      <div class="ad-banner-meta">
+        <span class="ad-tag">Publicidade</span>
+        @if (showUpgradePrompt()) {
+          <button
+            type="button"
+            class="btn-ad-upgrade"
+            (click)="onUpgrade()"
+            title="Assine o Plano PRO para remover os anúncios"
+          >
+            <span>Remover anúncios com o PRO</span>
+            <span class="sparkle">✨</span>
+          </button>
+        }
+      </div>
+
+      <div class="ad-banner-content">
+        <div class="ad-slot-frame" [attr.data-ad-slot]="slotId()">
+          <ins class="adsbygoogle"
+               style="display:block"
+               [attr.data-ad-client]="adClient()"
+               [attr.data-ad-slot]="slotId()"
+               data-ad-format="auto"
+               data-full-width-responsive="true"></ins>
+          <div class="ad-placeholder-preview">
+            <span class="ad-placeholder-icon">📢</span>
+            <div class="ad-placeholder-text">
+              <strong>Espaço Publicitário do Google AdSense</strong>
+              <small>Anúncios relevantes para manter o plano básico gratuito</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+}
