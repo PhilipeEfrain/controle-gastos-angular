@@ -163,6 +163,7 @@ FASE 2: CONFORMIDADE, SELF-SERVICE & VISIBILIDADE DE VENCIMENTOS (P1) - 100% CON
 [x] CARD-046: Flexibilidade de Data de Pagamento no Regime Mensal Único (5º dia útil e datas customizadas)
 [x] CARD-047: Adaptação do Guia de Primeiros Passos aos Temas do Design System (Dark, Light, Dark-Blue)
 [x] CARD-048: Adaptação do Modal de Rendas e Dia do Recebimento Salarial aos Temas do Design System
+[x] CARD-049: Implementação do AnalyticsService (GA4/Firebase Analytics), Rastreamento Automático de Rotas e Consent Mode v2
 [ ] CARD-045: Widget e Canal de Suporte / Atendimento ao Cliente no App
 
 ================================================================================
@@ -185,8 +186,9 @@ FASE 3: LANÇAMENTO OFICIAL & GO-LIVE (P2)
 - [x] Links para Termos de Uso e Privacidade estão ativos e visíveis no rodapé e no formulário de cadastro.
 - [x] O guia de onboarding interativo direciona novos usuários na configuração inicial com checklist gamificado de 0 a 100%.
 - [x] Flexibilidade de datas de pagamento salarial (5º dia útil CLT e dias 1 a 31) no regime Mensal Único.
+- [x] Rastreamento automatizado de rotas SPA, métricas de engajamento e Google Consent Mode v2 configurados via GA4.
 - [ ] A conta Asaas está validada para transações com dinheiro real no ambiente de Produção.
 - [ ] O domínio próprio responde com HTTPS e certificado SSL válido.
-- [x] A suíte com 369 testes unitários passa com 100% de sucesso.
+- [x] A suíte com 378 testes unitários passa com 100% de sucesso.
 
 
