@@ -75,6 +75,7 @@
 | `AsaasService` | `src/app/core/services/asaas.service.ts` | Integração com Gateway Asaas API v3: tabela oficial de preços, URLs base dinâmicas por ambiente (`getBaseUrl` com proxy dev-server), criação de clientes, assinaturas recorrentes (PIX e Cartão), consulta (`getSubscription`), cancelamento (`cancelSubscription`), atualização de cartão (`updateSubscriptionCreditCard`) e processamento seguro de Webhooks. |
 | `PlanLimitsService` | `src/app/core/services/plan-limits.service.ts` | Validação de regras e limites da matriz de planos SaaS (Free: máx 3 recorrentes, 3 parcelamentos, 1 tributo, 1 viagem, 2 meses histórico; Pro/Duo: ilimitado, 13 meses e PDF). |
 | `AnalyticsService` | `src/app/core/services/analytics.service.ts` | Serviço centralizado de telemetria Google Analytics 4 (GA4) / Firebase Analytics: rastreamento automático de rotas SPA, sanitização estrita de PII (LGPD), injeção via `ANALYTICS_ADAPTER`, `setUserId`, `setUserProperties` e suporte ao Google Consent Mode v2. |
+| `SeoService` | `src/app/core/services/seo.service.ts` | Gerenciamento dinâmico de metatags On-Page (`Title`, `Meta`), URLs canônicas, OpenGraph, Twitter Cards e controle de indexação de rotas (`noindex` em áreas privadas). |
 
 ---
 

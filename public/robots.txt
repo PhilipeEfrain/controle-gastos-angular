@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Allow: /auth
+Allow: /termos
+Allow: /privacidade
+
+# Proteger áreas autenticadas de usuários e rotas privadas
+Disallow: /dashboard
+Disallow: /tributos
+Disallow: /viagens
+Disallow: /parcelamentos
+Disallow: /configuracoes
+Disallow: /admin
+
+Sitemap: https://quinzena.app/sitemap.xml
