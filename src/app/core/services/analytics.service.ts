@@ -97,14 +97,21 @@ export class AnalyticsService {
    * Rastreia visualização de tela / rota
    */
   trackPageView(pagePath: string, pageTitle?: string): void {
+    const pageData = {
+      page_path: pagePath,
+      page_title: pageTitle || (typeof document !== 'undefined' ? document.title : '')
+    };
+
+    this.pushToDataLayer({
+      event: 'page_view',
+      ...pageData
+    });
+
     if (!this.analyticsInstance || !environment.production) return;
 
     this.ngZone.runOutsideAngular(() => {
       try {
-        this.adapter.logEvent(this.analyticsInstance!, 'page_view', {
-          page_path: pagePath,
-          page_title: pageTitle || (typeof document !== 'undefined' ? document.title : '')
-        });
+        this.adapter.logEvent(this.analyticsInstance!, 'page_view', pageData);
       } catch {
         // Silêncio defensivo
       }
@@ -115,9 +122,14 @@ export class AnalyticsService {
    * Rastreia eventos de interação com dados sanitizados
    */
   trackEvent(eventName: string, params?: AnalyticsEventParams): void {
-    if (!this.analyticsInstance || !environment.production) return;
-
     const sanitizedParams = this.sanitizeParams(params);
+
+    this.pushToDataLayer({
+      event: eventName,
+      ...sanitizedParams
+    });
+
+    if (!this.analyticsInstance || !environment.production) return;
 
     this.ngZone.runOutsideAngular(() => {
       try {
@@ -132,6 +144,10 @@ export class AnalyticsService {
    * Associa o identificador anônimo do usuário
    */
   setUserId(userId: string | null): void {
+    this.pushToDataLayer({
+      user_id: userId
+    });
+
     if (!this.analyticsInstance) return;
 
     try {
@@ -145,6 +161,10 @@ export class AnalyticsService {
    * Define propriedades personalizadas do usuário (ex: plano, tema)
    */
   setUserProperties(properties: Record<string, string | number | boolean>): void {
+    this.pushToDataLayer({
+      user_properties: properties
+    });
+
     if (!this.analyticsInstance) return;
 
     try {
@@ -160,6 +180,11 @@ export class AnalyticsService {
   updateConsent(granted: boolean): void {
     const status = granted ? 'granted' : 'denied';
 
+    this.pushToDataLayer({
+      event: 'consent_update',
+      consent_status: status
+    });
+
     try {
       this.adapter.setConsent({
         analytics_storage: status,
@@ -169,6 +194,17 @@ export class AnalyticsService {
       });
     } catch {
       // Silêncio defensivo
+    }
+  }
+
+  /**
+   * Envia eventos e estados para o dataLayer do Google Tag Manager
+   */
+  private pushToDataLayer(payload: Record<string, any>): void {
+    if (typeof window !== 'undefined') {
+      const win = window as any;
+      win.dataLayer = win.dataLayer || [];
+      win.dataLayer.push(payload);
     }
   }
 
