@@ -22,9 +22,9 @@
 
     <div class="deficit-banner__content">
       @if (isCritical()) {
-        <strong class="deficit-banner__title">Atenção: Déficit Orçamentário no Mês</strong>
+        <strong class="deficit-banner__title">Atenção: seus gastos superaram a renda deste ciclo</strong>
         <p class="deficit-banner__message">
-          O saldo total do ciclo está negativo em <strong>-{{ formattedSaldoFinal() }}</strong>. As rendas somadas não cobrem o total de gastos projetados.
+          O saldo deste ciclo fechou em <strong>-{{ formattedSaldoFinal() }}</strong>. Que tal ajustar as datas das despesas da Q2 ou registrar rendas extras para equilibrar o mês?
         </p>
       } @else {
         <strong class="deficit-banner__title">Tudo certo: sua próxima quinzena está coberta.</strong>

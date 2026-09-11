@@ -5,7 +5,7 @@
       <div class="header-left">
         <h1 class="page-title">Painel de Compras Parceladas</h1>
         <p class="page-subtitle">
-          Acompanhe o saldo devedor, progresso de quitação e antecipe parcelas futuras
+          Veja quantas parcelas faltam para zerar suas compras e antecipe pagamentos em 1 clique
         </p>
       </div>
 
@@ -50,7 +50,7 @@
       <app-card [variant]="totalDebtRemaining() > 0 ? 'danger' : 'default'">
         <div class="summary-card-inner">
           <div class="summary-info">
-            <span class="summary-label">Saldo Devedor Total</span>
+            <span class="summary-label">Total a Quitar (Parcelas Futuras)</span>
             <span class="summary-value text-danger">{{ formatCurrency(totalDebtRemaining()) }}</span>
           </div>
           <div class="summary-icon bg-red-light">
@@ -66,7 +66,7 @@
       <app-card>
         <div class="summary-card-inner">
           <div class="summary-info">
-            <span class="summary-label">Total Já Quitado</span>
+            <span class="summary-label">Total Já Quitado com Sucesso</span>
             <span class="summary-value text-emerald">{{ formatCurrency(totalAlreadyPaid()) }}</span>
           </div>
           <div class="summary-icon bg-emerald-light">
