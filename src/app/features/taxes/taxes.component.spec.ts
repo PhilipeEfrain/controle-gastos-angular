@@ -110,7 +110,7 @@ describe('TaxesComponent', () => {
 
   it('deve renderizar a listagem de tributos e card comparativo', () => {
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.textContent).toContain('Tributos & Gastos Sazonais');
+    expect(compiled.textContent).toContain('Contas do Ano (IPTU, IPVA e Taxas)');
     expect(compiled.textContent).toContain('IPTU 2025');
     expect(compiled.textContent).toContain('IPVA 2025');
   });

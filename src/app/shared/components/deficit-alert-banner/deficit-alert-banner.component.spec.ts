@@ -43,6 +43,6 @@ describe('DeficitAlertBannerComponent', () => {
     const banner = fixture.nativeElement.querySelector('.deficit-banner');
     expect(banner).toBeTruthy();
     expect(banner.classList.contains('deficit-banner--critical')).toBe(true);
-    expect(banner.textContent).toContain('Déficit Orçamentário no Mês');
+    expect(banner.textContent).toContain('Atenção: seus gastos superaram a renda deste ciclo');
   });
 });
