@@ -6,6 +6,7 @@ export const environment = {
     storageBucket: 'controle-gastos-app-36264.firebasestorage.app',
     apiKey: 'AIzaSyDOg6-zXuE8W3w8Kr3Nyx_OLq7lFKBUeU0',
     authDomain: 'controle-gastos-app-36264.firebaseapp.com',
-    messagingSenderId: '562686483207'
+    messagingSenderId: '562686483207',
+    measurementId: 'G-BSH7HLP2T8'
   }
 };
