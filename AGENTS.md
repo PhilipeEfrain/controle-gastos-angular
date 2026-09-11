@@ -12,6 +12,7 @@ Este repositório é gerenciado por uma equipe multidisciplinar de agentes atuan
 4. **UX (`ux_agent`)**: Design System financeiro (SCSS Modular, Design Tokens, dark mode, micro-interações, responsividade mobile/desktop) e parecer de UX (`[UX Sign-off]`).
 5. **DEV (`dev_agent`)**: Engenharia frontend em Angular (Standalone Components, Signals, `inject()`, AngularFire, TypeScript rigoroso), consulta obrigatória ao `ARCHITECTURE_MAP.md`, criação de branch `feat/` e abertura de Pull Requests.
 6. **QA (`qa_agent`)**: Automação de testes unitários e de componentes, validação estrita dos critérios de aceite BDD e parecer final de qualidade (`[QA Sign-off]`).
+7. **ANALYTICS (`analytics_agent`)**: Telemetria, taxonomia de eventos no GA4, auditoria de funis de conversão SaaS, integração com MCP do Google Analytics, Consent Mode v2 e parecer de analytics (`[Analytics Sign-off]`).
 
 ---
 
@@ -20,7 +21,7 @@ Este repositório é gerenciado por uma equipe multidisciplinar de agentes atuan
 As transições no GitHub Projects seguem 5 colunas estritas:
 
 ```
-[1. Backlog] ──(Refinamento PO+SEC+UX)──► [2. Ready] ──(DEV inicia)──► [3. In Progress] ──(PR aberto)──► [4. In review] ──(Sign-offs)──► [5. Done]
+[1. Backlog] ──(Refinamento PO+SEC+UX+ANALYTICS)──► [2. Ready] ──(DEV inicia)──► [3. In Progress] ──(PR aberto)──► [4. In review] ──(Sign-offs)──► [5. Done]
 ```
 
 1. **Backlog**:
@@ -30,7 +31,8 @@ As transições no GitHub Projects seguem 5 colunas estritas:
    - **PO** adiciona cenários BDD (`Dado`, `Quando`, `Então`) e regras de cálculo à Issue.
    - **SEC** adiciona requisitos de segurança e isolamento por usuário.
    - **UX** adiciona layout, tokens SCSS / Design System e comportamento responsivo.
-   - Com o consenso do trio (PO, SEC, UX), o **PO** move o card para **`Ready`**.
+   - **ANALYTICS** adiciona o mapeamento de eventos de telemetria e conversão.
+   - Com o consenso da equipe, o **PO** move o card para **`Ready`**.
 3. **Ready**:
    - Card pronto para ser puxado pelo DEV.
 4. **In Progress**:
@@ -40,6 +42,7 @@ As transições no GitHub Projects seguem 5 colunas estritas:
    - **QA** roda testes e valida BDD (`[QA Sign-off]`).
    - **UX** valida UI/UX e micro-interações (`[UX Sign-off]`).
    - **SEC** audita regras e dependências (`[SEC Sign-off]`).
+   - **ANALYTICS** valida taxonomia e ausência de vazamento de PII (`[Analytics Sign-off]`).
 6. **Done**:
    - Com todos os pareceres aprovados, o PR é mergeado com squash (`gh pr merge --squash --delete-branch`), a Issue é fechada e o card é movido para **`Done`**.
 
