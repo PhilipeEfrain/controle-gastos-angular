@@ -37,8 +37,41 @@
           </svg>
         </button>
         }
+
+        <!-- Mobile Hamburger Toggle -->
+        <button
+          type="button"
+          class="landing-mobile-toggle"
+          (click)="toggleMobileMenu()"
+          [attr.aria-expanded]="isMobileMenuOpen()"
+          aria-label="Abrir menu de navegação"
+          id="btn-landing-mobile-toggle"
+        >
+          @if (isMobileMenuOpen()) {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="toggle-icon">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          } @else {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="toggle-icon">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            </svg>
+          }
+        </button>
       </div>
     </div>
+
+    <!-- Mobile Drawer Menu -->
+    @if (isMobileMenuOpen()) {
+      <div class="landing-mobile-menu" role="menu">
+        <nav class="landing-mobile-nav">
+          <a href="#como-funciona" (click)="closeMobileMenu()" class="mobile-nav-link">Como Funciona</a>
+          <a href="#recursos" (click)="closeMobileMenu()" class="mobile-nav-link">Recursos</a>
+          <a href="#planos" (click)="closeMobileMenu()" class="mobile-nav-link">Planos & Preços</a>
+          <a href="#offline" (click)="closeMobileMenu()" class="mobile-nav-link">PWA Offline</a>
+          <a href="#faq" (click)="closeMobileMenu()" class="mobile-nav-link">FAQ</a>
+        </nav>
+      </div>
+    }
   </header>
 
   <!-- Hero Section -->

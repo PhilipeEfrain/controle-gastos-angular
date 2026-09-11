@@ -33,6 +33,15 @@ export class LandingComponent implements OnInit {
   readonly isAuthenticated = this.authStore.isAuthenticated;
   readonly user = this.authStore.currentUser;
   readonly showCookieConsent = signal<boolean>(false);
+  readonly isMobileMenuOpen = signal<boolean>(false);
+
+  toggleMobileMenu(): void {
+    this.isMobileMenuOpen.update(open => !open);
+  }
+
+  closeMobileMenu(): void {
+    this.isMobileMenuOpen.set(false);
+  }
 
   readonly features: FeatureItem[] = [
     {
