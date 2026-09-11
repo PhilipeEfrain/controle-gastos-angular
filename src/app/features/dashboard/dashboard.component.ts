@@ -36,6 +36,7 @@ import { ExportModalComponent } from './components/export-modal/export-modal.com
 import { LimitReachedModalComponent } from '../../shared/components/limit-reached-modal/limit-reached-modal.component';
 import { SubscriptionModalComponent } from '../../shared/components/subscription-modal/subscription-modal.component';
 import { OnboardingChecklistComponent } from './components/onboarding-checklist/onboarding-checklist.component';
+import { AdBannerComponent } from '../../shared/components/ad-banner/ad-banner.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -56,7 +57,8 @@ import { OnboardingChecklistComponent } from './components/onboarding-checklist/
     SubscriptionModalComponent,
     DuoPairingModalComponent,
     DuoSettlementCardComponent,
-    OnboardingChecklistComponent
+    OnboardingChecklistComponent,
+    AdBannerComponent
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],

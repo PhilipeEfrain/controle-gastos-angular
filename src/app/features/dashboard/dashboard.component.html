@@ -7,6 +7,12 @@
       </div>
     }
 
+    <!-- Banner de Anúncios Google AdSense (Topo do Dashboard - Plano Free) -->
+    <app-ad-banner
+      slotId="dashboard-top"
+      (upgradeClick)="openSubscriptionModal()"
+    />
+
     <!-- Header do Dashboard: Mês Seletor e Perfil -->
     <header class="dashboard-header">
       <div class="header-left">

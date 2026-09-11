@@ -116,6 +116,7 @@
 | `SubscriptionModalComponent` | `app-subscription-modal` | Modal responsivo de checkout e assinatura com planos PRO/DUO mensais sem fidelidade, pagamentos PIX/Cartão e ativação imediata. |
 | `LimitReachedModalComponent` | `app-limit-reached-modal` | Modal de bloqueio amigável de limites do plano Free com destaque de benefícios PRO e conversão direta para checkout. |
 | `DunningBannerComponent` | `app-dunning-banner` | Banner de alerta de inadimplência e regularização com estados reativos para carência ativa (aviso âmbar com prazo) e suspensão de plano (alerta vermelho com preservação de histórico). |
+| `AdBannerComponent` | `app-ad-banner` | Banner de anúncios Google AdSense com prevenção rigorosa de layout shift (CLS = 0), moldura Glassmorphism, atalho de upgrade para experiência sem anúncios e exibição condicional exclusiva para usuários do Plano Free. |
 
 ### A.1 Diretivas Standalone (`src/app/shared/directives/`)
 | Diretiva | Seletor | Descrição |
