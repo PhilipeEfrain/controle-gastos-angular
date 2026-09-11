@@ -1,4 +1,4 @@
-# Regras de Colaboração do Time de Agentes - Angular & Firebase (PM, PO, SEC, UX, DEV, QA)
+# Regras de Colaboração do Time de Agentes - Angular & Firebase (PM, PO, SEC, UX, DEV, QA, ANALYTICS, WRITER, SEO)
 
 Este repositório é gerenciado por uma equipe multidisciplinar de agentes atuando no desenvolvimento e evolução do **Controle de Gastos Quinzenais (Angular + Firebase Web App)** no GitHub e no Kanban do GitHub Projects.
 
@@ -13,6 +13,8 @@ Este repositório é gerenciado por uma equipe multidisciplinar de agentes atuan
 5. **DEV (`dev_agent`)**: Engenharia frontend em Angular (Standalone Components, Signals, `inject()`, AngularFire, TypeScript rigoroso), consulta obrigatória ao `ARCHITECTURE_MAP.md`, criação de branch `feat/` e abertura de Pull Requests.
 6. **QA (`qa_agent`)**: Automação de testes unitários e de componentes, validação estrita dos critérios de aceite BDD e parecer final de qualidade (`[QA Sign-off]`).
 7. **ANALYTICS (`analytics_agent`)**: Telemetria, taxonomia de eventos no GA4, auditoria de funis de conversão SaaS, integração com MCP do Google Analytics, Consent Mode v2 e parecer de analytics (`[Analytics Sign-off]`).
+8. **WRITER (`writer_agent`)**: Tom de voz financeiro sem culpa, clareza textual, humanização de mensagens de erro, microcopy de conversão, copys de onboarding e parecer de redação (`[Copy Sign-off]`).
+9. **SEO (`seo_agent`)**: Otimização técnica para mecanismos de busca (Googlebot), metatags dinâmicas, canonical tags, OpenGraph, dados estruturados Schema.org (JSON-LD), robots.txt, sitemap.xml, Core Web Vitals e parecer de SEO (`[SEO Sign-off]`).
 
 ---
 
@@ -21,7 +23,7 @@ Este repositório é gerenciado por uma equipe multidisciplinar de agentes atuan
 As transições no GitHub Projects seguem 5 colunas estritas:
 
 ```
-[1. Backlog] ──(Refinamento PO+SEC+UX+ANALYTICS)──► [2. Ready] ──(DEV inicia)──► [3. In Progress] ──(PR aberto)──► [4. In review] ──(Sign-offs)──► [5. Done]
+[1. Backlog] ──(Refinamento PO+SEC+UX+ANALYTICS+WRITER+SEO)──► [2. Ready] ──(DEV inicia)──► [3. In Progress] ──(PR aberto)──► [4. In review] ──(Sign-offs)──► [5. Done]
 ```
 
 1. **Backlog**:
@@ -32,6 +34,8 @@ As transições no GitHub Projects seguem 5 colunas estritas:
    - **SEC** adiciona requisitos de segurança e isolamento por usuário.
    - **UX** adiciona layout, tokens SCSS / Design System e comportamento responsivo.
    - **ANALYTICS** adiciona o mapeamento de eventos de telemetria e conversão.
+   - **WRITER** define o tom de voz, rotulagem de botões (CTAs), mensagens de erro e clareza textual.
+   - **SEO** define metatags, hierarquia semântica de headings, URLs canônicas e Schema.org.
    - Com o consenso da equipe, o **PO** move o card para **`Ready`**.
 3. **Ready**:
    - Card pronto para ser puxado pelo DEV.
@@ -43,6 +47,8 @@ As transições no GitHub Projects seguem 5 colunas estritas:
    - **UX** valida UI/UX e micro-interações (`[UX Sign-off]`).
    - **SEC** audita regras e dependências (`[SEC Sign-off]`).
    - **ANALYTICS** valida taxonomia e ausência de vazamento de PII (`[Analytics Sign-off]`).
+   - **WRITER** valida tom de voz, clareza e microcopy (`[Copy Sign-off]`).
+   - **SEO** valida tags meta, canonical, Schema.org e semântica (`[SEO Sign-off]`).
 6. **Done**:
    - Com todos os pareceres aprovados, o PR é mergeado com squash (`gh pr merge --squash --delete-branch`), a Issue é fechada e o card é movido para **`Done`**.
 
