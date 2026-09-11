@@ -94,9 +94,7 @@
             </label>
             <input
               id="valor"
-              type="number"
-              step="0.01"
-              min="0.01"
+              currencyMask
               formControlName="valor"
               class="form-input"
               [placeholder]="form.get('isParcelado')?.value ? 'Ex: 271,00 (valor de cada parcela)' : '0,00'"

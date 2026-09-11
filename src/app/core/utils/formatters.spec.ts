@@ -10,7 +10,9 @@ import {
   maskCardCvv,
   maskCardHolderName,
   isValidCpf,
-  isValidCpfCnpj
+  isValidCpfCnpj,
+  maskCurrency,
+  parseCurrency
 } from './formatters';
 
 describe('Formatters Utility', () => {
@@ -169,6 +171,46 @@ describe('Formatters Utility', () => {
 
     it('deve rejeitar CNPJ (bloqueio no cadastro)', () => {
       expect(isValidCpfCnpj('11.222.333/0001-81')).toBe(false);
+    });
+  });
+
+  describe('maskCurrency', () => {
+    it('deve formatar valores numéricos em BRL com centavos', () => {
+      expect(maskCurrency(1500.5)).toContain('1.500,50');
+      expect(maskCurrency(0)).toBe('0,00');
+      expect(maskCurrency(9.9)).toBe('9,90');
+    });
+
+    it('deve formatar digitação de dígitos inteiros com deslocamento de centavos', () => {
+      expect(maskCurrency('1')).toBe('0,01');
+      expect(maskCurrency('15')).toBe('0,15');
+      expect(maskCurrency('1500')).toBe('15,00');
+      expect(maskCurrency('150050')).toBe('1.500,50');
+      expect(maskCurrency('1500000')).toBe('15.000,00');
+    });
+
+    it('deve retornar string vazia para valores nulos ou vazios', () => {
+      expect(maskCurrency(null)).toBe('');
+      expect(maskCurrency(undefined)).toBe('');
+      expect(maskCurrency('')).toBe('');
+    });
+  });
+
+  describe('parseCurrency', () => {
+    it('deve converter string mascarada para float numérico', () => {
+      expect(parseCurrency('1.500,50')).toBe(1500.5);
+      expect(parseCurrency('0,01')).toBe(0.01);
+      expect(parseCurrency('15,00')).toBe(15);
+      expect(parseCurrency('0,00')).toBe(0);
+    });
+
+    it('deve retornar 0 para valores vazios ou inválidos', () => {
+      expect(parseCurrency('')).toBe(0);
+      expect(parseCurrency(null)).toBe(0);
+    });
+
+    it('deve preservar números diretos', () => {
+      expect(parseCurrency(250.75)).toBe(250.75);
     });
   });
 });

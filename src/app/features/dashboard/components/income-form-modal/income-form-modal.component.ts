@@ -23,10 +23,12 @@ export interface PaymentDayPreset {
   defaultQuinzena: 1 | 2 | null;
 }
 
+import { CurrencyMaskDirective } from '../../../../shared/directives/currency-mask.directive';
+
 @Component({
   selector: 'app-income-form-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, CurrencyMaskDirective],
   templateUrl: './income-form-modal.component.html',
   styleUrls: ['./income-form-modal.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush

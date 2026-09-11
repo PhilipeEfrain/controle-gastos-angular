@@ -23,12 +23,13 @@ import { AuthStore } from '../../../../core/state/auth.store';
 import { formatBRL } from '../../../../core/utils/formatters';
 import { addMonthsToYearMonth, roundBRL } from '../../../../core/utils/calculations';
 import { LimitReachedModalComponent } from '../../../../shared/components/limit-reached-modal/limit-reached-modal.component';
+import { CurrencyMaskDirective } from '../../../../shared/directives/currency-mask.directive';
 import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-expense-form-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, LimitReachedModalComponent],
+  imports: [CommonModule, ReactiveFormsModule, LimitReachedModalComponent, CurrencyMaskDirective],
   templateUrl: './expense-form-modal.component.html',
   styleUrls: ['./expense-form-modal.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush

@@ -31,6 +31,7 @@ import { roundBRL } from '../../core/utils/calculations';
 import { AppCardComponent } from '../../shared/components/app-card/app-card.component';
 import { ConfirmationModalComponent } from '../../shared/components/confirmation-modal/confirmation-modal.component';
 import { LimitReachedModalComponent } from '../../shared/components/limit-reached-modal/limit-reached-modal.component';
+import { CurrencyMaskDirective } from '../../shared/directives/currency-mask.directive';
 import { PlanLimitsService } from '../../core/services/plan-limits.service';
 
 @Component({
@@ -41,7 +42,8 @@ import { PlanLimitsService } from '../../core/services/plan-limits.service';
     ReactiveFormsModule,
     AppCardComponent,
     ConfirmationModalComponent,
-    LimitReachedModalComponent
+    LimitReachedModalComponent,
+    CurrencyMaskDirective
   ],
   templateUrl: './travel.component.html',
   styleUrls: ['./travel.component.scss'],

@@ -138,4 +138,33 @@ export function isValidCpfCnpj(document: string | null | undefined): boolean {
   return isValidCpf(document);
 }
 
+/**
+ * Aplica máscara de moeda BRL em tempo real durante a digitação
+ * Ex: "1" -> "0,01" | "1500" -> "15,00" | "150000" -> "1.500,00"
+ */
+export function maskCurrency(value: string | number | null | undefined): string {
+  if (value === null || value === undefined || value === '') return '';
+  const str = typeof value === 'number' ? Math.round(value * 100).toString() : value.toString();
+  const digits = str.replace(/\D/g, '');
+  if (!digits) return '';
+
+  const num = parseInt(digits, 10) / 100;
+  return new Intl.NumberFormat('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(num);
+}
+
+/**
+ * Converte string mascarada de moeda para número decimal float
+ * Ex: "1.500,50" -> 1500.5
+ */
+export function parseCurrency(value: string | number | null | undefined): number {
+  if (value === null || value === undefined || value === '') return 0;
+  if (typeof value === 'number') return isNaN(value) ? 0 : value;
+  const digits = value.toString().replace(/\D/g, '');
+  if (!digits) return 0;
+  return parseInt(digits, 10) / 100;
+}
+
 

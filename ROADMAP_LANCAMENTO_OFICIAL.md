@@ -187,8 +187,9 @@ FASE 3: LANÇAMENTO OFICIAL & GO-LIVE (P2)
 - [x] O guia de onboarding interativo direciona novos usuários na configuração inicial com checklist gamificado de 0 a 100%.
 - [x] Flexibilidade de datas de pagamento salarial (5º dia útil CLT e dias 1 a 31) no regime Mensal Único.
 - [x] Rastreamento automatizado de rotas SPA, métricas de engajamento e Google Consent Mode v2 configurados via GA4.
+- [x] Inputs monetários com máscara BRL em tempo real e remoção global de setas/spinners de campos numéricos.
 - [ ] A conta Asaas está validada para transações com dinheiro real no ambiente de Produção.
 - [ ] O domínio próprio responde com HTTPS e certificado SSL válido.
-- [x] A suíte com 378 testes unitários passa com 100% de sucesso.
+- [x] A suíte com 389 testes unitários passa com 100% de sucesso.
 
 

@@ -26,6 +26,8 @@
 | `maskCardHolderName` | `src/app/core/utils/formatters.ts` | Sanitiza e converte o nome do titular para maiúsculas (apenas letras e espaços). | `(value: string \| null \| undefined): string` |
 | `isValidCpf` | `src/app/core/utils/formatters.ts` | Validador estrito exclusivo de CPF (rejeita CNPJ) através do algoritmo de Módulo 11 (`validation-br`). | `(document: string \| null \| undefined): boolean` |
 | `isValidCpfCnpj` | `src/app/core/utils/formatters.ts` | Validador estrito de CPF para cadastro/checkout (bloqueia CNPJ). | `(document: string \| null \| undefined): boolean` |
+| `maskCurrency` | `src/app/core/utils/formatters.ts` | Aplica máscara monetária BRL em tempo real durante digitação (`"1500"` -> `"15,00"`). | `(value: string \| number \| null \| undefined): string` |
+| `parseCurrency` | `src/app/core/utils/formatters.ts` | Converte string mascarada em BRL para float numérico puro (`"1.500,50"` -> `1500.5`). | `(value: string \| number \| null \| undefined): number` |
 
 ---
 
@@ -113,6 +115,11 @@
 | `SubscriptionModalComponent` | `app-subscription-modal` | Modal responsivo de checkout e assinatura com planos PRO/DUO mensais sem fidelidade, pagamentos PIX/Cartão e ativação imediata. |
 | `LimitReachedModalComponent` | `app-limit-reached-modal` | Modal de bloqueio amigável de limites do plano Free com destaque de benefícios PRO e conversão direta para checkout. |
 | `DunningBannerComponent` | `app-dunning-banner` | Banner de alerta de inadimplência e regularização com estados reativos para carência ativa (aviso âmbar com prazo) e suspensão de plano (alerta vermelho com preservação de histórico). |
+
+### A.1 Diretivas Standalone (`src/app/shared/directives/`)
+| Diretiva | Seletor | Descrição |
+| :--- | :--- | :--- |
+| `CurrencyMaskDirective` | `input[currencyMask]`, `input[appCurrencyMask]` | Diretiva standalone para inputs monetários com máscara BRL em tempo real durante digitação, integração bidirecional nativa com Reactive Forms (`ControlValueAccessor`) e tipagem float pura no formControl. |
 
 ### B. Core & Navegação (`src/app/core/components/`)
 | Componente | Seletor | Descrição |

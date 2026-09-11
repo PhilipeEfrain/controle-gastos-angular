@@ -18,10 +18,12 @@ import { AnnualTax } from '../../../../core/models/finance.model';
 import { TaxService } from '../../../../core/services/tax.service';
 import { AuthStore } from '../../../../core/state/auth.store';
 
+import { CurrencyMaskDirective } from '../../../../shared/directives/currency-mask.directive';
+
 @Component({
   selector: 'app-tax-form-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, CurrencyMaskDirective],
   templateUrl: './tax-form-modal.component.html',
   styleUrls: ['./tax-form-modal.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
