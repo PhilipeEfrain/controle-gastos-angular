@@ -8,5 +8,10 @@ export const environment = {
     authDomain: 'controle-gastos-app-36264.firebaseapp.com',
     messagingSenderId: '562686483207',
     measurementId: 'G-BSH7HLP2T8'
+  },
+  adsense: {
+    client: 'ca-pub-0000000000000000',
+    topDashboardSlot: '1234567890',
+    enabled: true
   }
 };

@@ -24,13 +24,27 @@
                [attr.data-ad-slot]="slotId()"
                data-ad-format="auto"
                data-full-width-responsive="true"></ins>
-          <div class="ad-placeholder-preview">
-            <span class="ad-placeholder-icon">📢</span>
-            <div class="ad-placeholder-text">
-              <strong>Espaço Publicitário do Google AdSense</strong>
-              <small>Anúncios relevantes para manter o plano básico gratuito</small>
+
+          @if (isAdBlocked()) {
+            <div class="ad-blocked-fallback">
+              <span class="ad-fallback-icon">🛡️</span>
+              <div class="ad-fallback-text">
+                <strong>Bloqueador de anúncios ativo</strong>
+                <small>Para apoiar o desenvolvimento do Quinzena, experimente o Plano PRO sem anúncios</small>
+              </div>
+              <button type="button" class="btn-fallback-upgrade" (click)="onUpgrade()">
+                Conhecer PRO
+              </button>
             </div>
-          </div>
+          } @else {
+            <div class="ad-placeholder-preview">
+              <span class="ad-placeholder-icon">📢</span>
+              <div class="ad-placeholder-text">
+                <strong>Espaço Publicitário do Google AdSense</strong>
+                <small>Anúncios relevantes para manter o plano básico gratuito</small>
+              </div>
+            </div>
+          }
         </div>
       </div>
     </div>
