@@ -45,6 +45,7 @@ export class ExpenseFormModalComponent {
   readonly quinzena = input<FortnightNumber>(1);
   readonly expenseToEdit = input<Expense | null>(null);
   readonly mesAno = input.required<string>();
+  readonly initialParcelado = input<boolean>(false);
 
   readonly close = output<void>();
   readonly saved = output<void>();
@@ -116,6 +117,7 @@ export class ExpenseFormModalComponent {
             total_parcelas: 2
           });
         } else {
+          const startParcelado = this.initialParcelado();
           this.form.reset({
             tipo: 'despesa',
             descricao: '',
@@ -124,7 +126,7 @@ export class ExpenseFormModalComponent {
             categoria: 'Alimentação',
             data_vencimento: '',
             recorrente: false,
-            isParcelado: false,
+            isParcelado: startParcelado,
             total_parcelas: 2
           });
         }

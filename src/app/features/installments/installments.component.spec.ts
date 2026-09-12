@@ -117,4 +117,16 @@ describe('InstallmentsComponent', () => {
     expect(mockNotificationService.success).toHaveBeenCalled();
     expect(component.isAdvanceModalOpen()).toBe(false);
   });
+
+  it('Cenário BDD: deve renderizar a classe .app-container garantindo espaçamentos e paddings de layout', () => {
+    const container = fixture.nativeElement.querySelector('.app-container');
+    expect(container).toBeTruthy();
+  });
+
+  it('Cenário BDD: onNewInstallment deve navegar para /dashboard com query param action=new-installment', () => {
+    component.onNewInstallment();
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/dashboard'], {
+      queryParams: { action: 'new-installment' }
+    });
+  });
 });

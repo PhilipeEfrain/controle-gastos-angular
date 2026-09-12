@@ -235,6 +235,15 @@
             <span class="summary-label">Saldo Consolidado</span>
             <span class="summary-value" [class.text-danger]="financeStore.balanceSummary().temDeficitGlobal" [class.text-emerald]="!financeStore.balanceSummary().temDeficitGlobal">
               {{ formattedSaldoGlobal() }}
+              @if (financeStore.balanceSummary().hasExtraIncome) {
+                <span
+                  class="extra-income-indicator"
+                  [title]="extraIncomeGlobalTooltip()"
+                  [attr.aria-label]="extraIncomeGlobalTooltip()"
+                  role="note"
+                  tabindex="0"
+                >*</span>
+              }
             </span>
           </div>
           <div class="summary-icon" [class.bg-danger-light]="financeStore.balanceSummary().temDeficitGlobal" [class.bg-emerald-light]="!financeStore.balanceSummary().temDeficitGlobal">
@@ -370,6 +379,7 @@
   [isOpen]="isExpenseModalOpen()"
   [quinzena]="expenseModalQuinzena()"
   [expenseToEdit]="expenseToEdit()"
+  [initialParcelado]="isExpenseModalParcelado()"
   [mesAno]="financeStore.selectedMonth()"
   (close)="isExpenseModalOpen.set(false)"
   (saved)="onExpenseSaved()"

@@ -39,7 +39,11 @@
 
       <div class="metric-item balance-item">
         <span class="metric-label">Saldo</span>
-        <app-balance-badge [value]="summary().saldo" />
+        <app-balance-badge
+          [value]="summary().saldo"
+          [hasExtraIncome]="!!summary().hasExtraIncome"
+          [extraIncomeAmount]="summary().totalExtraIncome || 0"
+        />
       </div>
     </div>
 

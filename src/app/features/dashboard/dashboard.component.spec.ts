@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
+import { of } from 'rxjs';
 import { DashboardComponent } from './dashboard.component';
 import { FinanceStore } from '../../core/state/finance.store';
 import { AuthStore } from '../../core/state/auth.store';
@@ -158,7 +159,8 @@ describe('DashboardComponent', () => {
         { provide: ExportService, useValue: mockExportService },
         { provide: DuoService, useValue: mockDuoService },
         { provide: FirebaseService, useValue: mockFirebaseService },
-        { provide: Router, useValue: mockRouter }
+        { provide: Router, useValue: mockRouter },
+        { provide: ActivatedRoute, useValue: { queryParams: of({}) } }
       ]
     }).compileComponents();
 
@@ -256,6 +258,57 @@ describe('DashboardComponent', () => {
       component.onExploreFeaturesFromOnboarding();
       expect(component.hasExploredFeatures()).toBe(true);
       expect(mockRouter.navigate).toHaveBeenCalledWith(['/parcelamentos']);
+    });
+  });
+
+  describe('Cenário BDD: Indicador de Renda Extra no Saldo Consolidado', () => {
+    it('deve exibir indicador * no saldo consolidado quando hasExtraIncome for true', () => {
+      mockFinanceStore.balanceSummary.set({
+        totalRenda: 5800,
+        totalGastos: 200,
+        saldoFinal: 5600,
+        hasExtraIncome: true,
+        totalExtraIncome: 800,
+        q1: { saldo: 3600, isDeficit: false, hasExtraIncome: true, totalExtraIncome: 800 },
+        q2: { saldo: 2000, isDeficit: false, hasExtraIncome: false, totalExtraIncome: 0 },
+        temDeficitGlobal: false
+      });
+      fixture.detectChanges();
+
+      const el = fixture.nativeElement as HTMLElement;
+      const indicator = el.querySelector('.summary-value .extra-income-indicator') as HTMLElement;
+      expect(indicator).toBeTruthy();
+      expect(indicator.textContent?.trim()).toBe('*');
+      expect(indicator.getAttribute('title')).toContain('Saldo com acréscimo de renda extra');
+      expect(indicator.getAttribute('title')).toContain('800,00');
+    });
+
+    it('NÃO deve exibir indicador * no saldo consolidado quando hasExtraIncome for false', () => {
+      mockFinanceStore.balanceSummary.set({
+        totalRenda: 5000,
+        totalGastos: 200,
+        saldoFinal: 4800,
+        hasExtraIncome: false,
+        totalExtraIncome: 0,
+        q1: { saldo: 2800, isDeficit: false, hasExtraIncome: false },
+        q2: { saldo: 2000, isDeficit: false, hasExtraIncome: false },
+        temDeficitGlobal: false
+      });
+      fixture.detectChanges();
+
+      const el = fixture.nativeElement as HTMLElement;
+      const indicator = el.querySelector('.summary-value .extra-income-indicator');
+      expect(indicator).toBeNull();
+    });
+  });
+
+  describe('Cenário BDD: Abertura Direta em Modo Parcelado', () => {
+    it('openNewExpenseModal com isParcelado=true deve sinalizar modal parcelado', () => {
+      component.openNewExpenseModal(1, true);
+
+      expect(component.isExpenseModalOpen()).toBe(true);
+      expect(component.isExpenseModalParcelado()).toBe(true);
+      expect(component.expenseModalQuinzena()).toBe(1);
     });
   });
 });

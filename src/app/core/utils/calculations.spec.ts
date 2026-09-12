@@ -172,6 +172,14 @@ describe('Calculations Utility (Motor Financeiro)', () => {
       expect(balance.totalGastos).toBe(3300);
       expect(balance.saldoFinal).toBe(1500);
       expect(balance.temDeficitGlobal).toBe(false);
+
+      // Flags de Renda Extra para exibição do indicador (*) e tooltip
+      expect(balance.hasExtraIncome).toBe(true);
+      expect(balance.totalExtraIncome).toBe(800);
+      expect(balance.q1.hasExtraIncome).toBe(true);
+      expect(balance.q1.totalExtraIncome).toBe(800);
+      expect(balance.q2.hasExtraIncome).toBe(false);
+      expect(balance.q2.totalExtraIncome).toBe(0);
     });
   });
 

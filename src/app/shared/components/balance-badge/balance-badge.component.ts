@@ -17,7 +17,18 @@ export class BalanceBadgeComponent {
   readonly label = input<string>();
   readonly size = input<BadgeSize>('md');
   readonly showSign = input<boolean>(true);
+  readonly hasExtraIncome = input<boolean>(false);
+  readonly extraIncomeAmount = input<number>(0);
+  readonly tooltipText = input<string>('Saldo com acréscimo de renda extra');
 
   readonly isPositive = computed(() => (this.value() ?? 0) >= 0);
   readonly formattedValue = computed(() => formatBRL(this.value()));
+  readonly resolvedTooltip = computed(() => {
+    const base = this.tooltipText();
+    const amount = this.extraIncomeAmount();
+    if (amount > 0) {
+      return `${base} (+ ${formatBRL(amount)})`;
+    }
+    return base;
+  });
 }
