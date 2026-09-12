@@ -61,6 +61,7 @@ describe('AdminComponent (Painel Administrativo)', () => {
   beforeEach(async () => {
     mockAdminService = {
       getAllUsers: vi.fn().mockResolvedValue(mockUsers),
+      getUsersPage: vi.fn().mockResolvedValue({ users: mockUsers, hasMore: false, lastDoc: null }),
       updateUserPlan: vi.fn().mockResolvedValue(undefined),
       updateUserRole: vi.fn().mockResolvedValue(undefined),
       calculateSaaSMetrics: vi.fn((users: UserProfile[]) => {
@@ -141,7 +142,7 @@ describe('AdminComponent (Painel Administrativo)', () => {
 
   it('deve inicializar e carregar usuários e KPIs', async () => {
     await fixture.whenStable();
-    expect(mockAdminService.getAllUsers).toHaveBeenCalled();
+    expect(mockAdminService.getUsersPage).toHaveBeenCalledWith(50);
     expect(component.users().length).toBe(3);
     expect(component.metrics().totalUsers).toBe(3);
     expect(component.metrics().paidUsers).toBe(2);
@@ -371,6 +372,32 @@ describe('AdminComponent (Painel Administrativo)', () => {
       };
       component.openEditModal(userWithoutExpires);
       expect(component.editExpiresAt()).toBe('');
+    });
+  });
+
+  describe('Paginação e Controle de Quotas do Firestore (CARD-065)', () => {
+    it('Cenário BDD 1: deve inicializar hasMoreUsers como falso quando lote for menor que limite', () => {
+      expect(component.hasMoreUsers()).toBe(false);
+      expect(component.users().length).toBe(3);
+    });
+
+    it('Cenário BDD 2: deve carregar mais usuários ao invocar loadMoreUsers() e anexar à lista reativa', async () => {
+      const mockPage1 = [{ uid: 'u-1', displayName: 'User 1', email: 'u1@test.com' } as UserProfile];
+      const mockPage2 = [{ uid: 'u-2', displayName: 'User 2', email: 'u2@test.com' } as UserProfile];
+      const fakeCursor = { id: 'u-1' };
+
+      mockAdminService.getUsersPage = vi.fn()
+        .mockResolvedValueOnce({ users: mockPage1, hasMore: true, lastDoc: fakeCursor })
+        .mockResolvedValueOnce({ users: mockPage2, hasMore: false, lastDoc: null });
+
+      await component.loadUsers();
+      expect(component.users().length).toBe(1);
+      expect(component.hasMoreUsers()).toBe(true);
+
+      await component.loadMoreUsers();
+      expect(component.users().length).toBe(2);
+      expect(component.hasMoreUsers()).toBe(false);
+      expect(mockAdminService.getUsersPage).toHaveBeenCalledWith(50, fakeCursor);
     });
   });
 });
