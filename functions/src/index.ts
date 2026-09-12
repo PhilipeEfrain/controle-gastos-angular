@@ -17,7 +17,8 @@ const db = getFirestore();
 export const asaasWebhook = onRequest(
   {
     cors: true,
-    maxInstances: 10
+    maxInstances: 10,
+    invoker: 'public'
   },
   async (req, res) => {
     if (req.method !== 'POST') {
