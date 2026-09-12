@@ -78,6 +78,7 @@ export class DashboardComponent implements OnInit {
   // Modo Casal / Duo State
   readonly duoGroup = signal<DuoGroup | null>(null);
   readonly isDuoPairingModalOpen = signal<boolean>(false);
+  readonly initialDuoCode = signal<string>('');
 
   readonly isDuoActive = computed(() => {
     return this.authStore.isDuo() || (this.duoGroup()?.status === 'active' && !!this.duoGroup()?.partnerId);
@@ -260,6 +261,20 @@ export class DashboardComponent implements OnInit {
           replaceUrl: true
         });
       }
+
+      const duoCode = params['duoCode'];
+      if (duoCode && typeof duoCode === 'string') {
+        const sanitized = duoCode.trim().toUpperCase();
+        if (/^DUO-\d{4}$/i.test(sanitized)) {
+          this.initialDuoCode.set(sanitized);
+          this.isDuoPairingModalOpen.set(true);
+          this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: {},
+            replaceUrl: true
+          });
+        }
+      }
     });
   }
 
@@ -415,6 +430,7 @@ export class DashboardComponent implements OnInit {
 
   async onDuoPairingModalClosed(): Promise<void> {
     this.isDuoPairingModalOpen.set(false);
+    this.initialDuoCode.set('');
     const user = this.authStore.currentUser();
     if (user?.uid) {
       try {

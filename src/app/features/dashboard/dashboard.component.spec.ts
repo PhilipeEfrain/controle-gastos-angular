@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { of } from 'rxjs';
+import { of, BehaviorSubject } from 'rxjs';
 import { DashboardComponent } from './dashboard.component';
 import { FinanceStore } from '../../core/state/finance.store';
 import { AuthStore } from '../../core/state/auth.store';
@@ -19,6 +19,7 @@ import { DuoService } from '../../core/services/duo.service';
 describe('DashboardComponent', () => {
   let component: DashboardComponent;
   let fixture: ComponentFixture<DashboardComponent>;
+  let queryParamsSubject: BehaviorSubject<any>;
 
   const mockUser: UserProfile = {
     uid: 'user-777',
@@ -147,6 +148,8 @@ describe('DashboardComponent', () => {
       auth: {}
     };
 
+    queryParamsSubject = new BehaviorSubject<any>({});
+
     await TestBed.configureTestingModule({
       imports: [DashboardComponent],
       providers: [
@@ -161,7 +164,7 @@ describe('DashboardComponent', () => {
         { provide: DuoService, useValue: mockDuoService },
         { provide: FirebaseService, useValue: mockFirebaseService },
         { provide: Router, useValue: mockRouter },
-        { provide: ActivatedRoute, useValue: { queryParams: of({}) } }
+        { provide: ActivatedRoute, useValue: { queryParams: queryParamsSubject.asObservable() } }
       ]
     }).compileComponents();
 
@@ -363,12 +366,33 @@ describe('DashboardComponent', () => {
       expect(component.isDuoPairingModalOpen()).toBe(true);
     });
 
-    it('onDuoPairingModalClosed deve fechar modal de pareamento e atualizar grupo', async () => {
+    it('onDuoPairingModalClosed deve fechar modal de pareamento, limpar initialDuoCode e atualizar grupo', async () => {
       component.isDuoPairingModalOpen.set(true);
+      component.initialDuoCode.set('DUO-1234');
       await component.onDuoPairingModalClosed();
 
       expect(component.isDuoPairingModalOpen()).toBe(false);
+      expect(component.initialDuoCode()).toBe('');
       expect(mockDuoService.getDuoGroupForUser).toHaveBeenCalledWith('user-777');
+    });
+
+    it('Cenário BDD (CARD-062): deve capturar duoCode da URL, abrir modal e limpar parâmetro', () => {
+      queryParamsSubject.next({ duoCode: 'DUO-7842' });
+
+      expect(component.initialDuoCode()).toBe('DUO-7842');
+      expect(component.isDuoPairingModalOpen()).toBe(true);
+      expect(mockRouter.navigate).toHaveBeenCalledWith([], {
+        relativeTo: expect.anything(),
+        queryParams: {},
+        replaceUrl: true
+      });
+    });
+
+    it('Cenário BDD (CARD-062): deve ignorar duoCode com formato inválido', () => {
+      queryParamsSubject.next({ duoCode: 'INVALID-CODE' });
+
+      expect(component.initialDuoCode()).toBe('');
+      expect(component.isDuoPairingModalOpen()).toBe(false);
     });
   });
 });

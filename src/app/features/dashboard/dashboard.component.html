@@ -450,6 +450,7 @@
 <!-- Modal de Pareamento do Modo Casal / Duo -->
 <app-duo-pairing-modal
   [isOpen]="isDuoPairingModalOpen()"
+  [initialInviteCode]="initialDuoCode()"
   (close)="onDuoPairingModalClosed()"
 />
 
