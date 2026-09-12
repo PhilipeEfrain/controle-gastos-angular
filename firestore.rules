@@ -157,10 +157,9 @@ service cloud.firestore {
       allow delete: if isAuthenticated() && request.auth.uid == resource.data.ownerId;
     }
 
-    // Configurações Globais do Sistema e Gateway Asaas (Leitura autenticada e escrita restrita RBAC)
+    // Configurações Globais do Sistema e Gateway Asaas (Acesso restrito a administradores e Cloud Functions)
     match /system_config/{configId} {
-      allow read: if isAuthenticated();
-      allow write: if isAdmin();
+      allow read, write: if isAdmin();
     }
 
     // Auditoria e Eventos de Sistema / Webhooks (Leitura restrita a administradores e escrita exclusiva de backend)
@@ -172,7 +171,7 @@ service cloud.firestore {
     // Isolamento Estrito de Dados por Usuário e Governança Administrativa
     match /users/{userId} {
       allow get: if isOwner(userId) || isAdmin();
-      allow list: if isAuthenticated();
+      allow list: if isAdmin();
       allow create: if (isOwner(userId) && isValidUserProfile(request.resource.data)
                         && (!('role' in request.resource.data) || request.resource.data.role == 'user')
                         && (
