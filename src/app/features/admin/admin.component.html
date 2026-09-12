@@ -360,6 +360,25 @@
               }
             </tbody>
           </table>
+
+          @if (hasMoreUsers() && !searchTerm()) {
+            <div class="load-more-container">
+              <button
+                type="button"
+                id="btn-load-more-users"
+                class="btn-load-more"
+                [disabled]="isLoadingMore()"
+                (click)="loadMoreUsers()"
+              >
+                @if (isLoadingMore()) {
+                  <span class="btn-spinner"></span>
+                  <span>Carregando mais usuários...</span>
+                } @else {
+                  <span>Carregar mais usuários (+50)</span>
+                }
+              </button>
+            </div>
+          }
         }
       </div>
     </section>

@@ -8,12 +8,21 @@ import {
   getDoc,
   setDoc,
   query,
-  orderBy
+  orderBy,
+  limit,
+  startAfter,
+  DocumentSnapshot
 } from 'firebase/firestore';
 import { FirebaseService } from './firebase.service';
 import { LoggerService } from './logger.service';
 import { UserProfile, PlanType, PlanStatus, UserRole } from '../models/user.model';
 import { AsaasConfig, AsaasEnvironment } from '../models/payment.model';
+
+export interface PaginatedUsersResponse {
+  users: UserProfile[];
+  hasMore: boolean;
+  lastDoc: DocumentSnapshot | null;
+}
 
 export interface SaaSMetrics {
   totalUsers: number;
@@ -44,94 +53,123 @@ export class AdminService {
   } as const;
 
   /**
-   * Busca todos os usuários cadastrados na plataforma de forma robusta e resiliente
+   * Mapeia um DocumentSnapshot do Firestore para o modelo UserProfile com sanitização e fallbacks
    */
-  async getAllUsers(): Promise<UserProfile[]> {
+  private mapUserDoc(docSnap: any): UserProfile {
+    const data = docSnap.data ? docSnap.data() : (docSnap || {});
+
+    let createdAtIso = new Date().toISOString();
+    const rawCreated = data['createdAt'];
+    if (rawCreated) {
+      if (typeof rawCreated === 'string') {
+        createdAtIso = rawCreated;
+      } else if (typeof rawCreated === 'object' && rawCreated !== null) {
+        if (typeof rawCreated.toDate === 'function') {
+          createdAtIso = rawCreated.toDate().toISOString();
+        } else if (rawCreated.seconds) {
+          createdAtIso = new Date(rawCreated.seconds * 1000).toISOString();
+        }
+      }
+    }
+
+    let updatedAtIso: string | undefined = undefined;
+    const rawUpdated = data['updatedAt'];
+    if (rawUpdated) {
+      if (typeof rawUpdated === 'string') {
+        updatedAtIso = rawUpdated;
+      } else if (typeof rawUpdated === 'object' && rawUpdated !== null) {
+        if (typeof rawUpdated.toDate === 'function') {
+          updatedAtIso = rawUpdated.toDate().toISOString();
+        } else if (rawUpdated.seconds) {
+          updatedAtIso = new Date(rawUpdated.seconds * 1000).toISOString();
+        }
+      }
+    }
+
+    let planExpiresAtIso: string | null = null;
+    const rawExpires = data['planExpiresAt'];
+    if (rawExpires) {
+      if (typeof rawExpires === 'string') {
+        planExpiresAtIso = rawExpires;
+      } else if (typeof rawExpires === 'object' && rawExpires !== null) {
+        if (typeof rawExpires.toDate === 'function') {
+          planExpiresAtIso = rawExpires.toDate().toISOString();
+        } else if (typeof rawExpires.seconds === 'number') {
+          planExpiresAtIso = new Date(rawExpires.seconds * 1000).toISOString();
+        } else if (typeof rawExpires._seconds === 'number') {
+          planExpiresAtIso = new Date(rawExpires._seconds * 1000).toISOString();
+        }
+      } else if (typeof rawExpires === 'number') {
+        planExpiresAtIso = new Date(rawExpires).toISOString();
+      }
+    }
+
+    return {
+      uid: docSnap.id || data['uid'] || '',
+      email: data['email'] || null,
+      displayName: data['displayName'] || 'Usuário',
+      photoURL: data['photoURL'] || null,
+      role: (data['role'] as UserRole) || 'user',
+      plan: (data['plan'] as PlanType) || 'free',
+      planStatus: (data['planStatus'] as PlanStatus) || 'active',
+      planExpiresAt: planExpiresAtIso,
+      asaasCustomerId: data['asaasCustomerId'] || null,
+      asaasSubscriptionId: data['asaasSubscriptionId'] || null,
+      preferences: data['preferences'],
+      createdAt: createdAtIso,
+      updatedAt: updatedAtIso
+    } as UserProfile;
+  }
+
+  /**
+   * Busca página de usuários com limite de quota (limit(pageSize)) e cursor de paginação (startAfter)
+   * Previne varreduras completas no Firestore garantindo controle de custos no plano Blaze (CARD-065).
+   */
+  async getUsersPage(
+    pageSize: number = 50,
+    startAfterDoc?: any
+  ): Promise<PaginatedUsersResponse> {
     try {
       const usersRef = collection(this.firestore, 'users');
-      const snapshot = await getDocs(usersRef);
+      let q = startAfterDoc
+        ? query(usersRef, startAfter(startAfterDoc), limit(pageSize))
+        : query(usersRef, limit(pageSize));
+
+      const snapshot = await getDocs(q);
 
       if (snapshot.empty) {
-        return [];
+        return { users: [], hasMore: false, lastDoc: null };
       }
 
-      const usersList: UserProfile[] = snapshot.docs.map(docSnap => {
-        const data = docSnap.data();
+      const usersList: UserProfile[] = snapshot.docs.map(docSnap => this.mapUserDoc(docSnap));
 
-        // Tratamento resiliente de datas (Timestamp do Firestore, ISO string ou fallback)
-        let createdAtIso = new Date().toISOString();
-        const rawCreated = data['createdAt'];
-        if (rawCreated) {
-          if (typeof rawCreated === 'string') {
-            createdAtIso = rawCreated;
-          } else if (typeof rawCreated === 'object' && rawCreated !== null) {
-            if (typeof rawCreated.toDate === 'function') {
-              createdAtIso = rawCreated.toDate().toISOString();
-            } else if (rawCreated.seconds) {
-              createdAtIso = new Date(rawCreated.seconds * 1000).toISOString();
-            }
-          }
-        }
-
-        let updatedAtIso: string | undefined = undefined;
-        const rawUpdated = data['updatedAt'];
-        if (rawUpdated) {
-          if (typeof rawUpdated === 'string') {
-            updatedAtIso = rawUpdated;
-          } else if (typeof rawUpdated === 'object' && rawUpdated !== null) {
-            if (typeof rawUpdated.toDate === 'function') {
-              updatedAtIso = rawUpdated.toDate().toISOString();
-            } else if (rawUpdated.seconds) {
-              updatedAtIso = new Date(rawUpdated.seconds * 1000).toISOString();
-            }
-          }
-        }
-
-        let planExpiresAtIso: string | null = null;
-        const rawExpires = data['planExpiresAt'];
-        if (rawExpires) {
-          if (typeof rawExpires === 'string') {
-            planExpiresAtIso = rawExpires;
-          } else if (typeof rawExpires === 'object' && rawExpires !== null) {
-            if (typeof rawExpires.toDate === 'function') {
-              planExpiresAtIso = rawExpires.toDate().toISOString();
-            } else if (typeof rawExpires.seconds === 'number') {
-              planExpiresAtIso = new Date(rawExpires.seconds * 1000).toISOString();
-            } else if (typeof rawExpires._seconds === 'number') {
-              planExpiresAtIso = new Date(rawExpires._seconds * 1000).toISOString();
-            }
-          } else if (typeof rawExpires === 'number') {
-            planExpiresAtIso = new Date(rawExpires).toISOString();
-          }
-        }
-
-        return {
-          uid: docSnap.id,
-          email: data['email'] || null,
-          displayName: data['displayName'] || 'Usuário',
-          photoURL: data['photoURL'] || null,
-          role: (data['role'] as UserRole) || 'user',
-          plan: (data['plan'] as PlanType) || 'free',
-          planStatus: (data['planStatus'] as PlanStatus) || 'active',
-          planExpiresAt: planExpiresAtIso,
-          asaasCustomerId: data['asaasCustomerId'] || null,
-          asaasSubscriptionId: data['asaasSubscriptionId'] || null,
-          preferences: data['preferences'],
-          createdAt: createdAtIso,
-          updatedAt: updatedAtIso
-        } as UserProfile;
-      });
-
-      // Ordena por data de cadastro (mais recentes primeiro)
-      return usersList.sort((a, b) => {
+      // Ordena lote por data de cadastro (mais recentes primeiro)
+      usersList.sort((a, b) => {
         const timeA = new Date(a.createdAt || 0).getTime();
         const timeB = new Date(b.createdAt || 0).getTime();
         return timeB - timeA;
       });
+
+      const lastVisible = snapshot.docs[snapshot.docs.length - 1] || null;
+      const hasMore = snapshot.docs.length >= pageSize;
+
+      return {
+        users: usersList,
+        hasMore,
+        lastDoc: lastVisible
+      };
     } catch (error) {
-      this.logger.error('Erro ao listar usuários no painel administrativo:', error);
+      this.logger.error('Erro ao listar página de usuários no painel administrativo:', error);
       throw error;
     }
+  }
+
+  /**
+   * Busca usuários com limite padrão de 50 documentos para prevenir consumo excessivo no Firestore (CARD-065)
+   */
+  async getAllUsers(pageSize: number = 50): Promise<UserProfile[]> {
+    const page = await this.getUsersPage(pageSize);
+    return page.users;
   }
 
   /**

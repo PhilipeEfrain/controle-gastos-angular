@@ -41,6 +41,11 @@ export class AdminComponent implements OnInit {
   readonly searchTerm = signal<string>('');
   readonly planFilter = signal<'all' | 'free' | 'pro' | 'duo'>('all');
 
+  // Estados de Paginação e Controle de Quota do Firestore (CARD-065)
+  readonly hasMoreUsers = signal<boolean>(false);
+  readonly isLoadingMore = signal<boolean>(false);
+  private lastUserDoc: any = null;
+
   // Estados Reativos da Configuração Asaas (CARD-032)
   readonly asaasEnvironment = signal<AsaasEnvironment>('sandbox');
   readonly asaasApiKey = signal<string>('');
@@ -265,17 +270,30 @@ export class AdminComponent implements OnInit {
   }
 
   /**
-   * Carrega a lista completa de usuários do SaaS
+   * Carrega a lista inicial de usuários do SaaS com limite estrito de quota (CARD-065)
    */
   async loadUsers(): Promise<void> {
     this.isLoading.set(true);
+    this.lastUserDoc = null;
     try {
-      const result = await this.adminService.getAllUsers();
-      if (result.length === 0 && this.authStore.currentUser()) {
-        const current = this.authStore.currentUser()!;
-        this.users.set([current]);
+      if (typeof this.adminService.getUsersPage === 'function') {
+        const response = await this.adminService.getUsersPage(50);
+        this.lastUserDoc = response.lastDoc;
+        this.hasMoreUsers.set(response.hasMore);
+
+        if (response.users.length === 0 && this.authStore.currentUser()) {
+          this.users.set([this.authStore.currentUser()!]);
+        } else {
+          this.users.set(response.users);
+        }
       } else {
-        this.users.set(result);
+        const result = await this.adminService.getAllUsers();
+        if (result.length === 0 && this.authStore.currentUser()) {
+          this.users.set([this.authStore.currentUser()!]);
+        } else {
+          this.users.set(result);
+        }
+        this.hasMoreUsers.set(false);
       }
     } catch {
       // Se houver restrição de permissão de listagem, garante o próprio usuário logado
@@ -286,6 +304,25 @@ export class AdminComponent implements OnInit {
       }
     } finally {
       this.isLoading.set(false);
+    }
+  }
+
+  /**
+   * Carrega mais usuários sob demanda utilizando o cursor de paginação (CARD-065)
+   */
+  async loadMoreUsers(): Promise<void> {
+    if (this.isLoadingMore() || !this.hasMoreUsers() || !this.lastUserDoc) return;
+
+    this.isLoadingMore.set(true);
+    try {
+      const response = await this.adminService.getUsersPage(50, this.lastUserDoc);
+      this.lastUserDoc = response.lastDoc;
+      this.hasMoreUsers.set(response.hasMore);
+      this.users.update(current => [...current, ...response.users]);
+    } catch {
+      this.notificationService.error('Erro ao carregar mais usuários.');
+    } finally {
+      this.isLoadingMore.set(false);
     }
   }
 
