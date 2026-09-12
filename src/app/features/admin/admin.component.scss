@@ -760,6 +760,47 @@
     }
   }
 
+  .form-input {
+    width: 100%;
+    padding: 0.6875rem 0.875rem;
+    border-radius: $radius-md;
+    background: var(--color-surface-hover);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+    font-size: 0.875rem;
+    color-scheme: dark;
+    transition: border-color $transition-fast, box-shadow $transition-fast;
+
+    :host-context([data-theme='light']) & {
+      color-scheme: light;
+    }
+
+    &::-webkit-calendar-picker-indicator {
+      cursor: pointer;
+      opacity: 0.8;
+      transition: opacity $transition-fast;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+
+    &::-webkit-datetime-edit,
+    &::-webkit-datetime-edit-fields-wrapper,
+    &::-webkit-datetime-edit-text,
+    &::-webkit-datetime-edit-month-field,
+    &::-webkit-datetime-edit-day-field,
+    &::-webkit-datetime-edit-year-field {
+      color: var(--color-text-primary);
+    }
+
+    &:focus {
+      outline: none;
+      border-color: #60a5fa;
+      box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15);
+    }
+  }
+
   .field-hint {
     font-size: 0.75rem;
     color: #fbbf24;

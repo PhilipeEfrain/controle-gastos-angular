@@ -87,6 +87,24 @@ export class AdminService {
           }
         }
 
+        let planExpiresAtIso: string | null = null;
+        const rawExpires = data['planExpiresAt'];
+        if (rawExpires) {
+          if (typeof rawExpires === 'string') {
+            planExpiresAtIso = rawExpires;
+          } else if (typeof rawExpires === 'object' && rawExpires !== null) {
+            if (typeof rawExpires.toDate === 'function') {
+              planExpiresAtIso = rawExpires.toDate().toISOString();
+            } else if (typeof rawExpires.seconds === 'number') {
+              planExpiresAtIso = new Date(rawExpires.seconds * 1000).toISOString();
+            } else if (typeof rawExpires._seconds === 'number') {
+              planExpiresAtIso = new Date(rawExpires._seconds * 1000).toISOString();
+            }
+          } else if (typeof rawExpires === 'number') {
+            planExpiresAtIso = new Date(rawExpires).toISOString();
+          }
+        }
+
         return {
           uid: docSnap.id,
           email: data['email'] || null,
@@ -95,7 +113,7 @@ export class AdminService {
           role: (data['role'] as UserRole) || 'user',
           plan: (data['plan'] as PlanType) || 'free',
           planStatus: (data['planStatus'] as PlanStatus) || 'active',
-          planExpiresAt: data['planExpiresAt'] || null,
+          planExpiresAt: planExpiresAtIso,
           asaasCustomerId: data['asaasCustomerId'] || null,
           asaasSubscriptionId: data['asaasSubscriptionId'] || null,
           preferences: data['preferences'],

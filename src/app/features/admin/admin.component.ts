@@ -315,11 +315,18 @@ export class AdminComponent implements OnInit {
     this.editStatus.set(user.planStatus || 'active');
     this.editRole.set(user.role || 'user');
     if (user.planExpiresAt) {
-      const expDate = parseFirestoreDate(user.planExpiresAt);
-      if (expDate && !isNaN(expDate.getTime())) {
-        this.editExpiresAt.set(expDate.toISOString().split('T')[0]);
+      if (typeof user.planExpiresAt === 'string' && user.planExpiresAt.includes('-')) {
+        const datePart = user.planExpiresAt.split('T')[0];
+        const parts = datePart.split('-');
+        if (parts.length === 3 && parts[0].length === 4) {
+          this.editExpiresAt.set(datePart);
+        } else {
+          const expDate = parseFirestoreDate(user.planExpiresAt);
+          this.editExpiresAt.set(expDate && !isNaN(expDate.getTime()) ? expDate.toISOString().split('T')[0] : '');
+        }
       } else {
-        this.editExpiresAt.set('');
+        const expDate = parseFirestoreDate(user.planExpiresAt);
+        this.editExpiresAt.set(expDate && !isNaN(expDate.getTime()) ? expDate.toISOString().split('T')[0] : '');
       }
     } else {
       this.editExpiresAt.set('');
