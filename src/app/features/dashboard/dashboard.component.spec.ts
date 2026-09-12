@@ -41,6 +41,7 @@ describe('DashboardComponent', () => {
   let mockExpenseService: any;
   let mockCycleService: any;
   let mockRouter: any;
+  let mockDuoService: any;
 
   beforeEach(async () => {
     mockAuthStore = {
@@ -134,7 +135,7 @@ describe('DashboardComponent', () => {
       exportAnnualDossierPDF: vi.fn()
     };
 
-    const mockDuoService = {
+    mockDuoService = {
       getDuoGroupForUser: vi.fn().mockResolvedValue(null),
       createOrGetDuoGroup: vi.fn().mockResolvedValue(null),
       calculateSettlement: vi.fn().mockReturnValue(null),
@@ -309,6 +310,65 @@ describe('DashboardComponent', () => {
       expect(component.isExpenseModalOpen()).toBe(true);
       expect(component.isExpenseModalParcelado()).toBe(true);
       expect(component.expenseModalQuinzena()).toBe(1);
+    });
+  });
+
+  describe('Cenário BDD (CARD-061): Desbloqueio e Pareamento do Modo Casal (Duo)', () => {
+    it('deve identificar isDuoPendingPairing=true quando usuário é Duo e não possui parceiro conectado', () => {
+      (mockAuthStore.isDuo as any).set(true);
+      component.duoGroup.set({
+        id: 'grp-1',
+        ownerId: 'user-123',
+        ownerEmail: 'user@test.com',
+        ownerName: 'Titular',
+        partnerId: null,
+        inviteCode: 'DUO-9999',
+        status: 'pending'
+      });
+      fixture.detectChanges();
+
+      expect(component.isDuoPendingPairing()).toBe(true);
+    });
+
+    it('deve renderizar o banner de pareamento pendente e abrir o modal ao clicar em Conectar Parceiro', () => {
+      (mockAuthStore.isDuo as any).set(true);
+      component.duoGroup.set({
+        id: 'grp-1',
+        ownerId: 'user-123',
+        ownerEmail: 'user@test.com',
+        ownerName: 'Titular',
+        partnerId: null,
+        inviteCode: 'DUO-9999',
+        status: 'pending'
+      });
+      fixture.detectChanges();
+
+      const el = fixture.nativeElement as HTMLElement;
+      const bannerBtn = el.querySelector('#btn-duo-connect-dashboard') as HTMLButtonElement;
+      expect(bannerBtn).toBeTruthy();
+
+      bannerBtn.click();
+      fixture.detectChanges();
+
+      expect(component.isDuoPairingModalOpen()).toBe(true);
+    });
+
+    it('onOpenDuoPairingFromSubscription deve fechar modal de assinatura e abrir pareamento de casal', () => {
+      component.isSubscriptionModalOpen.set(true);
+      component.isDuoPairingModalOpen.set(false);
+
+      component.onOpenDuoPairingFromSubscription();
+
+      expect(component.isSubscriptionModalOpen()).toBe(false);
+      expect(component.isDuoPairingModalOpen()).toBe(true);
+    });
+
+    it('onDuoPairingModalClosed deve fechar modal de pareamento e atualizar grupo', async () => {
+      component.isDuoPairingModalOpen.set(true);
+      await component.onDuoPairingModalClosed();
+
+      expect(component.isDuoPairingModalOpen()).toBe(false);
+      expect(mockDuoService.getDuoGroupForUser).toHaveBeenCalledWith('user-777');
     });
   });
 });

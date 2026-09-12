@@ -42,6 +42,7 @@ export class SubscriptionModalComponent implements OnInit {
   // Inputs e Outputs
   readonly initialPlan = input<PlanType>('pro');
   readonly close = output<void>();
+  readonly openDuoPairing = output<void>();
 
   // Etapas e Seleções (Signals)
   readonly step = signal<'select-plan' | 'checkout' | 'success'>('select-plan');
@@ -334,6 +335,11 @@ export class SubscriptionModalComponent implements OnInit {
     }
   }
 
+
+  connectPartner(): void {
+    this.close.emit();
+    this.openDuoPairing.emit();
+  }
 
   closeModal(): void {
     this.close.emit();

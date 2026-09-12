@@ -35,6 +35,8 @@ export class DuoPairingModalComponent {
   readonly isLoading = signal<boolean>(false);
   readonly inviteCodeInput = signal<string>('');
   readonly isCopied = signal<boolean>(false);
+  readonly partnerEmailInput = signal<string>('');
+  readonly isSavingEmail = signal<boolean>(false);
 
   readonly isOwner = computed(() => {
     const group = this.currentGroup();
@@ -69,6 +71,9 @@ export class DuoPairingModalComponent {
         );
       }
       this.currentGroup.set(group);
+      if (group?.partnerEmail) {
+        this.partnerEmailInput.set(group.partnerEmail);
+      }
     } catch (err) {
       console.error('Erro ao carregar grupo Duo:', err);
     } finally {
@@ -87,6 +92,38 @@ export class DuoPairingModalComponent {
       setTimeout(() => this.isCopied.set(false), 3000);
     } catch {
       this.notificationService.info(`Código: ${code}`);
+    }
+  }
+
+  onShareWhatsApp(): void {
+    const code = this.currentGroup()?.inviteCode;
+    if (!code) return;
+
+    const message = `Oi! Assinei o Quinzena Duo para organizarmos nossas contas juntos. Use este código para conectar sua conta: ${code} ou acesse https://app.quinzena.com.br`;
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+    this.notificationService.info('Abrindo WhatsApp para enviar o convite...');
+  }
+
+  async onSavePartnerEmail(): Promise<void> {
+    const group = this.currentGroup();
+    const email = this.partnerEmailInput().trim().toLowerCase();
+    if (!group?.id) return;
+
+    if (!email || !email.includes('@') || !email.includes('.')) {
+      this.notificationService.error('Por favor, informe um e-mail válido para o(a) parceiro(a).');
+      return;
+    }
+
+    this.isSavingEmail.set(true);
+    try {
+      await this.duoService.updatePartnerEmail(group.id, email);
+      this.currentGroup.set({ ...group, partnerEmail: email });
+      this.notificationService.success('E-mail do parceiro salvo com sucesso! 💕');
+    } catch (err) {
+      this.notificationService.error('Erro ao salvar e-mail do parceiro.');
+    } finally {
+      this.isSavingEmail.set(false);
     }
   }
 

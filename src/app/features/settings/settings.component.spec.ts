@@ -8,11 +8,13 @@ import { ThemeService } from '../../core/services/theme.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { AsaasService } from '../../core/services/asaas.service';
 import { AdminService } from '../../core/services/admin.service';
+import { DuoService } from '../../core/services/duo.service';
 import { UserProfile } from '../../core/models/user.model';
 
 describe('SettingsComponent', () => {
   let component: SettingsComponent;
   let fixture: ComponentFixture<SettingsComponent>;
+  let mockDuoService: any;
 
   const mockUser: UserProfile = {
     uid: 'usr-999',
@@ -39,6 +41,7 @@ describe('SettingsComponent', () => {
       currentUser: signal<UserProfile | null>(mockUser),
       userDisplayName: signal<string>('Carlos Silva'),
       currentPlan: signal<'free' | 'pro' | 'duo'>('pro'),
+      isDuo: signal<boolean>(false),
       planStatus: signal<string>('active'),
       isGracePeriodActive: signal<boolean>(false),
       isPlanSuspended: signal<boolean>(false),
@@ -86,6 +89,11 @@ describe('SettingsComponent', () => {
       navigate: vi.fn()
     };
 
+    mockDuoService = {
+      getDuoGroupForUser: vi.fn().mockResolvedValue(null),
+      createOrGetDuoGroup: vi.fn().mockResolvedValue(null)
+    };
+
     await TestBed.configureTestingModule({
       imports: [SettingsComponent],
       providers: [
@@ -95,6 +103,7 @@ describe('SettingsComponent', () => {
         { provide: NotificationService, useValue: mockNotificationService },
         { provide: AsaasService, useValue: mockAsaasService },
         { provide: AdminService, useValue: mockAdminService },
+        { provide: DuoService, useValue: mockDuoService },
         { provide: Router, useValue: mockRouter }
       ]
     }).compileComponents();
@@ -291,6 +300,68 @@ describe('SettingsComponent', () => {
         expect.stringContaining('Assinatura cancelada com sucesso. Seus benefícios continuam válidos até 10/10/2026. Seus dados foram preservados.')
       );
       expect(component.isCancelSubscriptionModalOpen()).toBe(false);
+    });
+  });
+
+  describe('Cenário BDD (CARD-061): Gestão do Modo Casal / Duo em Configurações', () => {
+    it('deve carregar o grupo Duo quando o plano for Duo', async () => {
+      (mockAuthStore.isDuo as any).set(true);
+      const mockGroup = {
+        id: 'grp-duo-1',
+        ownerId: 'usr-999',
+        ownerEmail: 'dev@financas.com',
+        ownerName: 'Carlos Silva',
+        partnerId: null,
+        inviteCode: 'DUO-7777',
+        status: 'pending'
+      };
+      mockDuoService.getDuoGroupForUser.mockResolvedValue(mockGroup);
+
+      await component.loadDuoGroup();
+
+      expect(mockDuoService.getDuoGroupForUser).toHaveBeenCalledWith('usr-999');
+      expect(component.duoGroup()).toEqual(mockGroup);
+    });
+
+    it('deve abrir o modal de pareamento via openDuoPairingModal', () => {
+      component.openDuoPairingModal();
+      expect(component.isDuoPairingModalOpen()).toBe(true);
+    });
+
+    it('deve fechar o modal de pareamento e recarregar dados via closeDuoPairingModal', async () => {
+      component.isDuoPairingModalOpen.set(true);
+      const spyLoad = vi.spyOn(component, 'loadDuoGroup').mockResolvedValue();
+
+      await component.closeDuoPairingModal();
+
+      expect(component.isDuoPairingModalOpen()).toBe(false);
+      expect(spyLoad).toHaveBeenCalled();
+    });
+
+    it('deve renderizar o card de gerenciamento do parceiro e botão de conectar quando plano é Duo', async () => {
+      (mockAuthStore.isDuo as any).set(true);
+      (mockAuthStore.currentPlan as any).set('duo');
+      component.setTab('subscription');
+      component.duoGroup.set({
+        id: 'grp-duo-1',
+        ownerId: 'usr-999',
+        ownerEmail: 'dev@financas.com',
+        ownerName: 'Carlos Silva',
+        partnerId: null,
+        partnerEmail: null,
+        inviteCode: 'DUO-7777',
+        status: 'pending'
+      });
+      fixture.detectChanges();
+
+      const el = fixture.nativeElement as HTMLElement;
+      const duoBtn = el.querySelector('#btn-settings-duo-connect') as HTMLButtonElement;
+      expect(duoBtn).toBeTruthy();
+
+      duoBtn.click();
+      fixture.detectChanges();
+
+      expect(component.isDuoPairingModalOpen()).toBe(true);
     });
   });
 });

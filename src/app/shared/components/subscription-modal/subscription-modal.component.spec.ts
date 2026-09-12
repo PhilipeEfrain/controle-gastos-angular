@@ -227,5 +227,32 @@ describe('SubscriptionModalComponent (Checkout de Assinaturas)', () => {
       'Cartão recusado pela operadora: saldo insuficiente.'
     );
   });
+
+  describe('Cenário BDD (CARD-061): Pós-checkout do Plano Duo', () => {
+    it('deve emitir close e openDuoPairing ao chamar connectPartner()', () => {
+      const closeSpy = vi.spyOn(component.close, 'emit');
+      const duoSpy = vi.spyOn(component.openDuoPairing, 'emit');
+
+      component.connectPartner();
+
+      expect(closeSpy).toHaveBeenCalled();
+      expect(duoSpy).toHaveBeenCalled();
+    });
+
+    it('deve exibir botão Conectar Parceiro(a) Agora quando plano assinado for Duo', () => {
+      component.selectedPlan.set('duo');
+      component.step.set('success');
+      fixture.detectChanges();
+
+      const el = fixture.nativeElement as HTMLElement;
+      const btn = el.querySelector('#btn-connect-partner-success') as HTMLButtonElement;
+      expect(btn).toBeTruthy();
+      expect(btn.textContent).toContain('Conectar Parceiro(a) Agora');
+
+      const connectSpy = vi.spyOn(component, 'connectPartner');
+      btn.click();
+      expect(connectSpy).toHaveBeenCalled();
+    });
+  });
 });
 
