@@ -286,7 +286,7 @@
                       <span class="expires-text text-muted">-</span>
                     } @else {
                       <div class="expires-cell">
-                        <span class="expires-date">{{ formatExpirationDate(user.planExpiresAt) }}</span>
+                        <span class="expires-date" [class.text-muted]="!user.planExpiresAt">{{ formatExpirationDate(user.planExpiresAt) }}</span>
                         @if (isExpiringSoon(user)) {
                           <span class="badge-expiring-soon" title="Vencimento próximo (< 7 dias)">⚠️ Próximo</span>
                         } @else if (isExpired(user)) {

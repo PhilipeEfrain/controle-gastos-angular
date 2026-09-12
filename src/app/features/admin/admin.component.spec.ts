@@ -343,6 +343,36 @@ describe('AdminComponent (Painel Administrativo)', () => {
       expect(component.selectedUserForEdit()).toBeNull();
     });
   });
+
+  describe('Cenários BDD (CARD-058): Correção de Exibição e Contraste de Data de Expiração', () => {
+    it('Cenário BDD 1: deve formatar corretamente datas oriundas de Firestore Timestamp objeto', () => {
+      const mockTimestampObj = { seconds: 1788137082 };
+      const formatted = component.formatExpirationDate(mockTimestampObj as any);
+      expect(formatted).not.toBe('-');
+      expect(formatted).toMatch(/^\d{2}\/\d{2}\/\d{4}$/);
+
+      const mockTimestampWithToDate = {
+        toDate: () => new Date(2026, 10, 20)
+      };
+      expect(component.formatExpirationDate(mockTimestampWithToDate as any)).toBe('20/11/2026');
+    });
+
+    it('Cenário BDD 2: deve inicializar editExpiresAt no modal sem deslocamento de fuso horário', () => {
+      const userWithIso: UserProfile = {
+        ...mockUsers[0],
+        planExpiresAt: '2026-07-25T00:00:00.000Z'
+      };
+      component.openEditModal(userWithIso);
+      expect(component.editExpiresAt()).toBe('2026-07-25');
+
+      const userWithoutExpires: UserProfile = {
+        ...mockUsers[1],
+        planExpiresAt: null
+      };
+      component.openEditModal(userWithoutExpires);
+      expect(component.editExpiresAt()).toBe('');
+    });
+  });
 });
 
 
