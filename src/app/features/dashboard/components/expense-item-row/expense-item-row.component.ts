@@ -1,7 +1,8 @@
-import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Expense } from '../../../../core/models/finance.model';
 import { formatBRL } from '../../../../core/utils/formatters';
+import { getExpenseDueDateInfo, formatDateBR, DueDateInfo } from '../../../../core/utils/date';
 
 @Component({
   selector: 'app-expense-item-row',
@@ -18,6 +19,20 @@ export class ExpenseItemRowComponent {
   readonly edit = output<Expense>();
   readonly delete = output<Expense>();
   readonly updateReceipt = output<Expense>();
+
+  readonly dueDateInfo = computed<DueDateInfo | null>(() => {
+    const exp = this.expense();
+    return getExpenseDueDateInfo(
+      exp.data_vencimento,
+      exp.status_pagamento,
+      exp.tipo === 'renda_extra'
+    );
+  });
+
+  get formattedDueDate(): string {
+    const date = this.expense().data_vencimento;
+    return date ? formatDateBR(date) : '';
+  }
 
   get isIncome(): boolean {
     return this.expense().tipo === 'renda_extra';

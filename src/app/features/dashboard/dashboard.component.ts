@@ -17,8 +17,9 @@ import { NotificationService } from '../../core/services/notification.service';
 import { Expense, FortnightNumber, MonthlyCycle } from '../../core/models/finance.model';
 import { formatBRL } from '../../core/utils/formatters';
 import { addMonthsToYearMonth } from '../../core/utils/calculations';
-import { getCurrentYearMonth, getMonthOffset } from '../../core/utils/date';
+import { getCurrentYearMonth, getMonthOffset, getExpenseDueDateInfo } from '../../core/utils/date';
 import { PlanLimitsService } from '../../core/services/plan-limits.service';
+import { AnalyticsService } from '../../core/services/analytics.service';
 import { DuoService } from '../../core/services/duo.service';
 import { DuoGroup, DuoSettlementSummary } from '../../core/models/duo.model';
 import { DuoPairingModalComponent } from './components/duo-pairing-modal/duo-pairing-modal.component';
@@ -72,6 +73,7 @@ export class DashboardComponent implements OnInit {
   private readonly planLimitsService = inject(PlanLimitsService);
   private readonly duoService = inject(DuoService);
   private readonly notificationService = inject(NotificationService);
+  private readonly analyticsService = inject(AnalyticsService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
@@ -172,6 +174,9 @@ export class DashboardComponent implements OnInit {
     return 'Seu mês em equilíbrio';
   });
 
+  // Rastreamento seguro de ciclos onde alertas de contas vencidas foram exibidos (CARD-059)
+  private readonly trackedOverdueMonths = new Set<string>();
+
   constructor() {
     // Efeito reativo para recarregar dados quando usuário autenticado estiver pronto
     effect(() => {
@@ -180,6 +185,27 @@ export class DashboardComponent implements OnInit {
       if (user) {
         this.financeStore.connectMonthStream(user.uid, month);
         this.financeStore.connectTaxesStream(user.uid);
+      }
+    });
+
+    // Efeito reativo para rastrear exibição de alertas de contas vencidas (0 custo de Firestore)
+    effect(() => {
+      const expenses = this.financeStore.expenses();
+      const month = this.financeStore.selectedMonth();
+      if (!expenses || expenses.length === 0 || this.trackedOverdueMonths.has(month)) return;
+
+      const overdueCount = expenses.filter(e => {
+        if (e.status_pagamento || e.tipo === 'renda_extra' || !e.data_vencimento) return false;
+        const info = getExpenseDueDateInfo(e.data_vencimento, e.status_pagamento, false);
+        return info?.status === 'overdue';
+      }).length;
+
+      if (overdueCount > 0) {
+        this.trackedOverdueMonths.add(month);
+        this.analyticsService.trackEvent('overdue_expenses_alert_viewed', {
+          month,
+          overdue_count: overdueCount
+        });
       }
     });
   }

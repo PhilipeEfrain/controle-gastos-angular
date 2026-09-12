@@ -102,4 +102,131 @@ export function getMonthOffset(targetYearMonth: string, baseYearMonth: string = 
   return (targetY - baseY) * 12 + (targetM - baseM);
 }
 
+export type DueDateStatus = 'overdue' | 'due_today' | 'due_soon' | 'paid' | 'normal';
+
+export interface DueDateInfo {
+  status: DueDateStatus;
+  daysDiff: number;
+  label: string;
+  tooltip: string;
+  badgeClass: string;
+}
+
+/**
+ * Formata data de forma segura no padrão brasileiro DD/MM/AAAA
+ * Suporta string YYYY-MM-DD, string ISO, objeto Date ou Timestamp do Firestore
+ */
+export function formatDateBR(dateInput: any): string {
+  if (!dateInput) return '-';
+
+  if (typeof dateInput === 'string') {
+    const trimmed = dateInput.trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      const [y, m, d] = trimmed.split('-');
+      return `${d}/${m}/${y}`;
+    }
+  }
+
+  const dateObj = parseFirestoreDate(dateInput);
+  if (!dateObj) return '-';
+
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const year = dateObj.getFullYear();
+  return `${day}/${month}/${year}`;
+}
+
+/**
+ * Calcula a classificação e inteligência temporal de vencimento para uma despesa (CARD-059).
+ * Preserva o fuso horário local e não penaliza despesas pagas ou rendas extras.
+ *
+ * @param dueDate Data de vencimento em YYYY-MM-DD, ISO ou Firestore Timestamp
+ * @param isPaid Se a despesa já foi quitada
+ * @param isIncome Se o lançamento é renda extra
+ * @param referenceDate Data de referência para cálculo dos dias (padrão: hoje)
+ */
+export function getExpenseDueDateInfo(
+  dueDate: string | Date | null | undefined,
+  isPaid: boolean = false,
+  isIncome: boolean = false,
+  referenceDate: Date = new Date()
+): DueDateInfo | null {
+  if (!dueDate || isIncome) {
+    return null;
+  }
+
+  if (isPaid) {
+    return {
+      status: 'paid',
+      daysDiff: 0,
+      label: 'Paga',
+      tooltip: 'Despesa quitada com sucesso',
+      badgeClass: 'badge-paid'
+    };
+  }
+
+  // Normaliza referência localmente (zerando hora, minuto, segundo, milissegundo)
+  const ref = new Date(referenceDate);
+  ref.setHours(0, 0, 0, 0);
+
+  // Parsing seguro sem deslocamento de UTC
+  let target: Date | null = null;
+  if (typeof dueDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dueDate.trim())) {
+    const [y, m, d] = dueDate.trim().split('-').map(Number);
+    target = new Date(y, m - 1, d);
+  } else {
+    target = parseFirestoreDate(dueDate);
+  }
+
+  if (!target || isNaN(target.getTime())) {
+    return null;
+  }
+  target.setHours(0, 0, 0, 0);
+
+  const diffMs = target.getTime() - ref.getTime();
+  const daysDiff = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+  if (daysDiff < 0) {
+    const absDays = Math.abs(daysDiff);
+    const label = absDays === 1 ? 'Vencida ontem' : `Vencida há ${absDays} dias`;
+    return {
+      status: 'overdue',
+      daysDiff,
+      label,
+      tooltip: `Atenção: esta conta venceu há ${absDays} ${absDays === 1 ? 'dia' : 'dias'}. Regularize para evitar juros.`,
+      badgeClass: 'badge-overdue'
+    };
+  }
+
+  if (daysDiff === 0) {
+    return {
+      status: 'due_today',
+      daysDiff: 0,
+      label: 'Vence Hoje',
+      tooltip: 'Atenção: esta conta vence hoje!',
+      badgeClass: 'badge-due-today'
+    };
+  }
+
+  if (daysDiff <= 3) {
+    const label = daysDiff === 1 ? 'Vence amanhã' : `Vence em ${daysDiff} dias`;
+    return {
+      status: 'due_soon',
+      daysDiff,
+      label,
+      tooltip: `Vencimento próximo (${label}). Fique atento ao fluxo da quinzena.`,
+      badgeClass: 'badge-due-soon'
+    };
+  }
+
+  return {
+    status: 'normal',
+    daysDiff,
+    label: '',
+    tooltip: '',
+    badgeClass: ''
+  };
+}
+
+
 
