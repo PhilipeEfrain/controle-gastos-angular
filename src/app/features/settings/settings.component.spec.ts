@@ -363,6 +363,37 @@ describe('SettingsComponent', () => {
 
       expect(component.isDuoPairingModalOpen()).toBe(true);
     });
+
+    it('Cenário BDD (CARD-062): deve renderizar o card de convite de parceiro para usuários não-duo', () => {
+      (mockAuthStore.isDuo as any).set(false);
+      (mockAuthStore.currentPlan as any).set('free');
+      component.setTab('subscription');
+      fixture.detectChanges();
+
+      const el = fixture.nativeElement as HTMLElement;
+      const guestCard = el.querySelector('.duo-guest-invite-card');
+      const enterCodeBtn = el.querySelector('#btn-enter-duo-code-settings') as HTMLButtonElement;
+
+      expect(guestCard).toBeTruthy();
+      expect(enterCodeBtn).toBeTruthy();
+      expect(guestCard?.textContent).toContain('Recebeu um convite de casal?');
+
+      enterCodeBtn.click();
+      fixture.detectChanges();
+
+      expect(component.isDuoPairingModalOpen()).toBe(true);
+    });
+
+    it('Cenário BDD (CARD-062): NÃO deve renderizar o card de convite para quem já é plano Duo', () => {
+      (mockAuthStore.isDuo as any).set(true);
+      (mockAuthStore.currentPlan as any).set('duo');
+      component.setTab('subscription');
+      fixture.detectChanges();
+
+      const el = fixture.nativeElement as HTMLElement;
+      const enterCodeBtn = el.querySelector('#btn-enter-duo-code-settings');
+      expect(enterCodeBtn).toBeNull();
+    });
   });
 });
 

@@ -25,6 +25,7 @@ import { DuoGroup } from '../../../../core/models/duo.model';
 })
 export class DuoPairingModalComponent {
   readonly isOpen = input<boolean>(false);
+  readonly initialInviteCode = input<string>('');
   readonly close = output<void>();
 
   private readonly duoService = inject(DuoService);
@@ -51,6 +52,9 @@ export class DuoPairingModalComponent {
   constructor() {
     effect(async () => {
       if (this.isOpen()) {
+        if (this.initialInviteCode()) {
+          this.inviteCodeInput.set(this.initialInviteCode());
+        }
         await this.loadGroupData();
       }
     });
@@ -99,7 +103,8 @@ export class DuoPairingModalComponent {
     const code = this.currentGroup()?.inviteCode;
     if (!code) return;
 
-    const message = `Oi! Assinei o Quinzena Duo para organizarmos nossas contas juntos. Use este código para conectar sua conta: ${code} ou acesse https://app.quinzena.com.br`;
+    const directLink = `https://app.quinzena.com.br/dashboard?duoCode=${code}`;
+    const message = `Oi! Assinei o Quinzena Duo para organizarmos nossas contas juntos. Acesse o link direto para conectar nossas contas: ${directLink} (ou use o código ${code} no seu app)`;
     const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
     this.notificationService.info('Abrindo WhatsApp para enviar o convite...');
@@ -147,6 +152,7 @@ export class DuoPairingModalComponent {
       );
       this.currentGroup.set(group);
       this.inviteCodeInput.set('');
+      this.authStore.updateCurrentUser({ plan: 'duo', planStatus: 'active' });
       this.notificationService.success('Contas conectadas com sucesso no Modo Casal! 💕');
     } catch (err: any) {
       this.notificationService.error(err.message || 'Não foi possível conectar ao convite.');

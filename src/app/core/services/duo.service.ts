@@ -143,6 +143,18 @@ export class DuoService {
 
     await updateDoc(doc(this.db, 'duo_groups', docSnap.id), updatedData);
 
+    // Promove o perfil do parceiro para plano Duo com benefícios liberados
+    try {
+      const partnerUserRef = doc(this.db, 'users', partnerId);
+      await updateDoc(partnerUserRef, {
+        plan: 'duo',
+        planStatus: 'active',
+        updatedAt: new Date().toISOString()
+      });
+    } catch (e) {
+      console.warn('Não foi possível sincronizar o plano do parceiro no Firestore:', e);
+    }
+
     return {
       id: docSnap.id,
       ...group,
@@ -155,6 +167,16 @@ export class DuoService {
    */
   async disconnectPartner(groupId: string): Promise<void> {
     const groupRef = doc(this.db, 'duo_groups', groupId);
+    let previousPartnerId: string | null = null;
+    try {
+      const snap = await getDoc(groupRef);
+      if (snap.exists()) {
+        previousPartnerId = snap.data()['partnerId'] || null;
+      }
+    } catch {
+      // Ignora erro de leitura prévia
+    }
+
     const newCode = this.generateInviteCode();
     await updateDoc(groupRef, {
       partnerId: null,
@@ -164,6 +186,18 @@ export class DuoService {
       inviteCode: newCode,
       updatedAt: new Date().toISOString()
     });
+
+    if (previousPartnerId) {
+      try {
+        const partnerUserRef = doc(this.db, 'users', previousPartnerId);
+        await updateDoc(partnerUserRef, {
+          plan: 'free',
+          updatedAt: new Date().toISOString()
+        });
+      } catch (e) {
+        console.warn('Erro ao retornar plano do parceiro para free:', e);
+      }
+    }
   }
 
   /**

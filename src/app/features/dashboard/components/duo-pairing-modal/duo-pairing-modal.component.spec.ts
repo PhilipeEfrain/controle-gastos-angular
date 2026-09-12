@@ -47,7 +47,8 @@ describe('DuoPairingModalComponent', () => {
 
     mockAuthStore = {
       currentUser: signal({ uid: 'user-owner', email: 'owner@test.com', displayName: 'Philipe' }),
-      isDuo: signal(true)
+      isDuo: signal(true),
+      updateCurrentUser: vi.fn()
     };
 
     mockNotificationService = {
@@ -75,7 +76,7 @@ describe('DuoPairingModalComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('Cenário BDD 1: deve aceitar código de convite e conectar parceiro', async () => {
+  it('Cenário BDD 1: deve aceitar código de convite, conectar parceiro e atualizar plano local', async () => {
     component.inviteCodeInput.set('DUO-1234');
     await component.onAcceptInvite();
 
@@ -85,6 +86,10 @@ describe('DuoPairingModalComponent', () => {
       'owner@test.com',
       'Philipe'
     );
+    expect(mockAuthStore.updateCurrentUser).toHaveBeenCalledWith({
+      plan: 'duo',
+      planStatus: 'active'
+    });
     expect(mockNotificationService.success).toHaveBeenCalledWith(
       'Contas conectadas com sucesso no Modo Casal! 💕'
     );
@@ -104,7 +109,7 @@ describe('DuoPairingModalComponent', () => {
     expect(closeSpy).toHaveBeenCalled();
   });
 
-  it('Cenário BDD 2: deve abrir WhatsApp com mensagem e código de convite', () => {
+  it('Cenário BDD 2: deve abrir WhatsApp com mensagem, código de convite e link direto', () => {
     const windowOpenSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
     component.currentGroup.set(mockPendingGroup);
 
@@ -115,11 +120,10 @@ describe('DuoPairingModalComponent', () => {
       '_blank',
       'noopener,noreferrer'
     );
-    expect(windowOpenSpy).toHaveBeenCalledWith(
-      expect.stringContaining('DUO-1234'),
-      '_blank',
-      'noopener,noreferrer'
-    );
+    const calledUrl = String(windowOpenSpy.mock.calls[0][0] || '');
+    const decodedMessage = decodeURIComponent(calledUrl);
+    expect(decodedMessage).toContain('https://app.quinzena.com.br/dashboard?duoCode=DUO-1234');
+    expect(decodedMessage).toContain('DUO-1234');
     expect(mockNotificationService.info).toHaveBeenCalledWith(
       'Abrindo WhatsApp para enviar o convite...'
     );
@@ -144,5 +148,15 @@ describe('DuoPairingModalComponent', () => {
     await component.onSavePartnerEmail();
 
     expect(mockNotificationService.error).toHaveBeenCalledWith('Por favor, informe um e-mail válido para o(a) parceiro(a).');
+  });
+
+  it('Cenário BDD 5 (CARD-062): deve preencher inviteCodeInput a partir de initialInviteCode', async () => {
+    const newFixture = TestBed.createComponent(DuoPairingModalComponent);
+    const newComponent = newFixture.componentInstance;
+    newFixture.componentRef.setInput('initialInviteCode', 'DUO-5555');
+    newFixture.componentRef.setInput('isOpen', true);
+    newFixture.detectChanges();
+
+    expect(newComponent.inviteCodeInput()).toBe('DUO-5555');
   });
 });
