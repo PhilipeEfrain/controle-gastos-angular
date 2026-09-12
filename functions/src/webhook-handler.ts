@@ -114,20 +114,18 @@ export async function handleAsaasWebhook(
 ): Promise<ProcessWebhookResult> {
   const { db } = deps;
 
-  // 1. Autenticação Obrigatória (CWE-306)
+  // 1. Autenticação Obrigatória Fail-Closed (CWE-306)
   const receivedToken = (headers['asaas-access-token'] || headers['Asaas-Access-Token']) as string | undefined;
   const expectedSecret = deps.getWebhookSecret
     ? await deps.getWebhookSecret()
     : await resolveWebhookSecret(db);
 
-  if (expectedSecret) {
-    if (!receivedToken || receivedToken !== expectedSecret) {
-      return {
-        success: false,
-        statusCode: 401,
-        message: 'Token de autenticação do webhook inválido ou ausente.'
-      };
-    }
+  if (!expectedSecret || !receivedToken || receivedToken !== expectedSecret) {
+    return {
+      success: false,
+      statusCode: 401,
+      message: 'Token de autenticação do webhook inválido ou ausente.'
+    };
   }
 
   // 2. Validação do Payload

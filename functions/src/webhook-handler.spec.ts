@@ -159,6 +159,31 @@ describe('Webhook Asaas - handleAsaasWebhook', () => {
     expect(mockUserUpdate).not.toHaveBeenCalled();
   });
 
+  it('Cenário BDD: deve retornar HTTP 401 Unauthorized se o segredo não estiver configurado (fail-closed)', async () => {
+    const payload: AsaasWebhookPayload = {
+      id: 'evt_001_fail_closed',
+      event: 'PAYMENT_RECEIVED',
+      payment: {
+        id: 'pay_1',
+        customer: 'cus_111',
+        subscription: 'sub_222',
+        value: 9.90,
+        billingType: 'CREDIT_CARD',
+        status: 'RECEIVED'
+      }
+    };
+
+    const result = await handleAsaasWebhook(
+      { 'asaas-access-token': 'qualquer_token' },
+      payload,
+      { db: mockDb, getWebhookSecret: async () => undefined }
+    );
+
+    expect(result.success).toBe(false);
+    expect(result.statusCode).toBe(401);
+    expect(result.message).toContain('inválido ou ausente');
+  });
+
   // Requisito de Validação de Payload
   it('deve retornar HTTP 400 Bad Request se o payload não possuir event', async () => {
     const invalidPayload = {} as AsaasWebhookPayload;
