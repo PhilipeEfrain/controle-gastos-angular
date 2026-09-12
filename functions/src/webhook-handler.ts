@@ -80,18 +80,19 @@ export async function findUserDocByAsaasData(
  * Calcula a data de expiração da assinatura a partir do vencimento ou D+30
  */
 export function calculatePlanExpiration(dueDateStr?: string): string {
+  const now = new Date();
   if (dueDateStr) {
     const normalizedStr = dueDateStr.length === 10 ? `${dueDateStr}T12:00:00Z` : dueDateStr;
     const dueDate = new Date(normalizedStr);
     if (!isNaN(dueDate.getTime())) {
-      dueDate.setUTCDate(dueDate.getUTCDate() + 30);
-      return dueDate.toISOString();
+      const baseDate = dueDate > now ? dueDate : now;
+      baseDate.setUTCDate(baseDate.getUTCDate() + 30);
+      return baseDate.toISOString();
     }
   }
 
-  const d = new Date();
-  d.setDate(d.getDate() + 30);
-  return d.toISOString();
+  now.setDate(now.getDate() + 30);
+  return now.toISOString();
 }
 
 /**
