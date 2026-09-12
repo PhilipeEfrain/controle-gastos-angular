@@ -7,7 +7,7 @@ import {
   deleteDoc,
   onSnapshot
 } from 'firebase/firestore';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { FirebaseService } from './firebase.service';
 import { AnnualTax } from '../models/finance.model';
 import { roundBRL } from '../utils/calculations';
@@ -23,6 +23,10 @@ export class TaxService {
    * Retorna um Observable em tempo real com todos os tributos anuais do usuário
    */
   getTaxesStream(userId: string): Observable<AnnualTax[]> {
+    if (userId.startsWith('e2e-')) {
+      return of([]);
+    }
+
     return new Observable(subscriber => {
       const taxesColRef = collection(this.firestore, `users/${userId}/tributos_e_parcelas`);
       const unsubscribe = onSnapshot(

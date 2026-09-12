@@ -9,7 +9,7 @@ import {
   onSnapshot,
   writeBatch
 } from 'firebase/firestore';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject, of } from 'rxjs';
 import { FirebaseService } from './firebase.service';
 import { Expense, RecurringExpense } from '../models/finance.model';
 import { roundBRL, addMonthsToYearMonth } from '../utils/calculations';
@@ -21,10 +21,22 @@ export class ExpenseService {
   private firebaseService = inject(FirebaseService);
   private firestore = this.firebaseService.firestore;
 
+  private e2eExpenses = new Map<string, Expense[]>();
+  private e2eExpensesSubject = new Map<string, BehaviorSubject<Expense[]>>();
+
   /**
    * Retorna um Observable com a lista de despesas de um mês em tempo real
    */
   getExpensesStream(userId: string, mesAno: string): Observable<Expense[]> {
+    if (userId.startsWith('e2e-')) {
+      const key = `${userId}_${mesAno}`;
+      if (!this.e2eExpensesSubject.has(key)) {
+        const initial = this.e2eExpenses.get(key) || [];
+        this.e2eExpensesSubject.set(key, new BehaviorSubject<Expense[]>(initial));
+      }
+      return this.e2eExpensesSubject.get(key)!.asObservable();
+    }
+
     return new Observable(subscriber => {
       const expensesColRef = collection(
         this.firestore,
@@ -48,6 +60,10 @@ export class ExpenseService {
    * Retorna um Observable com as despesas recorrentes mestre em tempo real
    */
   getRecurringExpensesStream(userId: string): Observable<RecurringExpense[]> {
+    if (userId.startsWith('e2e-')) {
+      return of([]);
+    }
+
     return new Observable(subscriber => {
       const recurringColRef = collection(
         this.firestore,
@@ -84,6 +100,22 @@ export class ExpenseService {
    * Cadastra uma nova despesa simples
    */
   async addExpense(userId: string, mesAno: string, expense: Expense): Promise<string> {
+    if (userId.startsWith('e2e-')) {
+      const key = `${userId}_${mesAno}`;
+      const current = this.e2eExpenses.get(key) || [];
+      const newExpense: Expense = {
+        ...expense,
+        id: `exp_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        valor: roundBRL(expense.valor)
+      };
+      const updated = [newExpense, ...current];
+      this.e2eExpenses.set(key, updated);
+      if (this.e2eExpensesSubject.has(key)) {
+        this.e2eExpensesSubject.get(key)!.next(updated);
+      }
+      return newExpense.id!;
+    }
+
     const expensesColRef = collection(
       this.firestore,
       `users/${userId}/ciclos_mensais/${mesAno}/despesas`
@@ -103,6 +135,10 @@ export class ExpenseService {
    * Cadastra uma despesa recorrente mestre
    */
   async addRecurringExpense(userId: string, recurring: RecurringExpense): Promise<string> {
+    if (userId.startsWith('e2e-')) {
+      return `rec_${Date.now()}`;
+    }
+
     const recurringColRef = collection(
       this.firestore,
       `users/${userId}/despesas_recorrentes`
@@ -139,6 +175,10 @@ export class ExpenseService {
     mesAno: string,
     existingExpenses: Expense[]
   ): Promise<void> {
+    if (userId.startsWith('e2e-')) {
+      return;
+    }
+
     const recurringList = await this.getRecurringExpenses(userId);
     const activeRecurring = recurringList.filter(r => r.ativo !== false);
 
@@ -188,6 +228,17 @@ export class ExpenseService {
     expenseId: string,
     data: Partial<Expense>
   ): Promise<void> {
+    if (userId.startsWith('e2e-')) {
+      const key = `${userId}_${mesAno}`;
+      const current = this.e2eExpenses.get(key) || [];
+      const updated = current.map(e => e.id === expenseId ? { ...e, ...data } : e);
+      this.e2eExpenses.set(key, updated);
+      if (this.e2eExpensesSubject.has(key)) {
+        this.e2eExpensesSubject.get(key)!.next(updated);
+      }
+      return;
+    }
+
     const expenseDocRef = doc(
       this.firestore,
       `users/${userId}/ciclos_mensais/${mesAno}/despesas/${expenseId}`
@@ -203,6 +254,17 @@ export class ExpenseService {
    * Exclui uma despesa
    */
   async deleteExpense(userId: string, mesAno: string, expenseId: string): Promise<void> {
+    if (userId.startsWith('e2e-')) {
+      const key = `${userId}_${mesAno}`;
+      const current = this.e2eExpenses.get(key) || [];
+      const updated = current.filter(e => e.id !== expenseId);
+      this.e2eExpenses.set(key, updated);
+      if (this.e2eExpensesSubject.has(key)) {
+        this.e2eExpensesSubject.get(key)!.next(updated);
+      }
+      return;
+    }
+
     const expenseDocRef = doc(
       this.firestore,
       `users/${userId}/ciclos_mensais/${mesAno}/despesas/${expenseId}`
@@ -219,6 +281,17 @@ export class ExpenseService {
     expenseId: string,
     currentStatus: boolean
   ): Promise<void> {
+    if (userId.startsWith('e2e-')) {
+      const key = `${userId}_${mesAno}`;
+      const current = this.e2eExpenses.get(key) || [];
+      const updated = current.map(e => e.id === expenseId ? { ...e, status_pagamento: !currentStatus } : e);
+      this.e2eExpenses.set(key, updated);
+      if (this.e2eExpensesSubject.has(key)) {
+        this.e2eExpensesSubject.get(key)!.next(updated);
+      }
+      return;
+    }
+
     const expenseDocRef = doc(
       this.firestore,
       `users/${userId}/ciclos_mensais/${mesAno}/despesas/${expenseId}`

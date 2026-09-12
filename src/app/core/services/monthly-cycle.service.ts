@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { doc, getDoc, setDoc, onSnapshot, updateDoc } from 'firebase/firestore';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { FirebaseService } from './firebase.service';
 import { MonthlyCycle } from '../models/finance.model';
 import { roundBRL } from '../utils/calculations';
@@ -33,6 +33,21 @@ export class MonthlyCycleService {
    * Retorna um Observable com o ciclo mensal em tempo real
    */
   getCycleStream(userId: string, mesAno: string): Observable<MonthlyCycle | null> {
+    if (userId.startsWith('e2e-')) {
+      return of({
+        id: mesAno,
+        mesAno,
+        renda_quinzena_1: 3000,
+        renda_quinzena_2: 2500,
+        total_renda: 5500,
+        total_gastos: 0,
+        saldo_final: 5500,
+        regime_salarial: 'quinzenal',
+        dia_pagamento: '31_15',
+        descricao_dia_pagamento: 'Dia 31 e Dia 15'
+      });
+    }
+
     return new Observable(subscriber => {
       const cycleDocRef = doc(this.firestore, `users/${userId}/ciclos_mensais/${mesAno}`);
       const unsubscribe = onSnapshot(

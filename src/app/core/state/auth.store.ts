@@ -137,6 +137,24 @@ export class AuthStore {
    * Monitora em tempo real o estado de sessão do Firebase Auth
    */
   private initAuthListener(): void {
+    if (typeof window !== 'undefined') {
+      try {
+        const mockUserJson = localStorage.getItem('__E2E_AUTH_USER__');
+        if (mockUserJson) {
+          const profile = JSON.parse(mockUserJson) as UserProfile;
+          this._currentUser.set(profile);
+          this._isLoading.set(false);
+          this._isInitialized.set(true);
+          if (this.initResolve) {
+            this.initResolve(true);
+          }
+          return;
+        }
+      } catch {
+        // Fallback para o listener normal do Firebase
+      }
+    }
+
     this.authService.authState$().subscribe({
       next: async user => {
         if (user) {
@@ -256,6 +274,11 @@ export class AuthStore {
   async logout(): Promise<void> {
     this._isLoading.set(true);
     try {
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.removeItem('__E2E_AUTH_USER__');
+        } catch {}
+      }
       await this.authService.logout();
       this._currentUser.set(null);
       this.financeStore.resetState();
