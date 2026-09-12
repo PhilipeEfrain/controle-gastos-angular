@@ -42,7 +42,7 @@ export class DuoService {
    * Busca o grupo Duo no qual o usuário é titular (owner) ou parceiro (partner)
    */
   async getDuoGroupForUser(userId: string): Promise<DuoGroup | null> {
-    if (!userId) return null;
+    if (!userId || userId.startsWith('e2e-')) return null;
 
     // 1. Busca se é titular
     const qOwner = query(
