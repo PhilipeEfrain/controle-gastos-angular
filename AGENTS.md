@@ -15,6 +15,7 @@ Este repositório é gerenciado por uma equipe multidisciplinar de agentes atuan
 7. **ANALYTICS (`analytics_agent`)**: Telemetria, taxonomia de eventos no GA4, auditoria de funis de conversão SaaS, integração com MCP do Google Analytics, Consent Mode v2 e parecer de analytics (`[Analytics Sign-off]`).
 8. **WRITER (`writer_agent`)**: Tom de voz financeiro sem culpa, clareza textual, humanização de mensagens de erro, microcopy de conversão, copys de onboarding e parecer de redação (`[Copy Sign-off]`).
 9. **SEO (`seo_agent`)**: Otimização técnica para mecanismos de busca (Googlebot), metatags dinâmicas, canonical tags, OpenGraph, dados estruturados Schema.org (JSON-LD), robots.txt, sitemap.xml, Core Web Vitals e parecer de SEO (`[SEO Sign-off]`).
+10. **FIREBASE COST GUARDIAN (Diretiva Compartilhada)**: Vigilância constante e prevenção de desperdício de leituras, escritas, deletes e Cloud Functions no Firebase (Plano Blaze). Todo agente é responsável por manter o controle rigoroso de custos e quotas (`[Cost/Quota Sign-off]`).
 
 ---
 
@@ -42,10 +43,10 @@ As transições no GitHub Projects seguem 5 colunas estritas:
 4. **In Progress**:
    - **DEV** puxa a tarefa do topo de `Ready`, move para **`In Progress`**, cria a branch `feat/issue-<NUMERO>-<nome>` e implementa código + testes.
 5. **In review**:
-   - **DEV** abre o Pull Request com `gh pr create` (vinculando `Closes #<NUMERO>`) e move o card para **`In review`**.
-   - **QA** roda testes e valida BDD (`[QA Sign-off]`).
+   - **DEV** abre o Pull Request com `gh pr create` (vinculando `Closes #<NUMERO>`), inclui a estimativa de impacto no Firebase e move o card para **`In review`**.
+   - **QA** roda testes, valida BDD e emite (`[QA Sign-off]` e `[Cost/Quota Sign-off]`).
    - **UX** valida UI/UX e micro-interações (`[UX Sign-off]`).
-   - **SEC** audita regras e dependências (`[SEC Sign-off]`).
+   - **SEC** audita regras, isolamento e prevenção a Denial of Wallet (`[SEC Sign-off]`).
    - **ANALYTICS** valida taxonomia e ausência de vazamento de PII (`[Analytics Sign-off]`).
    - **WRITER** valida tom de voz, clareza e microcopy (`[Copy Sign-off]`).
    - **SEO** valida tags meta, canonical, Schema.org e semântica (`[SEO Sign-off]`).
@@ -60,6 +61,7 @@ As transições no GitHub Projects seguem 5 colunas estritas:
   - Criar Issues no repositório com títulos padronizados (`CARD-XXX: Descrição`) e labels adequadas (`feature`, `enhancement`, `core`, `finance`, `ui/ux`, `security`).
   - Adicionar a Issue ao GitHub Project 5 na coluna `Backlog`.
   - Definir: Problema do Usuário, Objetivo / Valor Entregue, Escopo e Limites da Entrega.
+  - **Dimensionamento de Quotas do Firebase**: Avaliar e explicitar na Issue se a entrega gera novas coleções, queries, escritas ou Cloud Functions, estimando o impacto no plano Blaze.
   - Passagem de bastão para PO, SEC, UX, ANALYTICS, WRITER e SEO antes de liberar para `Ready`.
 
 ### 2. PO (Product Owner - `po_agent`)
@@ -67,6 +69,7 @@ As transições no GitHub Projects seguem 5 colunas estritas:
 - **Responsabilidades**:
   - Complementar a Issue criada pelo PM com especificações técnicas e regras matemáticas (`calculateGlobalBalance`, cobertura `q1CobreQ2`, parcelamento, tributos).
   - Escrever cenários BDD rigorosos no formato Gherkin (`Dado`, `Quando`, `Então`).
+  - **Critérios de Aceite de Eficiência no Firebase**: Especificar limites aceitáveis de requisições por fluxo (ex: sincronização de recorrências deve executar no máximo uma vez por mês carregado; paginação obrigatória).
   - Quality Gate para `Ready`: conferir validação de SEC, UX, ANALYTICS, WRITER e SEO, movendo o card para `Ready` no Project 5 via `gh project item-edit`.
 
 ### 3. SEC (Security Specialist - `sec_agent`)
@@ -74,11 +77,13 @@ As transições no GitHub Projects seguem 5 colunas estritas:
 - **Responsabilidades**:
   - Refinamento de segurança nas Issues (isolamento por `userId`, sanitização de inputs monetários, integridade de RBAC e planos).
   - Auditar `firestore.rules` garantindo que nenhuma coleção permita acesso não autorizado (`request.auth.uid == userId` ou `isAdmin()`).
+  - **Proteção contra Denial of Wallet**: Bloquear listagens globais abertas no Firestore (`allow list: if isAdmin()`), prevenindo varreduras massivas por clientes que inflariam a fatura do Firebase.
   - Auditar dependências npm (`npm audit`).
   - Parecer formal no PR:
     ```markdown
     ### 🛡️ [SEC Sign-off]
     - [x] Regras de Firestore isoladas estritamente por UID
+    - [x] Prevenção contra Denial of Wallet validada (queries globais restritas a admin)
     - [x] Sanitização e tipagem estrita de inputs validadas
     - [x] npm audit executado com 0 vulnerabilidades críticas/altas
     ```
@@ -101,6 +106,10 @@ As transições no GitHub Projects seguem 5 colunas estritas:
 - **Responsabilidades**:
   - Mover card de `Ready` para `In Progress`, criar branch `feat/issue-<NUMERO>-<nome>`.
   - Consultar obrigatoriamente `.agents/ARCHITECTURE_MAP.md` antes de criar novos componentes, models, services ou helpers.
+  - **Arquitetura de Economia no Firebase**:
+    - PROIBIDO chamar `getDocs()` ou queries dentro de listeners de snapshot ou loops contínuos sem cache em memória.
+    - OBRIGATÓRIO aplicar `takeUntilDestroyed(this.destroyRef)` ou encerramento explícito em toda subscrição.
+    - OBRIGATÓRIO incluir na descrição do PR a seção `### 💰 Impacto no Consumo do Firebase`.
   - Abrir Pull Request com `gh pr create` vinculando a issue (`Closes #<NUMERO>`) e mover card para `In review`.
   - Acionar imediatamente os agentes revisores (QA, UX, SEC, ANALYTICS, WRITER, SEO). **NUNCA** faz merge por conta própria.
 
@@ -108,14 +117,22 @@ As transições no GitHub Projects seguem 5 colunas estritas:
 - **Objetivo**: Engenheiro de Qualidade. Garante estabilidade, precisão financeira, conformidade de 100% dos BDDs e testes E2E antes de `Done`.
 - **Responsabilidades**:
   - Executar cenários BDD do PO, rodar suíte de testes unitários (`npm test`) e validar casos de borda (arredondamento BRL, virada de ano, parcelamento).
+  - **Auditoria de Quotas do Firebase**: Verificar nos testes se não há disparos redundantes de queries, se subscrições são canceladas ao destruir componentes e se o cache funciona.
   - Testes E2E no navegador via Playwright / Browser Harness.
-  - Parecer formal no PR:
+  - Pareceres formais no PR:
     ```markdown
     ### 🧪 [QA Sign-off]
     - [x] 100% dos cenários BDD validados com sucesso
     - [x] Suíte de testes unitários executada com sucesso
     - [x] Testes E2E em navegador real executados
     - [x] Casos extremos e precisão de arredondamento BRL homologados
+
+    ### 💰 [Cost/Quota Sign-off]
+    - [x] Avaliação de impacto no Firestore (Leituras, Escritas, Deletes estimadas)
+    - [x] Ausência de queries sem limite ou em loops
+    - [x] Subscrições e streams devidamente canceladas no ciclo de vida (takeUntilDestroyed)
+    - [x] Estratégia de cache em memória ou memoização validada
+    - [x] Zero risco de custos descontrolados no plano Blaze do Firebase
     ```
 
 ### 7. ANALYTICS (Data & Tracking Engineer - `analytics_agent`)
@@ -171,3 +188,15 @@ O agente DEV **nunca** cria novas funções utilitárias, componentes, pipes, gu
 1. Consultar `.agents/ARCHITECTURE_MAP.md`.
 2. Fazer busca por símbolos e seletores similares no repositório.
 3. Atualizar o `.agents/ARCHITECTURE_MAP.md` imediatamente após a criação de novos artefatos reutilizáveis.
+
+---
+
+## Vigilância e Controle Absoluto de Custos do Firebase (Regra Pétrea de Quotas)
+
+O time de agentes opera sob a diretriz mandatória de **NUNCA PERDER O CONTROLE DE GASTOS NO FIREBASE**:
+
+1. **Vigilância Proativa**: Todo agente que atuar no código ou especificação deve avaliar e comunicar explicitamente ao usuário se a alteração introduz ou altera consumo de Firestore (leituras, escritas, deletes), Cloud Functions ou Storage.
+2. **Proibição de Varreduras e Queries em Loops**: Nunca consultar documentos em loops ou dentro de listeners `onSnapshot` sem controle rigoroso de cache (`syncedMonths`, Signals, memoização).
+3. **Desalocação Obrigatória**: Nunca deixar subscrições de streams ativas sem `takeUntilDestroyed(this.destroyRef)` ou `unsubscribe()` explícito no `onDestroy`.
+4. **Proteção no Firestore Rules**: Nenhuma subcoleção global pode ter `allow list` irrestrito para usuários comuns. Apenas `isAdmin()` pode listar diretórios globais, prevenindo Denial of Wallet.
+5. **Auditoria no PR**: Nenhum Pull Request pode ser aprovado sem a seção `### 💰 Impacto no Consumo do Firebase` e o parecer formal `### 💰 [Cost/Quota Sign-off]`.
