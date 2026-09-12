@@ -1,7 +1,8 @@
-import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FortnightSummary, Expense, FortnightNumber } from '../../../../core/models/finance.model';
 import { formatBRL } from '../../../../core/utils/formatters';
+import { getExpenseDueDateInfo } from '../../../../core/utils/date';
 import { AppCardComponent } from '../../../../shared/components/app-card/app-card.component';
 import { BalanceBadgeComponent } from '../../../../shared/components/balance-badge/balance-badge.component';
 import { ProgressBarComponent } from '../../../../shared/components/progress-bar/progress-bar.component';
@@ -33,6 +34,22 @@ export class FortnightCardComponent {
   readonly editExpense = output<Expense>();
   readonly deleteExpense = output<Expense>();
   readonly updateReceipt = output<Expense>();
+
+  readonly overdueExpensesCount = computed<number>(() => {
+    return this.expenses().filter(e => {
+      if (e.status_pagamento || e.tipo === 'renda_extra' || !e.data_vencimento) return false;
+      const info = getExpenseDueDateInfo(e.data_vencimento, e.status_pagamento, false);
+      return info?.status === 'overdue';
+    }).length;
+  });
+
+  readonly dueSoonExpensesCount = computed<number>(() => {
+    return this.expenses().filter(e => {
+      if (e.status_pagamento || e.tipo === 'renda_extra' || !e.data_vencimento) return false;
+      const info = getExpenseDueDateInfo(e.data_vencimento, e.status_pagamento, false);
+      return info?.status === 'due_today' || info?.status === 'due_soon';
+    }).length;
+  });
 
   get title(): string {
     return this.quinzena() === 1 ? '1ª Quinzena' : '2ª Quinzena';

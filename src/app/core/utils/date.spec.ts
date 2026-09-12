@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { getCurrentYearMonth, getFortnightFromDay, formatYearMonthLabel, parseFirestoreDate, getMonthOffset } from './date';
+import {
+  getCurrentYearMonth,
+  getFortnightFromDay,
+  formatYearMonthLabel,
+  parseFirestoreDate,
+  getMonthOffset,
+  formatDateBR,
+  getExpenseDueDateInfo
+} from './date';
 
 describe('Date Utility', () => {
   describe('getCurrentYearMonth', () => {
@@ -78,4 +86,100 @@ describe('Date Utility', () => {
       expect(getMonthOffset('2027-09', '2026-09')).toBe(12);
     });
   });
+
+  describe('formatDateBR', () => {
+    it('deve formatar string YYYY-MM-DD para DD/MM/AAAA', () => {
+      expect(formatDateBR('2026-09-15')).toBe('15/09/2026');
+      expect(formatDateBR('2026-01-05')).toBe('05/01/2026');
+      expect(formatDateBR('2026-12-31')).toBe('31/12/2026');
+    });
+
+    it('deve retornar hífen para valores nulos ou vazios', () => {
+      expect(formatDateBR(null)).toBe('-');
+      expect(formatDateBR(undefined)).toBe('-');
+      expect(formatDateBR('')).toBe('-');
+    });
+
+    it('deve formatar Date ou Timestamp do Firestore', () => {
+      const mockDate = new Date(2026, 8, 20); // 20 de setembro de 2026
+      expect(formatDateBR(mockDate)).toBe('20/09/2026');
+    });
+  });
+
+  describe('getExpenseDueDateInfo (CARD-059: Inteligência e Alertas de Vencimento)', () => {
+    const fixedToday = new Date(2026, 8, 12, 10, 0, 0); // 12 de Setembro de 2026
+
+    it('Cenário BDD 1: deve retornar status overdue para despesas vencidas no passado', () => {
+      // Vencida ontem (11/09/2026)
+      const yesterday = getExpenseDueDateInfo('2026-09-11', false, false, fixedToday);
+      expect(yesterday?.status).toBe('overdue');
+      expect(yesterday?.daysDiff).toBe(-1);
+      expect(yesterday?.label).toBe('Vencida ontem');
+      expect(yesterday?.badgeClass).toBe('badge-overdue');
+
+      // Vencida há 5 dias (07/09/2026)
+      const past5 = getExpenseDueDateInfo('2026-09-07', false, false, fixedToday);
+      expect(past5?.status).toBe('overdue');
+      expect(past5?.daysDiff).toBe(-5);
+      expect(past5?.label).toBe('Vencida há 5 dias');
+    });
+
+    it('Cenário BDD 2: deve retornar status due_today para despesas que vencem hoje', () => {
+      const todayExpense = getExpenseDueDateInfo('2026-09-12', false, false, fixedToday);
+      expect(todayExpense?.status).toBe('due_today');
+      expect(todayExpense?.daysDiff).toBe(0);
+      expect(todayExpense?.label).toBe('Vence Hoje');
+      expect(todayExpense?.badgeClass).toBe('badge-due-today');
+    });
+
+    it('Cenário BDD 3: deve retornar status due_soon para despesas que vencem em 1 a 3 dias', () => {
+      // Vence amanhã (+1 dia: 13/09/2026)
+      const tomorrow = getExpenseDueDateInfo('2026-09-13', false, false, fixedToday);
+      expect(tomorrow?.status).toBe('due_soon');
+      expect(tomorrow?.daysDiff).toBe(1);
+      expect(tomorrow?.label).toBe('Vence amanhã');
+      expect(tomorrow?.badgeClass).toBe('badge-due-soon');
+
+      // Vence em 2 dias (+2 dias: 14/09/2026)
+      const in2Days = getExpenseDueDateInfo('2026-09-14', false, false, fixedToday);
+      expect(in2Days?.status).toBe('due_soon');
+      expect(in2Days?.daysDiff).toBe(2);
+      expect(in2Days?.label).toBe('Vence em 2 dias');
+
+      // Vence em 3 dias (+3 dias: 15/09/2026)
+      const in3Days = getExpenseDueDateInfo('2026-09-15', false, false, fixedToday);
+      expect(in3Days?.status).toBe('due_soon');
+      expect(in3Days?.daysDiff).toBe(3);
+      expect(in3Days?.label).toBe('Vence em 3 dias');
+    });
+
+    it('Cenário BDD 4: deve retornar status normal para despesas futuras com mais de 3 dias', () => {
+      const future = getExpenseDueDateInfo('2026-09-25', false, false, fixedToday);
+      expect(future?.status).toBe('normal');
+      expect(future?.daysDiff).toBe(13);
+      expect(future?.label).toBe('');
+    });
+
+    it('Cenário BDD 5: despesas pagas (isPaid = true) não devem gerar alerta de vencimento/atraso', () => {
+      const paidOverdue = getExpenseDueDateInfo('2026-09-01', true, false, fixedToday);
+      expect(paidOverdue?.status).toBe('paid');
+      expect(paidOverdue?.label).toBe('Paga');
+      expect(paidOverdue?.badgeClass).toBe('badge-paid');
+    });
+
+    it('Cenário BDD 6: rendas extras (isIncome = true) ou despesas sem vencimento devem retornar nulo', () => {
+      expect(getExpenseDueDateInfo('2026-09-01', false, true, fixedToday)).toBeNull();
+      expect(getExpenseDueDateInfo('', false, false, fixedToday)).toBeNull();
+      expect(getExpenseDueDateInfo(null, false, false, fixedToday)).toBeNull();
+    });
+
+    it('Cenário BDD 7: deve calcular corretamente através de viradas de mês', () => {
+      const endOfAugust = new Date(2026, 7, 31, 12, 0, 0); // 31 de Agosto de 2026
+      const inSeptember = getExpenseDueDateInfo('2026-09-02', false, false, endOfAugust);
+      expect(inSeptember?.status).toBe('due_soon');
+      expect(inSeptember?.daysDiff).toBe(2);
+      expect(inSeptember?.label).toBe('Vence em 2 dias');
+    });
+  });
 });
+

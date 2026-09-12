@@ -85,4 +85,87 @@ describe('FortnightCardComponent', () => {
 
     expect(emittedQuinzena).toBe(1);
   });
+
+  describe('Cenários BDD (CARD-059): Resumo de Urgência no Cabeçalho da Quinzena', () => {
+    it('Cenário BDD 1: deve exibir chip de contas vencidas quando houver despesa pendente com vencimento no passado', () => {
+      const pastDate = new Date();
+      pastDate.setDate(pastDate.getDate() - 4);
+      const pastDateStr = pastDate.toISOString().split('T')[0];
+
+      const expensesWithOverdue: Expense[] = [
+        {
+          id: 'exp-venc-1',
+          descricao: 'Energia Elétrica',
+          valor: 200,
+          quinzena: 1,
+          categoria: 'Utilidades',
+          data_vencimento: pastDateStr,
+          status_pagamento: false
+        }
+      ];
+
+      fixture.componentRef.setInput('expenses', expensesWithOverdue);
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      const chip = compiled.querySelector('.overdue-chip');
+      expect(chip).toBeTruthy();
+      expect(chip?.textContent).toContain('1 vencida');
+      expect(component.overdueExpensesCount()).toBe(1);
+    });
+
+    it('Cenário BDD 2: deve exibir chip de vence em breve quando houver despesa vencendo em breve e nenhuma vencida', () => {
+      const soonDate = new Date();
+      soonDate.setDate(soonDate.getDate() + 2);
+      const soonDateStr = soonDate.toISOString().split('T')[0];
+
+      const expensesDueSoon: Expense[] = [
+        {
+          id: 'exp-soon-1',
+          descricao: 'Gás de Cozinha',
+          valor: 130,
+          quinzena: 1,
+          categoria: 'Moradia',
+          data_vencimento: soonDateStr,
+          status_pagamento: false
+        }
+      ];
+
+      fixture.componentRef.setInput('expenses', expensesDueSoon);
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      const chip = compiled.querySelector('.due-soon-chip');
+      expect(chip).toBeTruthy();
+      expect(chip?.textContent).toContain('1 vence em breve');
+      expect(component.dueSoonExpensesCount()).toBe(1);
+    });
+
+    it('Cenário BDD 3: não deve exibir chips de urgência quando despesas com data passada já estiverem quitadas', () => {
+      const pastDate = new Date();
+      pastDate.setDate(pastDate.getDate() - 4);
+      const pastDateStr = pastDate.toISOString().split('T')[0];
+
+      const paidExpenses: Expense[] = [
+        {
+          id: 'exp-paid-1',
+          descricao: 'Água e Saneamento',
+          valor: 90,
+          quinzena: 1,
+          categoria: 'Utilidades',
+          data_vencimento: pastDateStr,
+          status_pagamento: true
+        }
+      ];
+
+      fixture.componentRef.setInput('expenses', paidExpenses);
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.querySelector('.overdue-chip')).toBeNull();
+      expect(compiled.querySelector('.due-soon-chip')).toBeNull();
+      expect(component.overdueExpensesCount()).toBe(0);
+    });
+  });
 });
+
