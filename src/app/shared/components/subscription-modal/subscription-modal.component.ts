@@ -227,12 +227,18 @@ export class SubscriptionModalComponent implements OnInit {
       const subId = this.lastSubscriptionId() || `sub_${Math.random().toString(36).substring(2, 10)}`;
       const cusId = this.lastCustomerId() || 'cus_demo';
 
+      const days = this.cycle() === 'YEARLY' ? 365 : 30;
+      const expDate = new Date();
+      expDate.setDate(expDate.getDate() + days);
+      const planExpiresAt = expDate.toISOString();
+
       // Persiste no Firestore e atualiza o AuthStore
       await this.authStore.upgradeSubscription({
         plan,
         planStatus: 'active',
         asaasCustomerId: cusId,
-        asaasSubscriptionId: subId
+        asaasSubscriptionId: subId,
+        planExpiresAt
       });
 
       this.step.set('success');
@@ -304,13 +310,19 @@ export class SubscriptionModalComponent implements OnInit {
         environment
       );
 
+      const days = this.cycle() === 'YEARLY' ? 365 : 30;
+      const expDate = new Date();
+      expDate.setDate(expDate.getDate() + days);
+      const planExpiresAt = expDate.toISOString();
+
       const plan = this.selectedPlan();
       // Persiste no Firestore e atualiza o AuthStore em memória
       await this.authStore.upgradeSubscription({
         plan,
         planStatus: 'active',
         asaasCustomerId: customer.id,
-        asaasSubscriptionId: subscription.id
+        asaasSubscriptionId: subscription.id,
+        planExpiresAt
       });
 
       this.step.set('success');

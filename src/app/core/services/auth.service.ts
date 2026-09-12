@@ -190,7 +190,16 @@ export class AuthService {
     if (subscriptionData.asaasSubscriptionId) {
       updatePayload['asaasSubscriptionId'] = subscriptionData.asaasSubscriptionId;
     }
-    if (subscriptionData.planExpiresAt !== undefined) {
+    if (subscriptionData.planStatus === 'active') {
+      updatePayload['gracePeriodExpiresAt'] = null;
+      if (subscriptionData.planExpiresAt !== undefined) {
+        updatePayload['planExpiresAt'] = subscriptionData.planExpiresAt;
+      } else {
+        const defaultExp = new Date();
+        defaultExp.setDate(defaultExp.getDate() + 30);
+        updatePayload['planExpiresAt'] = defaultExp.toISOString();
+      }
+    } else if (subscriptionData.planExpiresAt !== undefined) {
       updatePayload['planExpiresAt'] = subscriptionData.planExpiresAt;
     }
 

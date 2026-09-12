@@ -153,6 +153,8 @@ describe('AuthStore (Signals State)', () => {
     expect(store.currentPlan()).toBe('pro');
     expect(store.currentUser()?.asaasSubscriptionId).toBe('sub_xyz');
     expect(store.currentUser()?.asaasCustomerId).toBe('cus_xyz');
+    expect(store.currentUser()?.planExpiresAt).toBeTruthy();
+    expect(store.currentUser()?.gracePeriodExpiresAt).toBeNull();
   });
 
   it('Cenário BDD 1 (CARD-040): deve manter isProOrDuo=true e isGracePeriodActive=true durante o Grace Period', () => {

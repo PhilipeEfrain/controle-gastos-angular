@@ -23,6 +23,16 @@ describe('Webhook Asaas - Funções Utilitárias', () => {
     const diffDays = Math.round((graceDate.getTime() - before.getTime()) / (1000 * 60 * 60 * 24));
     expect(diffDays).toBe(3);
   });
+
+  it('deve calcular a data de expiração a partir de hoje se a data de vencimento estiver no passado', () => {
+    const pastDueDate = '2020-01-01';
+    const expiresAt = calculatePlanExpiration(pastDueDate);
+    const expDate = new Date(expiresAt);
+    const now = new Date();
+    const diffDays = Math.round((expDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    expect(diffDays).toBeGreaterThanOrEqual(29);
+    expect(diffDays).toBeLessThanOrEqual(31);
+  });
 });
 
 describe('Webhook Asaas - handleAsaasWebhook', () => {

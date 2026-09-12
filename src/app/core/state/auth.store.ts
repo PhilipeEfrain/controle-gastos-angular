@@ -214,13 +214,20 @@ export class AuthStore {
 
     await this.authService.updateUserSubscription(user.uid, subscriptionData);
 
+    const resolvedExpiresAt = subscriptionData.planExpiresAt !== undefined
+      ? subscriptionData.planExpiresAt
+      : (subscriptionData.planStatus === 'active'
+          ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+          : user.planExpiresAt);
+
     this._currentUser.set({
       ...user,
       plan: subscriptionData.plan,
       planStatus: subscriptionData.planStatus,
       asaasCustomerId: subscriptionData.asaasCustomerId ?? user.asaasCustomerId,
       asaasSubscriptionId: subscriptionData.asaasSubscriptionId ?? user.asaasSubscriptionId,
-      planExpiresAt: subscriptionData.planExpiresAt !== undefined ? subscriptionData.planExpiresAt : user.planExpiresAt
+      planExpiresAt: resolvedExpiresAt,
+      gracePeriodExpiresAt: subscriptionData.planStatus === 'active' ? null : user.gracePeriodExpiresAt
     });
   }
 

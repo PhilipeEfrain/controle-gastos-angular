@@ -121,7 +121,8 @@ describe('SubscriptionModalComponent (Checkout de Assinaturas)', () => {
     expect(mockAuthStore.upgradeSubscription).toHaveBeenCalledWith(
       expect.objectContaining({
         plan: 'pro',
-        planStatus: 'active'
+        planStatus: 'active',
+        planExpiresAt: expect.any(String)
       })
     );
     expect(component.step()).toBe('success');
@@ -196,7 +197,8 @@ describe('SubscriptionModalComponent (Checkout de Assinaturas)', () => {
         plan: 'pro',
         planStatus: 'active',
         asaasCustomerId: 'cus_123',
-        asaasSubscriptionId: 'sub_123'
+        asaasSubscriptionId: 'sub_123',
+        planExpiresAt: expect.any(String)
       })
     );
     expect(component.step()).toBe('success');
