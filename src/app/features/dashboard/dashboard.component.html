@@ -289,7 +289,36 @@
       </section>
     }
 
-    <!-- Card de Acerto de Contas do Casal (Modo Duo) -->
+    <!-- Banner de Pareamento Pendente do Modo Casal (Quando parceiro ainda não está conectado) -->
+    @if (isDuoPendingPairing()) {
+      <section class="duo-pending-section">
+        <div class="duo-pending-card">
+          <div class="duo-pending-content">
+            <div class="duo-pending-icon">💕</div>
+            <div class="duo-pending-info">
+              <div class="duo-pending-badge">MODO CASAL / DUO</div>
+              <h3 class="duo-pending-title">Plano Casal Ativo</h3>
+              <p class="duo-pending-desc">
+                Convide seu parceiro(a) para sincronizarem os gastos quinzenais e acompanharem o acerto automático 50/50.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="btn-duo-connect"
+            (click)="isDuoPairingModalOpen.set(true)"
+            id="btn-duo-connect-dashboard"
+          >
+            <svg viewBox="0 0 20 20" fill="currentColor" class="btn-icon">
+              <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
+            </svg>
+            <span>Conectar Parceiro(a)</span>
+          </button>
+        </div>
+      </section>
+    }
+
+    <!-- Card de Acerto de Contas do Casal (Modo Duo com parceiro conectado) -->
     @if (settlementSummary(); as settlement) {
       <section class="duo-section">
         <app-duo-settlement-card
@@ -421,7 +450,7 @@
 <!-- Modal de Pareamento do Modo Casal / Duo -->
 <app-duo-pairing-modal
   [isOpen]="isDuoPairingModalOpen()"
-  (close)="isDuoPairingModalOpen.set(false)"
+  (close)="onDuoPairingModalClosed()"
 />
 
 <!-- Modal de Limite Atingido (Janela Deslizante de Histórico) -->
@@ -439,6 +468,7 @@
   <app-subscription-modal
     (close)="isSubscriptionModalOpen.set(false)"
     (subscribed)="onSubscriptionSuccess()"
+    (openDuoPairing)="onOpenDuoPairingFromSubscription()"
   />
 }
 

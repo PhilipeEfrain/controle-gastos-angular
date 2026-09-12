@@ -83,6 +83,10 @@ export class DashboardComponent implements OnInit {
     return this.authStore.isDuo() || (this.duoGroup()?.status === 'active' && !!this.duoGroup()?.partnerId);
   });
 
+  readonly isDuoPendingPairing = computed(() => {
+    return this.authStore.isDuo() && (!this.duoGroup() || !this.duoGroup()?.partnerId);
+  });
+
   readonly settlementSummary = computed<DuoSettlementSummary | null>(() => {
     const group = this.duoGroup();
     if (!group || group.status !== 'active' || !group.partnerId) return null;
@@ -220,7 +224,14 @@ export class DashboardComponent implements OnInit {
     if (user) {
       this.financeStore.connectMonthStream(user.uid, this.financeStore.selectedMonth());
       try {
-        const group = await this.duoService.getDuoGroupForUser(user.uid);
+        let group = await this.duoService.getDuoGroupForUser(user.uid);
+        if (!group && this.authStore.isDuo()) {
+          group = await this.duoService.createOrGetDuoGroup(
+            user.uid,
+            user.email || '',
+            user.displayName || 'Titular'
+          );
+        }
         this.duoGroup.set(group);
       } catch (e) {
         console.error('Erro ao buscar grupo Duo:', e);
@@ -400,6 +411,24 @@ export class DashboardComponent implements OnInit {
   onSubscriptionSuccess(): void {
     this.isSubscriptionModalOpen.set(false);
     this.notificationService.success('Assinatura confirmada com sucesso! Seus recursos foram atualizados.');
+  }
+
+  async onDuoPairingModalClosed(): Promise<void> {
+    this.isDuoPairingModalOpen.set(false);
+    const user = this.authStore.currentUser();
+    if (user?.uid) {
+      try {
+        const group = await this.duoService.getDuoGroupForUser(user.uid);
+        this.duoGroup.set(group);
+      } catch (err) {
+        console.error('Erro ao atualizar grupo Duo:', err);
+      }
+    }
+  }
+
+  onOpenDuoPairingFromSubscription(): void {
+    this.isSubscriptionModalOpen.set(false);
+    this.isDuoPairingModalOpen.set(true);
   }
 
   async onLogout(): Promise<void> {

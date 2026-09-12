@@ -18,6 +18,9 @@ import { AdminService } from '../../core/services/admin.service';
 import { AppCardComponent } from '../../shared/components/app-card/app-card.component';
 import { ConfirmationModalComponent } from '../../shared/components/confirmation-modal/confirmation-modal.component';
 import { SubscriptionModalComponent } from '../../shared/components/subscription-modal/subscription-modal.component';
+import { DuoPairingModalComponent } from '../dashboard/components/duo-pairing-modal/duo-pairing-modal.component';
+import { DuoService } from '../../core/services/duo.service';
+import { DuoGroup } from '../../core/models/duo.model';
 import {
   formatBRL,
   maskCardNumber,
@@ -37,7 +40,8 @@ export type SettingsTab = 'profile' | 'appearance' | 'security' | 'subscription'
     ReactiveFormsModule,
     AppCardComponent,
     ConfirmationModalComponent,
-    SubscriptionModalComponent
+    SubscriptionModalComponent,
+    DuoPairingModalComponent
   ],
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
@@ -50,6 +54,7 @@ export class SettingsComponent implements OnInit {
   private readonly notificationService = inject(NotificationService);
   readonly asaasService = inject(AsaasService);
   private readonly adminService = inject(AdminService);
+  readonly duoService = inject(DuoService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
 
@@ -68,6 +73,10 @@ export class SettingsComponent implements OnInit {
   readonly isUpdatingCard = signal<boolean>(false);
   readonly isCancelSubscriptionModalOpen = signal<boolean>(false);
   readonly isCancelingSubscription = signal<boolean>(false);
+
+  // Modo Casal / Duo em Configurações
+  readonly duoGroup = signal<DuoGroup | null>(null);
+  readonly isDuoPairingModalOpen = signal<boolean>(false);
 
   // Formulário de Troca de Cartão
   readonly cardNumber = signal<string>('');
@@ -106,10 +115,44 @@ export class SettingsComponent implements OnInit {
       displayName: [user?.displayName || '', [Validators.required, Validators.minLength(2)]],
       photoURL: [user?.photoURL || '', [SettingsComponent.httpsUrlValidator]]
     });
+
+    if (this.authStore.isDuo?.()) {
+      this.loadDuoGroup();
+    }
   }
 
-  setTab(tab: SettingsTab): void {
+  async setTab(tab: SettingsTab): Promise<void> {
     this.activeTab.set(tab);
+    if (tab === 'subscription' && this.authStore.isDuo?.()) {
+      await this.loadDuoGroup();
+    }
+  }
+
+  async loadDuoGroup(): Promise<void> {
+    const user = this.authStore.currentUser();
+    if (!user?.uid) return;
+    try {
+      let group = await this.duoService.getDuoGroupForUser(user.uid);
+      if (!group && this.authStore.isDuo?.()) {
+        group = await this.duoService.createOrGetDuoGroup(
+          user.uid,
+          user.email || '',
+          user.displayName || 'Titular'
+        );
+      }
+      this.duoGroup.set(group);
+    } catch (err) {
+      console.error('Erro ao buscar grupo Duo em configurações:', err);
+    }
+  }
+
+  openDuoPairingModal(): void {
+    this.isDuoPairingModalOpen.set(true);
+  }
+
+  async closeDuoPairingModal(): Promise<void> {
+    this.isDuoPairingModalOpen.set(false);
+    await this.loadDuoGroup();
   }
 
   async onSaveProfile(): Promise<void> {

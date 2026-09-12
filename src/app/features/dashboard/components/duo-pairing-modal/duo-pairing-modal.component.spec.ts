@@ -103,4 +103,46 @@ describe('DuoPairingModalComponent', () => {
     component.onBackdropClick(mockBackdropEvent);
     expect(closeSpy).toHaveBeenCalled();
   });
+
+  it('Cenário BDD 2: deve abrir WhatsApp com mensagem e código de convite', () => {
+    const windowOpenSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+    component.currentGroup.set(mockPendingGroup);
+
+    component.onShareWhatsApp();
+
+    expect(windowOpenSpy).toHaveBeenCalledWith(
+      expect.stringContaining('https://api.whatsapp.com/send?text='),
+      '_blank',
+      'noopener,noreferrer'
+    );
+    expect(windowOpenSpy).toHaveBeenCalledWith(
+      expect.stringContaining('DUO-1234'),
+      '_blank',
+      'noopener,noreferrer'
+    );
+    expect(mockNotificationService.info).toHaveBeenCalledWith(
+      'Abrindo WhatsApp para enviar o convite...'
+    );
+  });
+
+  it('Cenário BDD 3: deve salvar o e-mail do parceiro quando informado corretamente', async () => {
+    mockDuoService.updatePartnerEmail = vi.fn().mockResolvedValue(undefined);
+    component.currentGroup.set(mockPendingGroup);
+    component.partnerEmailInput.set('mariana@casal.com');
+
+    await component.onSavePartnerEmail();
+
+    expect(mockDuoService.updatePartnerEmail).toHaveBeenCalledWith('grp-1', 'mariana@casal.com');
+    expect(component.currentGroup()?.partnerEmail).toBe('mariana@casal.com');
+    expect(mockNotificationService.success).toHaveBeenCalledWith('E-mail do parceiro salvo com sucesso! 💕');
+  });
+
+  it('Cenário BDD 4: deve rejeitar salvamento de e-mail com formato inválido', async () => {
+    component.currentGroup.set(mockPendingGroup);
+    component.partnerEmailInput.set('email-invalido');
+
+    await component.onSavePartnerEmail();
+
+    expect(mockNotificationService.error).toHaveBeenCalledWith('Por favor, informe um e-mail válido para o(a) parceiro(a).');
+  });
 });

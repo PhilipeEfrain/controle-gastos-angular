@@ -84,6 +84,11 @@ export class NavbarComponent {
     this.isMobileMenuOpen.set(false);
   }
 
+  onOpenDuoPairingFromNavbar(): void {
+    this.isSubscriptionModalOpen.set(false);
+    this.router.navigate(['/dashboard']);
+  }
+
   async logout(): Promise<void> {
     this.isLoggingOut.set(true);
     try {

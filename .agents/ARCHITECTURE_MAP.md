@@ -66,7 +66,7 @@
 | `TravelService` | `src/app/core/services/travel.service.ts` | CRUD e stream em tempo real para controle de gastos de viagem e rateio (`users/{userId}/viagens`). |
 | `InstallmentService` | `src/app/core/services/installment.service.ts` | Agrupamento de parcelamentos ativos nos ciclos do usuário e quitação/cancelamento em lote via `writeBatch`. |
 | `ExportService` | `src/app/core/services/export.service.ts` | Exportação de balanço e relatórios em CSV (UTF-8 com BOM para Excel), PDF mensal e Dossiê Anual Consolidado das 24 quinzenas do exercício fiscal (`exportAnnualDossierPDF`) com demonstrativo por categoria e tributos para IRPF. |
-| `DuoService` | `src/app/core/services/duo.service.ts` | Gestão de pareamento do Plano Casal / Duo: geração e validação de convites, vinculação de contas, stream em tempo real e cálculo de liquidação 50/50 (`calculateSettlement`). |
+| `DuoService` | `src/app/core/services/duo.service.ts` | Gestão de pareamento do Plano Casal / Duo: geração e validação de convites, cadastro/pré-autorização de e-mail do parceiro (`updatePartnerEmail`), vinculação de contas, stream em tempo real e cálculo de liquidação 50/50 (`calculateSettlement`). |
 | `ThemeService` | `src/app/core/services/theme.service.ts` | Gerenciamento reativo de tema (Dark / Light) com persistência em localStorage e sincronização com DOM. |
 | `PwaService` | `src/app/core/services/pwa.service.ts` | Monitoramento reativo de conectividade (online/offline), captura de beforeinstallprompt, instalação de PWA e controle de Service Worker. |
 | `NotificationService` | `src/app/core/services/notification.service.ts` | Notificações reativas do tipo Toast com Signals (`success`, `error`, `warning`, `info`). |
@@ -132,7 +132,7 @@
 | Componente | Seletor | Descrição |
 | :--- | :--- | :--- |
 | `DashboardComponent` | `app-dashboard` | Página principal com seletor de mês, top summary cards, grid quinzenal e botões de ação rápida. |
-| `DuoPairingModalComponent` | `app-duo-pairing-modal` | Modal de pareamento e gerenciamento de convites do Plano Casal / Duo. |
+| `DuoPairingModalComponent` | `app-duo-pairing-modal` | Modal de pareamento, cadastro de e-mail do parceiro, compartilhamento de convite via WhatsApp e gerenciamento do Plano Casal / Duo. |
 | `DuoSettlementCardComponent` | `app-duo-settlement-card` | Card no dashboard com divisão proporcional 50/50 de gastos e cálculo de acerto de contas entre os parceiros. |
 | `FortnightCardComponent` | `app-fortnight-card` | Card quinzenal completo com resumo de entrada/saída, barra de progresso e listagem de despesas. |
 | `ExpenseItemRowComponent` | `app-expense-item-row` | Linha de despesa com checkbox de quitação, badge de categoria, indicador de comprovante e ações de edição/exclusão. |

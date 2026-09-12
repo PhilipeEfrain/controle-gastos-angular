@@ -167,6 +167,17 @@ export class DuoService {
   }
 
   /**
+   * Atualiza ou pré-cadastra o e-mail do parceiro no grupo Duo
+   */
+  async updatePartnerEmail(groupId: string, partnerEmail: string): Promise<void> {
+    const groupRef = doc(this.db, 'duo_groups', groupId);
+    await updateDoc(groupRef, {
+      partnerEmail: partnerEmail.trim().toLowerCase(),
+      updatedAt: new Date().toISOString()
+    });
+  }
+
+  /**
    * Stream reativo em tempo real para monitorar o grupo Duo
    */
   listenDuoGroup(groupId: string): Observable<DuoGroup | null> {

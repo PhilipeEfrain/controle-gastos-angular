@@ -87,6 +87,53 @@
                   }
                 </button>
               </div>
+
+              <div class="share-actions-row">
+                <button
+                  type="button"
+                  class="btn-share-whatsapp"
+                  (click)="onShareWhatsApp()"
+                >
+                  <svg viewBox="0 0 24 24" fill="currentColor" class="whatsapp-icon">
+                    <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.969.586 1.761.88 2.796.88 3.182 0 5.768-2.587 5.768-5.766.001-3.187-2.575-5.767-5.768-5.767zm7.327 5.766c-.001 4.041-3.287 7.327-7.327 7.327-1.258 0-2.457-.323-3.507-.887l-4.524 1.186 1.208-4.412c-.672-1.1-1.027-2.37-1.026-3.214.001-4.04 3.288-7.326 7.328-7.326 4.041 0 7.328 3.286 7.328 7.326z"/>
+                  </svg>
+                  <span>Enviar Convite via WhatsApp</span>
+                </button>
+              </div>
+
+              <!-- Pré-cadastro do E-mail do Parceiro -->
+              <div class="partner-email-section">
+                <label class="email-label" for="input-partner-email">
+                  <svg viewBox="0 0 20 20" fill="currentColor" class="email-icon">
+                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                  </svg>
+                  <span>Cadastrar E-mail do Parceiro(a):</span>
+                </label>
+                <div class="email-input-row">
+                  <input
+                    type="email"
+                    id="input-partner-email"
+                    class="partner-email-input"
+                    placeholder="parceiro@exemplo.com"
+                    [ngModel]="partnerEmailInput()"
+                    (ngModelChange)="partnerEmailInput.set($event)"
+                  />
+                  <button
+                    type="button"
+                    class="btn-save-email"
+                    (click)="onSavePartnerEmail()"
+                    [disabled]="isSavingEmail() || !partnerEmailInput().trim()"
+                  >
+                    @if (isSavingEmail()) {
+                      <span>Salvando...</span>
+                    } @else {
+                      <span>Salvar</span>
+                    }
+                  </button>
+                </div>
+                <p class="email-helper-text">Identifica a conta do seu parceiro(a) no Quinzena para sincronização simplificada.</p>
+              </div>
             </div>
           }
 

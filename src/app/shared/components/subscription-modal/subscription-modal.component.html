@@ -364,23 +364,39 @@
     }
 
     @if (step() === 'success') {
-      <!-- Tela de Celebração de Boas-Vindas ao PRO -->
+      <!-- Tela de Celebração de Boas-Vindas ao PRO ou DUO -->
       <div class="success-view">
         <div class="celebration-icon">🎉</div>
         <h2 class="success-title">Parabéns! Você agora é {{ selectedPlan() === 'pro' ? 'PRO' : 'DUO' }}!</h2>
         <p class="success-description">
-          Sua assinatura foi confirmada com sucesso. Todas as funcionalidades premium, histórico de 13 meses e o Dossiê Anual em PDF já estão desbloqueados na sua conta.
+          @if (selectedPlan() === 'duo') {
+            Sua assinatura do Plano Casal foi confirmada com sucesso! Agora você e seu parceiro(a) podem compartilhar despesas, controlar o orçamento quinzenal e calcular o acerto 50/50 sem misturar contas bancárias.
+          } @else {
+            Sua assinatura foi confirmada com sucesso. Todas as funcionalidades premium, histórico de 13 meses e o Dossiê Anual em PDF já estão desbloqueados na sua conta.
+          }
         </p>
 
         <div class="success-features-card">
-          <div class="feature-item">✓ Histórico de 13 meses móveis ativado</div>
-          <div class="feature-item">✓ Compras parceladas e despesas fixas ilimitadas</div>
-          <div class="feature-item">✓ Exportação do Dossiê do Ano em PDF liberada</div>
+          @if (selectedPlan() === 'duo') {
+            <div class="feature-item">✓ 2 contas conectadas com rateio inteligente 50/50</div>
+            <div class="feature-item">✓ Histórico de 13 meses móveis ativado para o casal</div>
+            <div class="feature-item">✓ Compras parceladas e despesas fixas ilimitadas</div>
+          } @else {
+            <div class="feature-item">✓ Histórico de 13 meses móveis ativado</div>
+            <div class="feature-item">✓ Compras parceladas e despesas fixas ilimitadas</div>
+            <div class="feature-item">✓ Exportação do Dossiê do Ano em PDF liberada</div>
+          }
         </div>
 
-        <button type="button" class="btn-enjoy" (click)="closeModal()" id="btn-enjoy-pro">
-          Acessar Meus Recursos Exclusivos
-        </button>
+        @if (selectedPlan() === 'duo') {
+          <button type="button" class="btn-enjoy btn-duo-connect-cta" (click)="connectPartner()" id="btn-connect-partner-success">
+            Conectar Parceiro(a) Agora 💕
+          </button>
+        } @else {
+          <button type="button" class="btn-enjoy" (click)="closeModal()" id="btn-enjoy-pro">
+            Acessar Meus Recursos Exclusivos
+          </button>
+        }
       </div>
     }
 
