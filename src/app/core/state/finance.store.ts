@@ -21,6 +21,9 @@ export class FinanceStore {
   private expensesSub?: Subscription;
   private taxesSub?: Subscription;
 
+  // Cache em memória de meses já sincronizados com despesas recorrentes (evita leituras redundantes no Firestore)
+  private readonly syncedMonths = new Set<string>();
+
   // Estados Reativos Privados (Signals)
   private readonly _selectedMonth = signal<string>(getCurrentYearMonth());
   private readonly _currentCycle = signal<MonthlyCycle | null>(null);
@@ -107,8 +110,14 @@ export class FinanceStore {
       next: expenses => {
         this._expenses.set(expenses);
         this._isLoading.set(false);
-        // Sincroniza despesas recorrentes ativas que ainda não foram instanciadas neste mês
-        this.expenseService.syncRecurringExpensesForMonth(userId, mesAno, expenses).catch(() => {});
+        // Sincroniza despesas recorrentes ativas apenas 1x por mês carregado (evita leituras contínuas a cada snapshot)
+        if (!this.syncedMonths.has(mesAno)) {
+          this.syncedMonths.add(mesAno);
+          this.expenseService.syncRecurringExpensesForMonth(userId, mesAno, expenses).catch(() => {
+            // Em caso de falha de rede/permissão, desmarca para permitir nova tentativa futura
+            this.syncedMonths.delete(mesAno);
+          });
+        }
       },
       error: err => {
         this._error.set(err.message || 'Erro ao carregar despesas');
@@ -146,6 +155,17 @@ export class FinanceStore {
   }
 
   /**
+   * Invalida o cache de sincronização de despesas recorrentes para um mês específico ou todos
+   */
+  invalidateRecurrenceCache(mesAno?: string): void {
+    if (mesAno) {
+      this.syncedMonths.delete(mesAno);
+    } else {
+      this.syncedMonths.clear();
+    }
+  }
+
+  /**
    * Reseta todo o estado financeiro e cancela subscrições ativas ao realizar logout
    */
   resetState(): void {
@@ -153,6 +173,7 @@ export class FinanceStore {
     this.expensesSub?.unsubscribe();
     this.taxesSub?.unsubscribe();
 
+    this.syncedMonths.clear();
     this._currentCycle.set(null);
     this._expenses.set([]);
     this._taxes.set([]);

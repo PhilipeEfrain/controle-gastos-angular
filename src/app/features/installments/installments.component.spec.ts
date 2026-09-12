@@ -5,7 +5,7 @@ import { InstallmentService } from '../../core/services/installment.service';
 import { AuthStore } from '../../core/state/auth.store';
 import { NotificationService } from '../../core/services/notification.service';
 import { Router } from '@angular/router';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { InstallmentGroup } from '../../core/models/finance.model';
 
 describe('InstallmentsComponent', () => {
@@ -128,5 +128,18 @@ describe('InstallmentsComponent', () => {
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/dashboard'], {
       queryParams: { action: 'new-installment' }
     });
+  });
+
+  it('Cenário BDD CARD-064: deve cancelar a subscrição de getInstallmentsOverview quando o componente é destruído via takeUntilDestroyed', () => {
+    const overviewSubject = new Subject<InstallmentGroup[]>();
+    mockInstallmentService.getInstallmentsOverview = vi.fn(() => overviewSubject.asObservable());
+
+    const newFixture = TestBed.createComponent(InstallmentsComponent);
+    newFixture.detectChanges();
+
+    expect(overviewSubject.observed).toBe(true);
+
+    newFixture.destroy();
+    expect(overviewSubject.observed).toBe(false);
   });
 });

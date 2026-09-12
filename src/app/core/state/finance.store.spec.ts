@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { FinanceStore } from './finance.store';
 import { MonthlyCycleService } from '../services/monthly-cycle.service';
 import { ExpenseService } from '../services/expense.service';
@@ -18,7 +18,8 @@ describe('FinanceStore (Signals Reactive State)', () => {
       getCycleStream: vi.fn(() => of(null))
     };
     mockExpenseService = {
-      getExpensesStream: vi.fn(() => of([]))
+      getExpensesStream: vi.fn(() => of([])),
+      syncRecurringExpensesForMonth: vi.fn().mockResolvedValue(undefined)
     };
     mockTaxService = {
       getTaxesStream: vi.fn(() => of([]))
@@ -118,5 +119,44 @@ describe('FinanceStore (Signals Reactive State)', () => {
     expect(store.taxes()).toEqual([]);
     expect(store.isLoading()).toBe(false);
     expect(store.error()).toBeNull();
+  });
+
+  it('Cenário BDD CARD-064: deve sincronizar despesas recorrentes apenas 1 vez por mês carregado, evitando chamadas repetidas', () => {
+    const expensesSubject = new Subject<Expense[]>();
+    mockExpenseService.getExpensesStream = vi.fn(() => expensesSubject.asObservable());
+
+    store.connectMonthStream('user-1', '2026-09');
+
+    // Primeira emissão (carregamento inicial)
+    expensesSubject.next([]);
+    expect(mockExpenseService.syncRecurringExpensesForMonth).toHaveBeenCalledTimes(1);
+
+    // Segunda emissão (ex: usuário marcou despesa como paga)
+    expensesSubject.next([{ id: 'exp-1', descricao: 'Internet', valor: 100, quinzena: 1, categoria: 'Contas', status_pagamento: true }]);
+    expect(mockExpenseService.syncRecurringExpensesForMonth).toHaveBeenCalledTimes(1);
+
+    // Terceira emissão (ex: usuário alterou comprovante)
+    expensesSubject.next([{ id: 'exp-1', descricao: 'Internet', valor: 100, quinzena: 1, categoria: 'Contas', status_pagamento: true, codigo_comprovante: 'COMP123' }]);
+    expect(mockExpenseService.syncRecurringExpensesForMonth).toHaveBeenCalledTimes(1);
+  });
+
+  it('Cenário BDD CARD-064: deve sincronizar novamente para um mês diferente ou após resetState()', () => {
+    const expensesSubject = new Subject<Expense[]>();
+    mockExpenseService.getExpensesStream = vi.fn(() => expensesSubject.asObservable());
+
+    store.connectMonthStream('user-1', '2026-09');
+    expensesSubject.next([]);
+    expect(mockExpenseService.syncRecurringExpensesForMonth).toHaveBeenCalledTimes(1);
+
+    // Conecta para mês subsequente 2026-10
+    store.connectMonthStream('user-1', '2026-10');
+    expensesSubject.next([]);
+    expect(mockExpenseService.syncRecurringExpensesForMonth).toHaveBeenCalledTimes(2);
+
+    // Reseta estado (logout) e reconecta ao mês anterior 2026-09
+    store.resetState();
+    store.connectMonthStream('user-1', '2026-09');
+    expensesSubject.next([]);
+    expect(mockExpenseService.syncRecurringExpensesForMonth).toHaveBeenCalledTimes(3);
   });
 });

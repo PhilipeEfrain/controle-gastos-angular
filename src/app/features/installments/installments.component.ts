@@ -5,7 +5,9 @@ import {
   OnInit,
   signal,
   computed,
+  DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { InstallmentService } from '../../core/services/installment.service';
@@ -33,6 +35,7 @@ export class InstallmentsComponent implements OnInit {
   private authStore = inject(AuthStore);
   private notificationService = inject(NotificationService);
   private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
 
   readonly installmentGroups = signal<InstallmentGroup[]>([]);
   readonly isLoading = signal<boolean>(true);
@@ -81,16 +84,19 @@ export class InstallmentsComponent implements OnInit {
     }
 
     this.isLoading.set(true);
-    this.installmentService.getInstallmentsOverview(user.uid).subscribe({
-      next: (groups) => {
-        this.installmentGroups.set(groups);
-        this.isLoading.set(false);
-      },
-      error: (err) => {
-        this.notificationService.error('Erro ao carregar parcelamentos: ' + err.message);
-        this.isLoading.set(false);
-      },
-    });
+    this.installmentService
+      .getInstallmentsOverview(user.uid)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (groups) => {
+          this.installmentGroups.set(groups);
+          this.isLoading.set(false);
+        },
+        error: (err) => {
+          this.notificationService.error('Erro ao carregar parcelamentos: ' + err.message);
+          this.isLoading.set(false);
+        },
+      });
   }
 
   // Quitação Antecipada
