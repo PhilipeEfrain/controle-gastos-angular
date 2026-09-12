@@ -10,4 +10,13 @@
     <span class="balance-badge__label">{{ label() }}:</span>
   }
   <span class="balance-badge__value">{{ formattedValue() }}</span>
+  @if (hasExtraIncome()) {
+    <span
+      class="extra-income-indicator"
+      [title]="resolvedTooltip()"
+      [attr.aria-label]="resolvedTooltip()"
+      role="note"
+      tabindex="0"
+    >*</span>
+  }
 </span>

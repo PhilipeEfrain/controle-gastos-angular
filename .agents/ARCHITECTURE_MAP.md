@@ -39,8 +39,8 @@
 | `Expense` | `src/app/core/models/finance.model.ts` | Modelo de despesa ou renda extra (`tipo?: 'despesa' \| 'renda_extra'`, valor, quinzena, status_pagamento, categoria, recorrente, recorrente_id, parcelas). |
 | `RecurringExpense` | `src/app/core/models/finance.model.ts` | Modelo mestre de despesa fixa/recorrente mensal (id, descricao, valor, quinzena, categoria, ativo). |
 | `MonthlyCycle` | `src/app/core/models/finance.model.ts` | Modelo do ciclo mensal com rendas Q1/Q2, totais e saldos consolidados. |
-| `FortnightSummary` | `src/app/core/models/finance.model.ts` | Estrutura de resumo da quinzena (renda, totalGastos, saldo, isDeficit). |
-| `MonthBalanceSummary` | `src/app/core/models/finance.model.ts` | Consolidado global do mês com suporte à flag `q1CobreQ2` e `temDeficitGlobal`. |
+| `FortnightSummary` | `src/app/core/models/finance.model.ts` | Estrutura de resumo da quinzena (renda, totalGastos, saldo, isDeficit, hasExtraIncome, totalExtraIncome). |
+| `MonthBalanceSummary` | `src/app/core/models/finance.model.ts` | Consolidado global do mês com suporte à flag `q1CobreQ2`, `temDeficitGlobal`, `hasExtraIncome` e `totalExtraIncome`. |
 | `AnnualTax` | `src/app/core/models/finance.model.ts` | Modelo de tributo/imposto anual (IPTU, IPVA, valor_orcado, valor_pago, status). |
 | `TravelTrip` | `src/app/core/models/finance.model.ts` | Modelo de viagem com nome, quantidade de pessoas, moeda, itens de despesa e data. |
 | `TravelExpenseItem` | `src/app/core/models/finance.model.ts` | Item de despesa de viagem com descrição, categoria, valor, pagador e rateio (`dividir`). |
@@ -106,7 +106,7 @@
 | Componente | Seletor | Descrição |
 | :--- | :--- | :--- |
 | `AppCardComponent` | `app-card` | Contêiner estilizado com suporte a glassmorphism, bordas suaves e variantes de destaque. |
-| `BalanceBadgeComponent` | `app-balance-badge` | Badge financeiro automático (Verde = superávit / Vermelho = déficit). |
+| `BalanceBadgeComponent` | `app-balance-badge` | Badge financeiro automático (Verde = superávit / Vermelho = déficit) com suporte a indicador visual de renda extra (`*`) e tooltip contextual. |
 | `DeficitAlertBannerComponent` | `app-deficit-alert-banner` | Banner de alerta condicional disparado quando a Q2 está deficitária ou o mês está no vermelho. |
 | `OfflineBannerComponent` | `app-offline-banner` | Banner de aviso de modo offline ativo e diálogo para atualização de versão PWA. |
 | `ProgressBarComponent` | `app-progress-bar` | Barra de progresso visual demonstrando percentual gasto em relação à renda prevista. |

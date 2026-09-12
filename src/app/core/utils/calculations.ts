@@ -89,11 +89,16 @@ export function calculateGlobalBalance(
   // Análise de Cobertura: Se a Q2 estiver negativa, a sobra da Q1 consegue cobrir?
   const q1CobreQ2 = saldoQ2 < 0 ? roundBRL(saldoQ1 + saldoQ2) >= 0 : true;
 
+  const totalExtraIncome = roundBRL(extraQ1 + extraQ2);
+  const hasExtraIncome = totalExtraIncome > 0;
+
   return {
     totalRenda,
     totalGastos,
     saldoFinal,
     temDeficitGlobal: saldoFinal < 0,
+    hasExtraIncome,
+    totalExtraIncome,
     q1: {
       quinzena: 1,
       label: 'Quinzena 1 (Dia 31)',
@@ -101,7 +106,9 @@ export function calculateGlobalBalance(
       totalGastos: totalGastosQ1,
       saldo: saldoQ1,
       isDeficit: saldoQ1 < 0,
-      percentualGasto: percentualGastoQ1
+      percentualGasto: percentualGastoQ1,
+      hasExtraIncome: extraQ1 > 0,
+      totalExtraIncome: extraQ1
     },
     q2: {
       quinzena: 2,
@@ -110,7 +117,9 @@ export function calculateGlobalBalance(
       totalGastos: totalGastosQ2,
       saldo: saldoQ2,
       isDeficit: saldoQ2 < 0,
-      percentualGasto: percentualGastoQ2
+      percentualGasto: percentualGastoQ2,
+      hasExtraIncome: extraQ2 > 0,
+      totalExtraIncome: extraQ2
     },
     q1CobreQ2
   };

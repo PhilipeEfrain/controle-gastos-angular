@@ -8,7 +8,7 @@ import {
   effect
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { FinanceStore } from '../../core/state/finance.store';
 import { AuthStore } from '../../core/state/auth.store';
 import { ExpenseService } from '../../core/services/expense.service';
@@ -73,6 +73,7 @@ export class DashboardComponent implements OnInit {
   private readonly duoService = inject(DuoService);
   private readonly notificationService = inject(NotificationService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   // Modo Casal / Duo State
   readonly duoGroup = signal<DuoGroup | null>(null);
@@ -124,6 +125,7 @@ export class DashboardComponent implements OnInit {
   readonly isExpenseModalOpen = signal<boolean>(false);
   readonly expenseModalQuinzena = signal<FortnightNumber>(1);
   readonly expenseToEdit = signal<Expense | null>(null);
+  readonly isExpenseModalParcelado = signal<boolean>(false);
 
   readonly isIncomeModalOpen = signal<boolean>(false);
 
@@ -145,6 +147,14 @@ export class DashboardComponent implements OnInit {
   readonly formattedSaldoGlobal = computed(() =>
     formatBRL(this.financeStore.balanceSummary().saldoFinal)
   );
+
+  readonly extraIncomeGlobalTooltip = computed(() => {
+    const extra = this.financeStore.balanceSummary().totalExtraIncome;
+    if (extra && extra > 0) {
+      return `Saldo com acréscimo de renda extra (+ ${formatBRL(extra)})`;
+    }
+    return 'Saldo com acréscimo de renda extra';
+  });
 
   readonly coverageStatusText = computed(() => {
     const summary = this.financeStore.balanceSummary();
@@ -229,6 +239,17 @@ export class DashboardComponent implements OnInit {
         // Ignora erro
       }
     }
+
+    this.route.queryParams.subscribe(params => {
+      if (params['action'] === 'new-installment') {
+        this.openNewExpenseModal(1, true);
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: {},
+          replaceUrl: true
+        });
+      }
+    });
   }
 
   // Validação Reativa de Janela de Histórico Deslizante
@@ -283,15 +304,17 @@ export class DashboardComponent implements OnInit {
   }
 
   // Abertura de Modais
-  openNewExpenseModal(quinzena: FortnightNumber): void {
+  openNewExpenseModal(quinzena: FortnightNumber = 1, isParcelado: boolean = false): void {
     this.expenseModalQuinzena.set(quinzena);
     this.expenseToEdit.set(null);
+    this.isExpenseModalParcelado.set(isParcelado);
     this.isExpenseModalOpen.set(true);
   }
 
   openEditExpenseModal(expense: Expense): void {
     this.expenseModalQuinzena.set(expense.quinzena);
     this.expenseToEdit.set(expense);
+    this.isExpenseModalParcelado.set(false);
     this.isExpenseModalOpen.set(true);
   }
 

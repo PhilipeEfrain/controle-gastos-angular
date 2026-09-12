@@ -172,6 +172,10 @@ export class InstallmentsComponent implements OnInit {
     this.router.navigate(['/dashboard']);
   }
 
+  onNewInstallment(): void {
+    this.router.navigate(['/dashboard'], { queryParams: { action: 'new-installment' } });
+  }
+
   formatCurrency(val: number): string {
     return formatBRL(val);
   }

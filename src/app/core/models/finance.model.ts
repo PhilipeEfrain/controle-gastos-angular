@@ -54,6 +54,8 @@ export interface FortnightSummary {
   saldo: number;
   isDeficit: boolean;
   percentualGasto: number;
+  hasExtraIncome?: boolean;
+  totalExtraIncome?: number;
 }
 
 export interface MonthBalanceSummary {
@@ -64,6 +66,8 @@ export interface MonthBalanceSummary {
   q1: FortnightSummary;
   q2: FortnightSummary;
   q1CobreQ2: boolean;
+  hasExtraIncome?: boolean;
+  totalExtraIncome?: number;
 }
 
 export interface AnnualTax {

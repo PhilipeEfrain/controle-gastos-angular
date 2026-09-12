@@ -1,5 +1,5 @@
 <div class="installments-wrapper">
-  <div class="container">
+  <div class="app-container">
     <!-- Header -->
     <header class="page-header">
       <div class="header-left">
@@ -29,7 +29,7 @@
         <button
           type="button"
           class="btn-new-expense"
-          (click)="goToDashboard()"
+          (click)="onNewInstallment()"
           title="Novo Lançamento Parcelado"
         >
           <svg viewBox="0 0 20 20" fill="currentColor">
@@ -109,8 +109,8 @@
         <p class="empty-desc">
           Ao cadastrar despesas parceladas no Dashboard, elas aparecerão agrupadas aqui para controle de quitação.
         </p>
-        <button type="button" class="btn-primary" (click)="goToDashboard()">
-          Ir para o Dashboard
+        <button type="button" class="btn-primary" (click)="onNewInstallment()">
+          Cadastrar Primeira Compra Parcelada
         </button>
       </div>
     } @else {

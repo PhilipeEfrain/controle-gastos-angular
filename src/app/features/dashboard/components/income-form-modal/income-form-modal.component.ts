@@ -6,7 +6,8 @@ import {
   computed,
   signal,
   inject,
-  effect
+  effect,
+  DestroyRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -14,7 +15,7 @@ import { MonthlyCycleService } from '../../../../core/services/monthly-cycle.ser
 import { AuthStore } from '../../../../core/state/auth.store';
 import { SalaryRegime } from '../../../../core/models/finance.model';
 import { roundBRL } from '../../../../core/utils/calculations';
-import { formatBRL } from '../../../../core/utils/formatters';
+import { formatBRL, parseCurrency } from '../../../../core/utils/formatters';
 
 export interface PaymentDayPreset {
   id: string;
@@ -37,6 +38,7 @@ export class IncomeFormModalComponent {
   private fb = inject(FormBuilder);
   private cycleService = inject(MonthlyCycleService);
   private authStore = inject(AuthStore);
+  private destroyRef = inject(DestroyRef);
 
   readonly isOpen = input<boolean>(false);
   readonly mesAno = input.required<string>();
@@ -74,9 +76,11 @@ export class IncomeFormModalComponent {
   readonly selectedPreset = signal<string>('5_dia_util');
   readonly selectedCustomDay = signal<number>(5);
 
+  private wasOpen = false;
+
   readonly totalRendaCalculada = computed(() => {
-    const q1 = parseFloat(this.form.get('rendaQ1')?.value) || 0;
-    const q2 = parseFloat(this.form.get('rendaQ2')?.value) || 0;
+    const q1 = parseCurrency(this.form.get('rendaQ1')?.value);
+    const q2 = parseCurrency(this.form.get('rendaQ2')?.value);
     return formatBRL(roundBRL(q1 + q2));
   });
 
@@ -85,64 +89,86 @@ export class IncomeFormModalComponent {
   });
 
   constructor() {
+    const sub = this.form.get('salarioTotal')?.valueChanges.subscribe(() => {
+      this.applyRegimeCalculation();
+    });
+    this.destroyRef.onDestroy(() => sub?.unsubscribe());
+
     effect(() => {
-      if (this.isOpen()) {
-        const q1 = this.currentQ1() ?? 0;
-        const q2 = this.currentQ2() ?? 0;
-        const total = roundBRL(q1 + q2);
-        const existingDia = this.currentDiaPagamento();
-
-        let initialRegime: SalaryRegime = this.currentRegime() || 'quinzenal';
-        let initialPreset = '5_dia_util';
-        let initialCustom = 5;
-
-        if (initialRegime === 'mensal_q1') {
-          initialRegime = 'mensal_unico';
-          initialPreset = '31';
-        } else if (initialRegime === 'mensal_q2') {
-          initialRegime = 'mensal_unico';
-          initialPreset = '15';
-        } else if (initialRegime === 'mensal_unico') {
-          if (existingDia) {
-            const foundPreset = this.paymentDayPresets.find(p => p.id === existingDia.toString());
-            if (foundPreset) {
-              initialPreset = foundPreset.id;
-            } else {
-              initialPreset = 'custom';
-              const parsedNum = parseInt(existingDia.toString(), 10);
-              if (!isNaN(parsedNum) && parsedNum >= 1 && parsedNum <= 31) {
-                initialCustom = parsedNum;
-              }
-            }
-          }
-        } else if (q1 > 0 && q2 === 0) {
-          initialRegime = 'mensal_unico';
-          initialPreset = existingDia?.toString() || '5_dia_util';
-        } else if (q1 === 0 && q2 > 0) {
-          initialRegime = 'mensal_unico';
-          initialPreset = existingDia?.toString() || '15';
-        } else if (q1 > 0 && q1 === q2) {
-          initialRegime = 'divisao_50_50';
-        }
-
-        this.selectedPreset.set(initialPreset);
-        this.selectedCustomDay.set(initialCustom);
-
-        this.form.patchValue({
-          regime: initialRegime,
-          salarioTotal: total > 0 ? total : null,
-          diaPagamentoPreset: initialPreset,
-          diaCustomizado: initialCustom,
-          rendaQ1: q1,
-          rendaQ2: q2
-        });
-        this.errorMessage.set(null);
+      const open = this.isOpen();
+      if (open && !this.wasOpen) {
+        this.wasOpen = true;
+        this.initFormFromInputs();
+      } else if (!open) {
+        this.wasOpen = false;
       }
     });
   }
 
+  private initFormFromInputs(): void {
+    const q1 = this.currentQ1() ?? 0;
+    const q2 = this.currentQ2() ?? 0;
+    const total = roundBRL(q1 + q2);
+    const existingDia = this.currentDiaPagamento();
+
+    let initialRegime: SalaryRegime = this.currentRegime() || 'quinzenal';
+    let initialPreset = '5_dia_util';
+    let initialCustom = 5;
+
+    if (initialRegime === 'mensal_q1') {
+      initialRegime = 'mensal_unico';
+      initialPreset = '31';
+    } else if (initialRegime === 'mensal_q2') {
+      initialRegime = 'mensal_unico';
+      initialPreset = '15';
+    } else if (initialRegime === 'mensal_unico') {
+      if (existingDia) {
+        const foundPreset = this.paymentDayPresets.find(p => p.id === existingDia.toString());
+        if (foundPreset) {
+          initialPreset = foundPreset.id;
+        } else {
+          initialPreset = 'custom';
+          const parsedNum = parseInt(existingDia.toString(), 10);
+          if (!isNaN(parsedNum) && parsedNum >= 1 && parsedNum <= 31) {
+            initialCustom = parsedNum;
+          }
+        }
+      }
+    } else if (q1 > 0 && q2 === 0) {
+      initialRegime = 'mensal_unico';
+      initialPreset = existingDia?.toString() || '5_dia_util';
+    } else if (q1 === 0 && q2 > 0) {
+      initialRegime = 'mensal_unico';
+      initialPreset = existingDia?.toString() || '15';
+    } else if (q1 > 0 && q1 === q2) {
+      initialRegime = 'divisao_50_50';
+    }
+
+    this.selectedPreset.set(initialPreset);
+    this.selectedCustomDay.set(initialCustom);
+
+    this.form.patchValue({
+      regime: initialRegime,
+      salarioTotal: total > 0 ? total : null,
+      diaPagamentoPreset: initialPreset,
+      diaCustomizado: initialCustom,
+      rendaQ1: q1,
+      rendaQ2: q2
+    }, { emitEvent: false });
+    this.errorMessage.set(null);
+  }
+
   setRegime(regime: SalaryRegime): void {
-    this.form.patchValue({ regime });
+    const currentSalarioTotal = parseCurrency(this.form.get('salarioTotal')?.value);
+    const q1 = parseCurrency(this.form.get('rendaQ1')?.value);
+    const q2 = parseCurrency(this.form.get('rendaQ2')?.value);
+    const fallbackTotal = roundBRL(q1 + q2);
+
+    if (regime !== 'quinzenal' && (!currentSalarioTotal || currentSalarioTotal === 0) && fallbackTotal > 0) {
+      this.form.patchValue({ salarioTotal: fallbackTotal, regime });
+    } else {
+      this.form.patchValue({ regime });
+    }
     this.applyRegimeCalculation();
   }
 
@@ -188,31 +214,31 @@ export class IncomeFormModalComponent {
 
   private applyRegimeCalculation(): void {
     const regime = this.form.get('regime')?.value as SalaryRegime;
-    const total = parseFloat(this.form.get('salarioTotal')?.value) || 0;
+    const total = parseCurrency(this.form.get('salarioTotal')?.value);
 
     if (regime === 'mensal_unico') {
       const info = this.getResolvedPaymentDayInfo();
       if (info.quinzena === 1) {
-        this.form.patchValue({ rendaQ1: total, rendaQ2: 0 });
+        this.form.patchValue({ rendaQ1: total, rendaQ2: 0 }, { emitEvent: false });
       } else {
-        this.form.patchValue({ rendaQ1: 0, rendaQ2: total });
+        this.form.patchValue({ rendaQ1: 0, rendaQ2: total }, { emitEvent: false });
       }
     } else if (regime === 'mensal_q1') {
       this.form.patchValue({
         rendaQ1: total,
         rendaQ2: 0
-      });
+      }, { emitEvent: false });
     } else if (regime === 'mensal_q2') {
       this.form.patchValue({
         rendaQ1: 0,
         rendaQ2: total
-      });
+      }, { emitEvent: false });
     } else if (regime === 'divisao_50_50') {
       const half = roundBRL(total / 2);
       this.form.patchValue({
         rendaQ1: half,
         rendaQ2: half
-      });
+      }, { emitEvent: false });
     }
   }
 
@@ -235,9 +261,9 @@ export class IncomeFormModalComponent {
     this.isLoading.set(true);
     this.errorMessage.set(null);
 
-    const q1 = parseFloat(this.form.value.rendaQ1) || 0;
-    const q2 = parseFloat(this.form.value.rendaQ2) || 0;
     const regime = this.form.value.regime as SalaryRegime;
+    let q1 = parseCurrency(this.form.value.rendaQ1);
+    let q2 = parseCurrency(this.form.value.rendaQ2);
 
     let diaPagamento: number | string | undefined = undefined;
     let descricaoDiaPagamento: string | undefined = undefined;
@@ -246,6 +272,23 @@ export class IncomeFormModalComponent {
       const info = this.getResolvedPaymentDayInfo();
       diaPagamento = info.dia;
       descricaoDiaPagamento = info.descricao;
+      const totalSalario = parseCurrency(this.form.get('salarioTotal')?.value);
+      if (totalSalario > 0 || (q1 === 0 && q2 === 0)) {
+        if (info.quinzena === 1) {
+          q1 = totalSalario;
+          q2 = 0;
+        } else {
+          q1 = 0;
+          q2 = totalSalario;
+        }
+      }
+    } else if (regime === 'divisao_50_50') {
+      const totalSalario = parseCurrency(this.form.get('salarioTotal')?.value);
+      if (totalSalario > 0) {
+        const half = roundBRL(totalSalario / 2);
+        q1 = half;
+        q2 = half;
+      }
     }
 
     try {
