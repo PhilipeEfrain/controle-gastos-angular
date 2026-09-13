@@ -81,4 +81,24 @@ describe('NavigationModalService', () => {
     service.closeNewExpense();
     expect(service.isNewExpenseOpen()).toBe(false);
   });
+
+  it('deve abrir o modal de feedback com contexto opcional e fechar com sucesso', () => {
+    expect(service.isFeedbackOpen()).toBe(false);
+
+    service.openFeedback({
+      tipo: 'erro',
+      assunto: 'Falha de permissão',
+      errorMessage: 'Missing permissions'
+    });
+
+    expect(service.isFeedbackOpen()).toBe(true);
+    expect(service.activeModal()).toBe('feedback');
+    expect(service.feedbackContext()?.tipo).toBe('erro');
+    expect(service.feedbackContext()?.errorMessage).toBe('Missing permissions');
+
+    service.closeFeedback();
+    expect(service.isFeedbackOpen()).toBe(false);
+    expect(service.activeModal()).toBeNull();
+    expect(service.feedbackContext()).toBeNull();
+  });
 });

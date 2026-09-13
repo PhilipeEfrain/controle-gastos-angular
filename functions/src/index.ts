@@ -1,9 +1,11 @@
-import { onRequest } from 'firebase-functions/v2/https';
+import { onRequest, onCall, HttpsError } from 'firebase-functions/v2/https';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { initializeApp, getApps } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { handleAsaasWebhook } from './webhook-handler.js';
 import { cleanupAllExpiredCycles } from './cleanup.js';
+import { sendTelegramFeedback } from './feedback.js';
+import type { TelegramFeedbackData } from './feedback.js';
 import type { AsaasWebhookPayload } from './types.js';
 
 if (!getApps().length) {
@@ -67,3 +69,38 @@ export const scheduledCleanupExpiredCycles = onSchedule(
     console.log('[Cleanup] Concluído com sucesso:', result);
   }
 );
+
+/**
+ * Função Callable para envio seguro de feedback, sugestões e alertas de erro via Bot do Telegram (CARD-073).
+ * Exige autenticação estrita do usuário e faz envio protegido sem expor chaves no frontend.
+ */
+export const sendFeedbackTelegram = onCall(
+  {
+    cors: true,
+    maxInstances: 10
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError(
+        'unauthenticated',
+        'O usuário deve estar autenticado para enviar feedback ou reportar erro.'
+      );
+    }
+
+    const data = request.data as TelegramFeedbackData;
+    const user = {
+      uid: request.auth.uid,
+      email: (request.auth.token as any)?.email || null,
+      displayName: (request.auth.token as any)?.name || null
+    };
+
+    const result = await sendTelegramFeedback(data, user, { db });
+
+    if (!result.success) {
+      throw new HttpsError('internal', result.error || 'Erro ao despachar mensagem de feedback.');
+    }
+
+    return result;
+  }
+);
+

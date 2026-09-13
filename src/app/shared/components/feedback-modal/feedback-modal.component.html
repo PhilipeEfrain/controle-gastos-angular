@@ -1,0 +1,250 @@
+@if (isOpen()) {
+  <div class="feedback-backdrop" (click)="onBackdropClick($event)">
+    <div class="feedback-dialog" role="dialog" aria-modal="true" aria-labelledby="feedback-modal-title">
+      <!-- Cabeçalho -->
+      <div class="dialog-header">
+        <div class="header-icon-wrapper">
+          <span class="header-icon-emoji">📣</span>
+        </div>
+        <div class="header-titles">
+          <h2 id="feedback-modal-title" class="dialog-title">Central de Feedback & Suporte</h2>
+          <p class="dialog-subtitle">Sua opinião nos ajuda a evoluir. Envie sugestões, dúvidas ou relate inconsistências.</p>
+        </div>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="onClose()"
+          [disabled]="isSubmitting()"
+          aria-label="Fechar modal de feedback"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="close-icon">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <form (ngSubmit)="onSubmit()" class="feedback-form">
+        <!-- 1. Categoria do Feedback (Pills Semânticos) -->
+        <div class="form-section">
+          <label class="section-label">O que você gostaria de nos dizer?</label>
+          <div class="pills-grid" role="radiogroup" aria-label="Tipo de feedback">
+            <button
+              type="button"
+              class="category-pill"
+              [class.active]="tipo() === 'sugestao'"
+              (click)="setTipo('sugestao')"
+              [disabled]="isSubmitting()"
+            >
+              <span class="pill-emoji">💡</span>
+              <span class="pill-text">Sugestão</span>
+            </button>
+
+            <button
+              type="button"
+              class="category-pill pill-danger"
+              [class.active]="tipo() === 'erro'"
+              (click)="setTipo('erro')"
+              [disabled]="isSubmitting()"
+            >
+              <span class="pill-emoji">🐞</span>
+              <span class="pill-text">Reportar Erro</span>
+            </button>
+
+            <button
+              type="button"
+              class="category-pill"
+              [class.active]="tipo() === 'elogio'"
+              (click)="setTipo('elogio')"
+              [disabled]="isSubmitting()"
+            >
+              <span class="pill-emoji">⭐</span>
+              <span class="pill-text">Elogio</span>
+            </button>
+
+            <button
+              type="button"
+              class="category-pill"
+              [class.active]="tipo() === 'outro'"
+              (click)="setTipo('outro')"
+              [disabled]="isSubmitting()"
+            >
+              <span class="pill-emoji">💬</span>
+              <span class="pill-text">Outro</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. Gravidade (Aparece apenas quando tipo for 'erro') -->
+        @if (tipo() === 'erro') {
+          <div class="form-section severity-section">
+            <label class="section-label">Qual o impacto deste erro no seu uso?</label>
+            <div class="severity-grid" role="radiogroup" aria-label="Gravidade do problema">
+              <button
+                type="button"
+                class="severity-pill"
+                [class.active]="gravidade() === 'baixa'"
+                (click)="setGravidade('baixa')"
+                [disabled]="isSubmitting()"
+              >
+                <span class="sev-indicator sev-low"></span>
+                <span>Baixo (Apenas visual)</span>
+              </button>
+
+              <button
+                type="button"
+                class="severity-pill"
+                [class.active]="gravidade() === 'media'"
+                (click)="setGravidade('media')"
+                [disabled]="isSubmitting()"
+              >
+                <span class="sev-indicator sev-med"></span>
+                <span>Médio (Inconveniente)</span>
+              </button>
+
+              <button
+                type="button"
+                class="severity-pill"
+                [class.active]="gravidade() === 'alta'"
+                (click)="setGravidade('alta')"
+                [disabled]="isSubmitting()"
+              >
+                <span class="sev-indicator sev-high"></span>
+                <span>Alto (Impede ação)</span>
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- 3. Assunto / Título -->
+        <div class="form-section">
+          <div class="label-with-counter">
+            <label for="feedback-assunto" class="section-label">Assunto / Título</label>
+            <span class="char-counter" [class.counter-invalid]="assuntoLength() > 120">
+              {{ assuntoLength() }}/120
+            </span>
+          </div>
+          <input
+            id="feedback-assunto"
+            type="text"
+            class="form-input"
+            [ngModel]="assunto()"
+            (ngModelChange)="assunto.set($event)"
+            name="assunto"
+            placeholder="Ex: Sugestão para atalhos de teclado ou Botão não responde"
+            maxlength="120"
+            required
+            [disabled]="isSubmitting()"
+          />
+        </div>
+
+        <!-- 4. Descrição / Mensagem -->
+        <div class="form-section">
+          <div class="label-with-counter">
+            <label for="feedback-mensagem" class="section-label">Descrição detalhada</label>
+            <span class="char-counter" [class.counter-invalid]="mensagemLength() > 2000">
+              {{ mensagemLength() }}/2.000
+            </span>
+          </div>
+          <textarea
+            id="feedback-mensagem"
+            rows="4"
+            class="form-textarea"
+            [ngModel]="mensagem()"
+            (ngModelChange)="mensagem.set($event)"
+            name="mensagem"
+            placeholder="Explique com detalhes o que você gostaria de propor ou como reproduzir o erro que aconteceu..."
+            maxlength="2000"
+            required
+            [disabled]="isSubmitting()"
+          ></textarea>
+        </div>
+
+        <!-- 5. Diagnóstico Técnico Automático (Accordion Transparente) -->
+        @if (diagnostics(); as diag) {
+          <div class="diagnostics-accordion">
+            <button
+              type="button"
+              class="diagnostics-toggle"
+              (click)="toggleDiagnostics()"
+              [attr.aria-expanded]="showDiagnostics()"
+            >
+              <div class="toggle-left">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="diag-icon">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                </svg>
+                <span>Dados técnicos anexados automaticamente</span>
+              </div>
+              <svg
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                class="chevron-icon"
+                [class.rotated]="showDiagnostics()"
+              >
+                <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.21 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+              </svg>
+            </button>
+
+            @if (showDiagnostics()) {
+              <div class="diagnostics-content">
+                <p class="diag-info">Estes dados ajudam o desenvolvedor a reproduzir o problema sem precisar fazer perguntas adicionais. Nenhuma senha ou dado financeiro é capturado.</p>
+                <ul class="diag-list">
+                  <li><strong>Página:</strong> <code>{{ diag.urlAtual || 'Não detectada' }}</code></li>
+                  <li><strong>Resolução:</strong> <code>{{ diag.resolucao || 'Não detectada' }}</code></li>
+                  <li><strong>Versão do App:</strong> <code>{{ diag.appVersion }}</code></li>
+                  @if (diag.erroOriginal) {
+                    <li class="diag-error-item">
+                      <strong>Erro original capturado:</strong>
+                      <pre class="diag-code">{{ diag.erroOriginal }}</pre>
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Erro Geral do Envio -->
+        @if (errorMessage()) {
+          <div class="form-error-banner" role="alert">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="error-banner-icon">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+            </svg>
+            <span>{{ errorMessage() }}</span>
+          </div>
+        }
+
+        <!-- Rodapé com Ações -->
+        <div class="dialog-footer">
+          <button
+            type="button"
+            class="btn-cancel"
+            (click)="onClose()"
+            [disabled]="isSubmitting()"
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            class="btn-submit"
+            [disabled]="!isFormValid() || isSubmitting()"
+            id="btn-submit-feedback"
+          >
+            @if (isSubmitting()) {
+              <svg class="spinner-icon animate-spin" viewBox="0 0 24 24" fill="none">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+              </svg>
+              <span>Enviando...</span>
+            } @else {
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="send-icon">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+              </svg>
+              <span>Enviar para a Equipe</span>
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

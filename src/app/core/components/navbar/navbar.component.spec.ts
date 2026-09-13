@@ -9,6 +9,8 @@ import { UserProfile } from '../../models/user.model';
 import { signal, WritableSignal } from '@angular/core';
 import { ThemeService } from '../../services/theme.service';
 import { NavigationModalService } from '../../services/navigation-modal.service';
+import { FeedbackService } from '../../services/feedback.service';
+import { FeedbackContextData } from '../../models/feedback.model';
 
 describe('NavbarComponent', () => {
   let component: NavbarComponent;
@@ -30,9 +32,13 @@ describe('NavbarComponent', () => {
     openCaixinha: ReturnType<typeof vi.fn>;
     openExport: ReturnType<typeof vi.fn>;
     openNewExpense: ReturnType<typeof vi.fn>;
+    openFeedback: ReturnType<typeof vi.fn>;
+    closeFeedback: ReturnType<typeof vi.fn>;
     isCaixinhaOpen: WritableSignal<boolean>;
     isExportOpen: WritableSignal<boolean>;
     isNewExpenseOpen: WritableSignal<boolean>;
+    isFeedbackOpen: WritableSignal<boolean>;
+    feedbackContext: WritableSignal<FeedbackContextData | null>;
   };
   let router: Router;
 
@@ -82,9 +88,18 @@ describe('NavbarComponent', () => {
       openCaixinha: vi.fn().mockResolvedValue(undefined),
       openExport: vi.fn().mockResolvedValue(undefined),
       openNewExpense: vi.fn().mockResolvedValue(undefined),
+      openFeedback: vi.fn(),
+      closeFeedback: vi.fn(),
       isCaixinhaOpen: signal(false),
       isExportOpen: signal(false),
-      isNewExpenseOpen: signal(false)
+      isNewExpenseOpen: signal(false),
+      isFeedbackOpen: signal(false),
+      feedbackContext: signal<FeedbackContextData | null>(null)
+    };
+
+    const mockFeedbackService = {
+      collectTechnicalData: vi.fn().mockReturnValue({}),
+      sendFeedback: vi.fn().mockResolvedValue({ success: true })
     };
 
     await TestBed.configureTestingModule({
@@ -96,7 +111,8 @@ describe('NavbarComponent', () => {
         { provide: NotificationService, useValue: mockNotificationService },
         { provide: ThemeService, useValue: mockThemeService },
         { provide: PwaService, useValue: mockPwaService },
-        { provide: NavigationModalService, useValue: mockNavModalService }
+        { provide: NavigationModalService, useValue: mockNavModalService },
+        { provide: FeedbackService, useValue: mockFeedbackService }
       ]
     }).compileComponents();
 
@@ -291,6 +307,24 @@ describe('NavbarComponent', () => {
       const proBtn = fixture.nativeElement.querySelector('.btn-upgrade-pro');
       expect(proBtn).toBeTruthy();
       expect(proBtn.textContent).toContain('Seja PRO');
+    });
+  });
+
+  describe('Cenário BDD 5: Feedback e Reporte de Erros (CARD-073)', () => {
+    it('deve invocar openFeedback() e fechar menus ao acionar feedback', () => {
+      component.isProfileMenuOpen.set(true);
+      component.isMobileMenuOpen.set(true);
+
+      component.openFeedback();
+
+      expect(component.isProfileMenuOpen()).toBe(false);
+      expect(component.isMobileMenuOpen()).toBe(false);
+      expect(mockNavModalService.openFeedback).toHaveBeenCalled();
+    });
+
+    it('deve invocar closeFeedback() via navModalService', () => {
+      component.closeFeedback();
+      expect(mockNavModalService.closeFeedback).toHaveBeenCalled();
     });
   });
 });
