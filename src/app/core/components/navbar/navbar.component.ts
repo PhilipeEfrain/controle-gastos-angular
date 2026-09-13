@@ -17,11 +17,12 @@ import { ThemeService } from '../../services/theme.service';
 import { NavigationModalService } from '../../services/navigation-modal.service';
 import { BrandLogoComponent } from '../../../shared/components/brand-logo/brand-logo.component';
 import { SubscriptionModalComponent } from '../../../shared/components/subscription-modal/subscription-modal.component';
+import { FeedbackModalComponent } from '../../../shared/components/feedback-modal/feedback-modal.component';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive, BrandLogoComponent, SubscriptionModalComponent],
+  imports: [CommonModule, RouterLink, RouterLinkActive, BrandLogoComponent, SubscriptionModalComponent, FeedbackModalComponent],
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -149,6 +150,15 @@ export class NavbarComponent {
   onOpenDuoPairingFromNavbar(): void {
     this.isSubscriptionModalOpen.set(false);
     this.router.navigate(['/dashboard']);
+  }
+
+  openFeedback(): void {
+    this.closeAllMenus();
+    this.navModalService.openFeedback();
+  }
+
+  closeFeedback(): void {
+    this.navModalService.closeFeedback();
   }
 
   async logout(): Promise<void> {

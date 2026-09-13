@@ -1,7 +1,8 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { FeedbackContextData } from '../models/feedback.model';
 
-export type GlobalModalType = 'caixinha' | 'export' | 'newExpense' | null;
+export type GlobalModalType = 'caixinha' | 'export' | 'newExpense' | 'feedback' | null;
 
 @Injectable({
   providedIn: 'root'
@@ -14,6 +15,8 @@ export class NavigationModalService {
   readonly isExportOpen = signal<boolean>(false);
   readonly isNewExpenseOpen = signal<boolean>(false);
   readonly newExpenseQuinzena = signal<1 | 2>(1);
+  readonly isFeedbackOpen = signal<boolean>(false);
+  readonly feedbackContext = signal<FeedbackContextData | null>(null);
 
   async openCaixinha(): Promise<void> {
     if (!this.isOnDashboard()) {
@@ -57,6 +60,20 @@ export class NavigationModalService {
   closeNewExpense(): void {
     this.isNewExpenseOpen.set(false);
     if (this.activeModal() === 'newExpense') {
+      this.activeModal.set(null);
+    }
+  }
+
+  openFeedback(context?: FeedbackContextData): void {
+    this.feedbackContext.set(context || null);
+    this.activeModal.set('feedback');
+    this.isFeedbackOpen.set(true);
+  }
+
+  closeFeedback(): void {
+    this.isFeedbackOpen.set(false);
+    this.feedbackContext.set(null);
+    if (this.activeModal() === 'feedback') {
       this.activeModal.set(null);
     }
   }

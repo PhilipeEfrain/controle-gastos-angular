@@ -211,6 +211,19 @@ service cloud.firestore {
         && data.members.size() >= 1 && data.members.size() <= 2;
     }
 
+    // Validador de Reportes de Feedback e Erros (CARD-073)
+    function isValidFeedbackReport(data) {
+      return data.keys().hasOnly([
+        'id', 'userId', 'userName', 'userEmail', 'tipo', 'assunto', 'mensagem',
+        'gravidade', 'dadosTecnicos', 'telegramMessageId', 'status', 'createdAt'
+      ])
+        && data.tipo in ['sugestao', 'erro', 'elogio', 'outro']
+        && isValidString(data.assunto, 3, 120)
+        && isValidString(data.mensagem, 5, 2000)
+        && (!('gravidade' in data) || data.gravidade == null || data.gravidade in ['baixa', 'media', 'alta', 'critica'])
+        && (!('status' in data) || data.status in ['novo', 'em_analise', 'resolvido', 'arquivado']);
+    }
+
     // Regras para Grupos do Plano Casal / Duo
     match /duo_groups/{groupId} {
       allow read: if isAuthenticated() && (
@@ -244,6 +257,13 @@ service cloud.firestore {
     match /system_events/{allEvents=**} {
       allow read: if isAdmin();
       allow write: if false;
+    }
+
+    // Central Segura de Feedback e Reportes de Erros (Leitura restrita a administradores, criação restrita a usuários autenticados)
+    match /feedback_reports/{reportId} {
+      allow read, list, update, delete: if isAdmin();
+      allow create: if (isAuthenticated() && request.resource.data.userId == request.auth.uid && isValidFeedbackReport(request.resource.data))
+                    || isAdmin();
     }
 
     // Isolamento Estrito de Dados por Usuário e Governança Administrativa
