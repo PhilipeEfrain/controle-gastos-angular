@@ -3,7 +3,7 @@
   <div class="card-header">
     <div class="header-left">
       <div class="card-badge">MODO CASAL 💕</div>
-      <h3 class="card-title">Acerto de Contas do Casal</h3>
+      <h3 class="card-title">Despesas Compartilhadas do Casal</h3>
     </div>
     <button
       type="button"
@@ -65,27 +65,6 @@
     <div class="progress-track">
       <div class="progress-owner" [style.width.%]="ownerPercent()"></div>
       <div class="progress-partner" [style.width.%]="partnerPercent()"></div>
-    </div>
-  </div>
-
-  <!-- Resultado do Acerto -->
-  <div class="settlement-result-box" [class.even]="settlement().debtor === 'even'">
-    <div class="settlement-icon">
-      @if (settlement().debtor === 'even') {
-        <span>⚖️</span>
-      } @else {
-        <span>💸</span>
-      }
-    </div>
-    <div class="settlement-text">
-      <div class="settlement-title">
-        @if (settlement().debtor === 'even') {
-          Despesas 100% Equilibradas
-        } @else {
-          Compensação Sugerida: <strong>{{ formattedSettlementAmount() }}</strong>
-        }
-      </div>
-      <div class="settlement-msg">{{ settlement().message }}</div>
     </div>
   </div>
 </div>

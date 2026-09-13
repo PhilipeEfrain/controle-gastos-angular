@@ -25,6 +25,8 @@ import {
   maskCardHolderName
 } from '../../../core/utils/formatters';
 
+import { calculatePlanChange, PlanChangeCalculation } from '../../../core/utils/calculations';
+
 @Component({
   selector: 'app-subscription-modal',
   standalone: true,
@@ -36,7 +38,7 @@ import {
 export class SubscriptionModalComponent implements OnInit {
   private asaasService = inject(AsaasService);
   private adminService = inject(AdminService);
-  private authStore = inject(AuthStore);
+  public authStore = inject(AuthStore);
   private notificationService = inject(NotificationService);
 
   // Inputs e Outputs
@@ -45,7 +47,7 @@ export class SubscriptionModalComponent implements OnInit {
   readonly openDuoPairing = output<void>();
 
   // Etapas e Seleções (Signals)
-  readonly step = signal<'select-plan' | 'checkout' | 'success'>('select-plan');
+  readonly step = signal<'select-plan' | 'checkout' | 'schedule-downgrade' | 'success'>('select-plan');
   readonly selectedPlan = signal<'pro' | 'duo'>('pro');
   readonly cycle = signal<BillingCycle>('MONTHLY');
   readonly paymentMethod = signal<PaymentBillingType>('PIX');
@@ -65,8 +67,24 @@ export class SubscriptionModalComponent implements OnInit {
   readonly cardExpiry = signal<string>('');
   readonly cardCvv = signal<string>('');
 
-  // Preço Computado
+  // Regra de alteração e cálculo da diferença de upgrade / downgrade
+  readonly planChange = computed<PlanChangeCalculation>(() => {
+    const userPlan = (typeof this.authStore.currentPlan === 'function')
+      ? this.authStore.currentPlan()
+      : (this.authStore.currentUser()?.plan ?? 'free');
+    return calculatePlanChange(userPlan, this.selectedPlan());
+  });
+
+  readonly isUpgrade = computed<boolean>(() => this.planChange().action === 'upgrade');
+  readonly isDowngrade = computed<boolean>(() => this.planChange().action === 'downgrade');
+  readonly upgradeDifference = computed<number>(() => this.planChange().amountToPay);
+
+  // Preço Computado para Cobrança (Considera a diferença no upgrade ou R$ 0 no downgrade agendado)
   readonly currentPrice = computed<number>(() => {
+    const change = this.planChange();
+    if (change.action === 'upgrade' || change.action === 'downgrade') {
+      return change.amountToPay;
+    }
     return this.asaasService.getPlanPrice(this.selectedPlan(), this.cycle());
   });
 
@@ -103,7 +121,27 @@ export class SubscriptionModalComponent implements OnInit {
   }
 
   goToCheckout(): void {
-    this.step.set('checkout');
+    const change = this.planChange();
+    if (change.action === 'downgrade') {
+      this.step.set('schedule-downgrade');
+    } else {
+      this.step.set('checkout');
+    }
+  }
+
+  async confirmScheduledDowngrade(): Promise<void> {
+    this.isProcessing.set(true);
+    try {
+      if (typeof this.authStore.scheduleDowngrade === 'function') {
+        await this.authStore.scheduleDowngrade(this.selectedPlan());
+      }
+      this.step.set('success');
+      this.notificationService.success(`Alteração para o plano ${this.selectedPlan().toUpperCase()} agendada para o próximo ciclo!`);
+    } catch (err: any) {
+      this.notificationService.error(err?.message || 'Erro ao agendar alteração de plano.');
+    } finally {
+      this.isProcessing.set(false);
+    }
   }
 
   setPaymentMethod(method: PaymentBillingType): void {
@@ -177,7 +215,8 @@ export class SubscriptionModalComponent implements OnInit {
           plan: this.selectedPlan(),
           cycle: this.cycle(),
           billingType: 'PIX',
-          customerId: customer.id || 'cus_demo'
+          customerId: customer.id || 'cus_demo',
+          customValue: this.currentPrice()
         },
         apiKey,
         environment
@@ -290,6 +329,7 @@ export class SubscriptionModalComponent implements OnInit {
           cycle: this.cycle(),
           billingType: 'CREDIT_CARD',
           customerId: customer.id || 'cus_demo',
+          customValue: this.currentPrice(),
           cardData: {
             holderName: holderName,
             number: this.cardNumber().replace(/\s/g, ''),

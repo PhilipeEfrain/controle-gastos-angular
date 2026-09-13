@@ -68,6 +68,51 @@
           </button>
         </div>
 
+        <!-- Escopo do Gasto no Modo Casal (Individual vs Compartilhado) -->
+        @if (isDuo() && form.get('tipo')?.value === 'despesa' && !expenseToEdit()) {
+          <div class="duo-scope-selection">
+            <label class="form-label">Escopo da Despesa (Plano Duo 💕)</label>
+            <div class="scope-buttons">
+              <button
+                type="button"
+                class="scope-btn"
+                [class.active]="!form.get('isShared')?.value"
+                (click)="form.patchValue({ isShared: false })"
+              >
+                <span>👤 Gasto Pessoal (Só Meu)</span>
+              </button>
+              <button
+                type="button"
+                class="scope-btn shared"
+                [class.active]="form.get('isShared')?.value"
+                (click)="form.patchValue({ isShared: true })"
+              >
+                <span>👫 Gasto Compartilhado (Nossos Gastos)</span>
+              </button>
+            </div>
+
+            @if (form.get('isShared')?.value) {
+              <div class="shared-config-box">
+                <div class="split-select-row">
+                  <label class="sub-label">Como será dividido:</label>
+                  <select formControlName="tipoDivisao" class="form-select-sm">
+                    <option value="50_50">Dividir 50% / 50% (Meio a meio)</option>
+                    <option value="100_titular">100% Titular</option>
+                    <option value="100_parceiro">100% Parceiro(a)</option>
+                  </select>
+                </div>
+                <div class="payer-select-row">
+                  <label class="sub-label">Quem pagou no cartão/banco?</label>
+                  <select formControlName="pagoPor" class="form-select-sm">
+                    <option value="me">Eu paguei</option>
+                    <option value="partner">Meu parceiro(a) pagou</option>
+                  </select>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
         <!-- Descrição -->
         <div class="form-group">
           <label class="form-label" for="descricao">

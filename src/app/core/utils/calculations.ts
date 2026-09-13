@@ -1,4 +1,5 @@
 import { Expense, FortnightNumber, MonthBalanceSummary } from '../models/finance.model';
+import { PlanType } from '../models/user.model';
 
 /**
  * Arredonda um número para 2 casas decimais evitando erros de ponto flutuante
@@ -145,4 +146,65 @@ export function addMonthsToYearMonth(yearMonth: string, count: number): string {
   const targetMonth = String(targetDate.getMonth() + 1).padStart(2, '0');
 
   return `${targetYear}-${targetMonth}`;
+}
+
+export const PLAN_PRICES: Record<PlanType, number> = {
+  free: 0,
+  pro: 9.90,
+  duo: 19.90
+};
+
+export interface PlanChangeCalculation {
+  currentPlan: PlanType;
+  targetPlan: PlanType;
+  action: 'upgrade' | 'downgrade' | 'same';
+  fullTargetPrice: number;
+  currentPlanCredit: number;
+  amountToPay: number;
+}
+
+/**
+ * Calcula a regra de transição de planos:
+ * - Upgrade: Cliente paga a diferença entre o plano atual e o novo.
+ * - Downgrade: Não cobra agora (amountToPay = 0), a alteração entra em vigor no ciclo seguinte.
+ * - Same: Reativação ou renovação com valor integral.
+ */
+export function calculatePlanChange(
+  currentPlan: PlanType = 'free',
+  targetPlan: PlanType
+): PlanChangeCalculation {
+  const currentPrice = PLAN_PRICES[currentPlan] ?? 0;
+  const targetPrice = PLAN_PRICES[targetPlan] ?? 0;
+
+  if (targetPrice > currentPrice) {
+    const diff = roundBRL(targetPrice - currentPrice);
+    return {
+      currentPlan,
+      targetPlan,
+      action: 'upgrade',
+      fullTargetPrice: targetPrice,
+      currentPlanCredit: currentPrice,
+      amountToPay: diff
+    };
+  }
+
+  if (targetPrice < currentPrice) {
+    return {
+      currentPlan,
+      targetPlan,
+      action: 'downgrade',
+      fullTargetPrice: targetPrice,
+      currentPlanCredit: currentPrice,
+      amountToPay: 0
+    };
+  }
+
+  return {
+    currentPlan,
+    targetPlan,
+    action: 'same',
+    fullTargetPrice: targetPrice,
+    currentPlanCredit: 0,
+    amountToPay: targetPrice
+  };
 }

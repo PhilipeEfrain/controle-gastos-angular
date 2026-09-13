@@ -18,26 +18,51 @@ import { getCurrentYearMonth } from '../utils/date';
 export class InstallmentService {
   private firebaseService = inject(FirebaseService);
   private firestore = this.firebaseService.firestore;
+  private readonly cachedGroups = new Map<string, { timestamp: number; data: InstallmentGroup[] }>();
+  private readonly CACHE_TTL_MS = 60000; // 60 segundos de cache em memória
+
+  /**
+   * Limpa o cache em memória de parcelamentos
+   */
+  clearCache(userId?: string): void {
+    if (userId) {
+      this.cachedGroups.delete(userId);
+    } else {
+      this.cachedGroups.clear();
+    }
+  }
 
   /**
    * Carrega e agrupa todas as compras parceladas a partir dos ciclos mensais do usuário
-   * Busca nos 12 meses anteriores e 24 meses futuros para cobertura completa.
+   * Utiliza janela otimizada de -2 meses até +10 meses com cache em memória (evita leituras redundantes)
    */
-  getInstallmentsOverview(userId: string, startMonth?: string): Observable<InstallmentGroup[]> {
+  getInstallmentsOverview(userId: string, startMonth?: string, forceRefresh: boolean = false): Observable<InstallmentGroup[]> {
     if (userId.startsWith('e2e-')) {
       return of([]);
+    }
+
+    const now = Date.now();
+    const cacheKey = `${userId}_${startMonth || ''}`;
+    const cached = this.cachedGroups.get(cacheKey);
+
+    if (!forceRefresh && cached && (now - cached.timestamp < this.CACHE_TTL_MS)) {
+      return of(cached.data);
     }
 
     const baseMonth = startMonth || getCurrentYearMonth();
     const monthsToScan: string[] = [];
 
-    // Scan de -6 meses até +18 meses
-    for (let i = -6; i <= 18; i++) {
+    // Janela otimizada: -2 meses (histórico recente) até +10 meses (previsão futura) = 13 meses
+    for (let i = -2; i <= 10; i++) {
       monthsToScan.push(addMonthsToYearMonth(baseMonth, i));
     }
 
     return from(this.fetchExpensesAcrossMonths(userId, monthsToScan)).pipe(
-      map(expensesWithMonth => this.groupInstallments(expensesWithMonth))
+      map(expensesWithMonth => {
+        const groups = this.groupInstallments(expensesWithMonth);
+        this.cachedGroups.set(cacheKey, { timestamp: Date.now(), data: groups });
+        return groups;
+      })
     );
   }
 
@@ -170,6 +195,7 @@ export class InstallmentService {
     }
 
     await batch.commit();
+    this.clearCache(userId);
   }
 
   /**
@@ -192,5 +218,6 @@ export class InstallmentService {
     }
 
     await batch.commit();
+    this.clearCache(userId);
   }
 }

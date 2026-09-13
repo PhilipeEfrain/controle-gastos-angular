@@ -21,6 +21,7 @@ import { SubscriptionModalComponent } from '../../shared/components/subscription
 import { DuoPairingModalComponent } from '../dashboard/components/duo-pairing-modal/duo-pairing-modal.component';
 import { DuoService } from '../../core/services/duo.service';
 import { DuoGroup } from '../../core/models/duo.model';
+import { PlanType } from '../../core/models/user.model';
 import {
   formatBRL,
   maskCardNumber,
@@ -69,10 +70,12 @@ export class SettingsComponent implements OnInit {
 
   // Estados de Gestão de Assinatura
   readonly isSubscriptionModalOpen = signal<boolean>(false);
+  readonly modalInitialPlan = signal<PlanType>('pro');
   readonly isChangeCardModalOpen = signal<boolean>(false);
   readonly isUpdatingCard = signal<boolean>(false);
   readonly isCancelSubscriptionModalOpen = signal<boolean>(false);
   readonly isCancelingSubscription = signal<boolean>(false);
+  readonly isCancelingDowngrade = signal<boolean>(false);
 
   // Modo Casal / Duo em Configurações
   readonly duoGroup = signal<DuoGroup | null>(null);
@@ -288,12 +291,25 @@ export class SettingsComponent implements OnInit {
     this.cardCvv.set(formatted);
   }
 
-  openUpgradeModal(): void {
+  openUpgradeModal(plan: PlanType = 'pro'): void {
+    this.modalInitialPlan.set(plan);
     this.isSubscriptionModalOpen.set(true);
   }
 
   closeUpgradeModal(): void {
     this.isSubscriptionModalOpen.set(false);
+  }
+
+  async onCancelScheduledDowngrade(): Promise<void> {
+    this.isCancelingDowngrade.set(true);
+    try {
+      await this.authStore.cancelScheduledDowngrade();
+      this.notificationService.success('Agendamento de alteração de plano cancelado com sucesso.');
+    } catch (err: any) {
+      this.notificationService.error('Erro ao cancelar agendamento: ' + (err?.message || 'Tente novamente.'));
+    } finally {
+      this.isCancelingDowngrade.set(false);
+    }
   }
 
   openChangeCardModal(): void {

@@ -46,7 +46,9 @@ service cloud.firestore {
         'uid', 'id', 'email', 'displayName', 'photoURL',
         'role', 'plan', 'planStatus', 'planExpiresAt', 'gracePeriodExpiresAt',
         'asaasCustomerId', 'asaasSubscriptionId',
-        'preferences', 'createdAt', 'updatedAt'
+        'preferences', 'createdAt', 'updatedAt',
+        'inactivatedAt', 'inactivationReason',
+        'scheduledPlan', 'scheduledPlanDate'
       ])
         && (!('displayName' in data) || isValidString(data.displayName, 1, 100))
         && (!('photoURL' in data) || data.photoURL == null || (data.photoURL is string && data.photoURL.size() <= 1500))
@@ -57,7 +59,11 @@ service cloud.firestore {
         && (!('planExpiresAt' in data) || data.planExpiresAt == null || data.planExpiresAt is string)
         && (!('gracePeriodExpiresAt' in data) || data.gracePeriodExpiresAt == null || data.gracePeriodExpiresAt is string)
         && (!('asaasCustomerId' in data) || data.asaasCustomerId == null || data.asaasCustomerId is string)
-        && (!('asaasSubscriptionId' in data) || data.asaasSubscriptionId == null || data.asaasSubscriptionId is string);
+        && (!('asaasSubscriptionId' in data) || data.asaasSubscriptionId == null || data.asaasSubscriptionId is string)
+        && (!('scheduledPlan' in data) || data.scheduledPlan == null || data.scheduledPlan in ['free', 'pro', 'duo'])
+        && (!('scheduledPlanDate' in data) || data.scheduledPlanDate == null || data.scheduledPlanDate is string)
+        && (!('inactivatedAt' in data) || data.inactivatedAt == null || data.inactivatedAt is string)
+        && (!('inactivationReason' in data) || data.inactivationReason == null || data.inactivationReason is string);
     }
 
     // Validador de Ciclo Mensal com Suporte a Renda, Totais e Regime Salarial
@@ -145,9 +151,44 @@ service cloud.firestore {
         && data.status in ['pending', 'active', 'cancelled'];
     }
 
+    // Validador de Despesas Compartilhadas do Casal (Nossos Gastos)
+    function isValidSharedExpense(data) {
+      return data.keys().hasOnly([
+        'id', 'descricao', 'valorTotal', 'categoria', 'quinzena', 'mesAno',
+        'pagoPorId', 'pagoPorNome', 'tipoDivisao', 'valorOwner', 'valorPartner',
+        'status_pagamento', 'isParcelado', 'parcelaAtual', 'totalParcelas',
+        'grupoParcelamentoId', 'codigoComprovante', 'observacao', 'observacoes',
+        'members', 'createdAt', 'updatedAt'
+      ])
+        && isValidPositiveNumber(data.valorTotal)
+        && isValidString(data.descricao, 1, 100)
+        && (!('categoria' in data) || (data.categoria is string && data.categoria.size() <= 50))
+        && (!('quinzena' in data) || isValidFortnight(data.quinzena))
+        && (!('mesAno' in data) || isValidYearMonth(data.mesAno))
+        && (!('status_pagamento' in data) || data.status_pagamento is bool)
+        && (!('pagoPorId' in data) || isValidString(data.pagoPorId, 1, 100))
+        && (!('pagoPorNome' in data) || isValidString(data.pagoPorNome, 1, 100))
+        && (!('tipoDivisao' in data) || data.tipoDivisao in ['50_50', 'personalizado', '100_titular', '100_parceiro'])
+        && (!('valorOwner' in data) || isValidPositiveNumber(data.valorOwner))
+        && (!('valorPartner' in data) || isValidPositiveNumber(data.valorPartner))
+        && (!('isParcelado' in data) || data.isParcelado is bool)
+        && (!('parcelaAtual' in data) || data.parcelaAtual is number)
+        && (!('totalParcelas' in data) || data.totalParcelas is number)
+        && (!('grupoParcelamentoId' in data) || data.grupoParcelamentoId == null || data.grupoParcelamentoId is string)
+        && (!('codigoComprovante' in data) || data.codigoComprovante == null || data.codigoComprovante is string)
+        && (!('observacao' in data) || data.observacao == null || data.observacao is string)
+        && (!('observacoes' in data) || data.observacoes == null || data.observacoes is string)
+        && data.members is list
+        && data.members.size() >= 1 && data.members.size() <= 2;
+    }
+
     // Regras para Grupos do Plano Casal / Duo
     match /duo_groups/{groupId} {
-      allow read: if isAuthenticated();
+      allow read: if isAuthenticated() && (
+        request.auth.uid == resource.data.ownerId ||
+        request.auth.uid == resource.data.partnerId ||
+        resource.data.status == 'pending'
+      );
       allow create: if isAuthenticated() && request.auth.uid == request.resource.data.ownerId && isValidDuoGroup(request.resource.data);
       allow update: if isAuthenticated() && (
         request.auth.uid == resource.data.ownerId ||
@@ -155,6 +196,14 @@ service cloud.firestore {
         request.auth.uid == resource.data.partnerId
       ) && isValidDuoGroup(request.resource.data);
       allow delete: if isAuthenticated() && request.auth.uid == resource.data.ownerId;
+
+      // Despesas Compartilhadas do Casal (Subcoleção por ciclo)
+      match /ciclos/{mesAno}/despesas_compartilhadas/{despesaId} {
+        allow read: if isAuthenticated() && request.auth.uid in resource.data.members;
+        allow create: if isAuthenticated() && request.auth.uid in request.resource.data.members && isValidSharedExpense(request.resource.data);
+        allow update: if isAuthenticated() && request.auth.uid in resource.data.members && request.auth.uid in request.resource.data.members && isValidSharedExpense(request.resource.data);
+        allow delete: if isAuthenticated() && request.auth.uid in resource.data.members;
+      }
     }
 
     // Configurações Globais do Sistema e Gateway Asaas (Acesso restrito a administradores e Cloud Functions)
@@ -174,20 +223,16 @@ service cloud.firestore {
       allow list: if isAdmin();
       allow create: if (isOwner(userId) && isValidUserProfile(request.resource.data)
                         && (!('role' in request.resource.data) || request.resource.data.role == 'user')
-                        && (
-                          !('plan' in request.resource.data) ||
-                          request.resource.data.plan == 'free' ||
-                          ('asaasSubscriptionId' in request.resource.data && request.resource.data.asaasSubscriptionId is string && request.resource.data.asaasSubscriptionId.size() > 0)
-                        ))
+                        && (!('plan' in request.resource.data) || request.resource.data.plan == 'free')
+                        && (!('asaasSubscriptionId' in request.resource.data) || request.resource.data.asaasSubscriptionId == null)
+                       )
                      || isAdmin();
       allow update: if (isOwner(userId) && isValidUserProfile(request.resource.data)
                         && (!('role' in request.resource.data) || request.resource.data.role == resource.data.role || (!('role' in resource.data) && request.resource.data.role == 'user'))
-                        && (
-                          !('plan' in request.resource.data) ||
-                          request.resource.data.plan == resource.data.plan ||
-                          (!('plan' in resource.data) && request.resource.data.plan == 'free') ||
-                          ('asaasSubscriptionId' in request.resource.data && request.resource.data.asaasSubscriptionId is string && request.resource.data.asaasSubscriptionId.size() > 0)
-                        ))
+                        && (!('plan' in request.resource.data) || request.resource.data.plan == resource.data.plan || (!('plan' in resource.data) && request.resource.data.plan == 'free'))
+                        && (!('planStatus' in request.resource.data) || request.resource.data.planStatus == resource.data.planStatus || (!('planStatus' in resource.data) && request.resource.data.planStatus == 'active'))
+                        && (!('asaasSubscriptionId' in request.resource.data) || request.resource.data.asaasSubscriptionId == resource.data.asaasSubscriptionId || (!('asaasSubscriptionId' in resource.data) && request.resource.data.asaasSubscriptionId == null))
+                       )
                      || isAdmin();
       allow delete: if isOwner(userId) || isAdmin();
 

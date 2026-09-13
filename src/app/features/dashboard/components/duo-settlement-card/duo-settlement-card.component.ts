@@ -27,7 +27,6 @@ export class DuoSettlementCardComponent {
   readonly formattedPartnerTotal = computed(() => formatBRL(this.settlement().partnerTotalPaid));
   readonly formattedTotalShared = computed(() => formatBRL(this.settlement().totalShared));
   readonly formattedTargetShare = computed(() => formatBRL(this.settlement().targetSharePerPerson));
-  readonly formattedSettlementAmount = computed(() => formatBRL(this.settlement().settlementAmount));
 
   readonly ownerPercent = computed(() => {
     const total = this.settlement().totalShared;

@@ -26,7 +26,11 @@
           (click)="selectPlan('pro')"
           id="card-plan-pro"
         >
-          <div class="plan-popular-tag">Mais Escolhido</div>
+          @if (authStore.currentPlan() === 'duo') {
+            <div class="plan-popular-tag plan-downgrade-tag">Próxima Fatura</div>
+          } @else {
+            <div class="plan-popular-tag">Mais Escolhido</div>
+          }
           <div class="plan-header">
             <h3 class="plan-title">Pro Individual</h3>
             <p class="plan-target">Para quem busca liberdade e organização total</p>
@@ -65,7 +69,11 @@
           </ul>
 
           <button type="button" class="btn-select-plan" (click)="selectPlan('pro'); goToCheckout()">
-            Quero o Plano Pro
+            @if (authStore.currentPlan() === 'duo') {
+              Mudar para o Pro na próxima fatura
+            } @else {
+              Quero o Plano Pro
+            }
           </button>
         </div>
 
@@ -76,15 +84,26 @@
           (click)="selectPlan('duo')"
           id="card-plan-duo"
         >
-          <div class="plan-duo-tag">Casal / Família</div>
+          @if (authStore.currentPlan() === 'pro') {
+            <div class="plan-duo-tag plan-upgrade-tag">Pague a diferença: R$ 10,00</div>
+          } @else {
+            <div class="plan-duo-tag">Casal / Família</div>
+          }
           <div class="plan-header">
             <h3 class="plan-title">Casal / Duo</h3>
             <p class="plan-target">Finanças a dois com contas integradas</p>
           </div>
 
           <div class="plan-pricing">
-            <div class="price-value">R$ 19,90<span class="price-cycle">/mês</span></div>
-            <div class="price-equivalent">Assinatura mensal para 2 contas • Cancele quando quiser</div>
+            @if (authStore.currentPlan() === 'pro') {
+              <div class="price-value">
+                R$ 10,00 <span class="price-cycle">diferença</span>
+              </div>
+              <div class="price-equivalent">Upgrade imediato • Seu plano Pro vira Duo pagando só a diferença</div>
+            } @else {
+              <div class="price-value">R$ 19,90<span class="price-cycle">/mês</span></div>
+              <div class="price-equivalent">Assinatura mensal para 2 contas • Cancele quando quiser</div>
+            }
           </div>
 
           <ul class="features-list">
@@ -115,7 +134,11 @@
           </ul>
 
           <button type="button" class="btn-select-plan btn-duo" (click)="selectPlan('duo'); goToCheckout()">
-            Quero o Plano Casal
+            @if (authStore.currentPlan() === 'pro') {
+              Fazer Upgrade por R$ 10,00
+            } @else {
+              Quero o Plano Casal
+            }
           </button>
         </div>
       </div>
@@ -134,7 +157,11 @@
         <h2 class="dialog-title">Finalizar Assinatura</h2>
         <p class="dialog-subtitle">
           Plano selecionado: <strong>{{ selectedPlan() === 'pro' ? 'Pro Individual' : 'Casal / Duo' }}</strong> &bull;
-          <strong>{{ formatBRL(currentPrice()) }}/mês</strong>
+          @if (isUpgrade() && planChange().currentPlanCredit > 0) {
+            <strong>{{ formatBRL(currentPrice()) }} (Diferença)</strong>
+          } @else {
+            <strong>{{ formatBRL(currentPrice()) }}/mês</strong>
+          }
         </p>
 
         <button type="button" class="btn-close" (click)="closeModal()" aria-label="Fechar">
@@ -143,6 +170,19 @@
           </svg>
         </button>
       </header>
+
+      @if (isUpgrade() && planChange().currentPlanCredit > 0) {
+        <div class="upgrade-difference-banner">
+          <div class="upgrade-banner-icon">⚡</div>
+          <div class="upgrade-banner-content">
+            <strong>Upgrade com Diferença Proporcional</strong>
+            <p>
+              Você já é assinante <strong>{{ planChange().currentPlan | uppercase }}</strong> ({{ formatBRL(planChange().currentPlanCredit) }}).
+              Você paga apenas a diferença de <strong>{{ formatBRL(currentPrice()) }}</strong> para subir para o Plano <strong>{{ selectedPlan() === 'duo' ? 'Casal / Duo' : 'Pro' }}</strong>!
+            </p>
+          </div>
+        </div>
+      }
 
       <!-- Métodos de Pagamento (Abas) -->
       <div class="payment-tabs">
@@ -363,39 +403,139 @@
       }
     }
 
-    @if (step() === 'success') {
-      <!-- Tela de Celebração de Boas-Vindas ao PRO ou DUO -->
-      <div class="success-view">
-        <div class="celebration-icon">🎉</div>
-        <h2 class="success-title">Parabéns! Você agora é {{ selectedPlan() === 'pro' ? 'PRO' : 'DUO' }}!</h2>
-        <p class="success-description">
-          @if (selectedPlan() === 'duo') {
-            Sua assinatura do Plano Casal foi confirmada com sucesso! Agora você e seu parceiro(a) podem compartilhar despesas, controlar o orçamento quinzenal e calcular o acerto 50/50 sem misturar contas bancárias.
-          } @else {
-            Sua assinatura foi confirmada com sucesso. Todas as funcionalidades premium, histórico de 13 meses e o Dossiê Anual em PDF já estão desbloqueados na sua conta.
-          }
+    @if (step() === 'schedule-downgrade') {
+      <!-- Cabeçalho Agendamento Downgrade -->
+      <header class="dialog-header header-with-back">
+        <button type="button" class="btn-back" (click)="step.set('select-plan')" aria-label="Voltar para planos">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+          </svg>
+          <span>Voltar</span>
+        </button>
+
+        <h2 class="dialog-title">Agendar Alteração de Plano</h2>
+        <p class="dialog-subtitle">
+          Mudança programada para a sua próxima data de vencimento
         </p>
 
-        <div class="success-features-card">
-          @if (selectedPlan() === 'duo') {
-            <div class="feature-item">✓ 2 contas conectadas com rateio inteligente 50/50</div>
-            <div class="feature-item">✓ Histórico de 13 meses móveis ativado para o casal</div>
-            <div class="feature-item">✓ Compras parceladas e despesas fixas ilimitadas</div>
-          } @else {
-            <div class="feature-item">✓ Histórico de 13 meses móveis ativado</div>
-            <div class="feature-item">✓ Compras parceladas e despesas fixas ilimitadas</div>
-            <div class="feature-item">✓ Exportação do Dossiê do Ano em PDF liberada</div>
-          }
+        <button type="button" class="btn-close" (click)="closeModal()" aria-label="Fechar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </header>
+
+      <div class="downgrade-schedule-view">
+        <div class="schedule-notice-card">
+          <div class="notice-icon">📅</div>
+          <div class="notice-content">
+            <h3 class="notice-title">Como funciona a diminuição de plano?</h3>
+            <p class="notice-text">
+              Como você já possui o ciclo contratado do <strong>{{ authStore.currentPlan() === 'duo' ? 'Plano Casal / Duo' : 'Plano Pro' }}</strong>,
+              você continua com <strong>acesso completo a todos os benefícios</strong> até o dia do vencimento da sua fatura atual
+              @if (authStore.planExpiresAtFormatted()) {
+                (<strong>{{ authStore.planExpiresAtFormatted() }}</strong>).
+              } @else {
+                .
+              }
+            </p>
+            <p class="notice-text">
+              A alteração para o <strong>{{ selectedPlan() === 'pro' ? 'Plano Pro Individual (R$ 9,90/mês)' : 'Plano Gratuito' }}</strong> só passará a vigorar na <strong>cobrança seguinte</strong>. Nenhuma cobrança é realizada hoje.
+            </p>
+          </div>
         </div>
 
-        @if (selectedPlan() === 'duo') {
-          <button type="button" class="btn-enjoy btn-duo-connect-cta" (click)="connectPartner()" id="btn-connect-partner-success">
-            Conectar Parceiro(a) Agora 💕
+        <div class="schedule-summary-box">
+          <div class="summary-line">
+            <span>Plano Atual:</span>
+            <strong>{{ authStore.currentPlan() === 'duo' ? 'Casal / Duo (R$ 19,90/mês)' : 'Pro Individual' }}</strong>
+          </div>
+          <div class="summary-line">
+            <span>Novo Plano Programado:</span>
+            <strong class="text-primary">{{ selectedPlan() === 'pro' ? 'Pro Individual (R$ 9,90/mês)' : 'Free (Gratuito)' }}</strong>
+          </div>
+          <div class="summary-line">
+            <span>Data de Vigência:</span>
+            <strong>{{ authStore.planExpiresAtFormatted() || 'Próximo ciclo de cobrança' }}</strong>
+          </div>
+          <div class="summary-line">
+            <span>Valor a pagar hoje:</span>
+            <strong class="text-success">R$ 0,00</strong>
+          </div>
+        </div>
+
+        <div class="schedule-actions">
+          <button
+            type="button"
+            class="btn-confirm-schedule"
+            (click)="confirmScheduledDowngrade()"
+            [disabled]="isProcessing()"
+            id="btn-confirm-scheduled-downgrade"
+          >
+            @if (isProcessing()) {
+              <div class="btn-spinner"></div>
+              <span>Agendando alteração...</span>
+            } @else {
+              <span>Confirmar alteração para a próxima cobrança</span>
+            }
+          </button>
+
+          <button
+            type="button"
+            class="btn-cancel-action"
+            (click)="step.set('select-plan')"
+          >
+            Manter meu plano atual
+          </button>
+        </div>
+      </div>
+    }
+
+    @if (step() === 'success') {
+      <!-- Tela de Celebração de Boas-Vindas ou Agendamento -->
+      <div class="success-view">
+        <div class="celebration-icon">🎉</div>
+        @if (isDowngrade()) {
+          <h2 class="success-title">Alteração Agendada com Sucesso!</h2>
+          <p class="success-description">
+            Sua solicitação de alteração para o <strong>Plano {{ selectedPlan() === 'pro' ? 'Pro Individual' : 'Free' }}</strong> foi agendada para a próxima cobrança.
+            Você continuará com todos os benefícios do <strong>{{ authStore.currentPlan() === 'duo' ? 'Plano Casal / Duo' : 'Plano Atual' }}</strong> até
+            <strong>{{ authStore.planExpiresAtFormatted() || 'o final do ciclo vigente' }}</strong>.
+          </p>
+          <button type="button" class="btn-enjoy" (click)="closeModal()" id="btn-enjoy-downgrade">
+            Entendido, continuar usando
           </button>
         } @else {
-          <button type="button" class="btn-enjoy" (click)="closeModal()" id="btn-enjoy-pro">
-            Acessar Meus Recursos Exclusivos
-          </button>
+          <h2 class="success-title">Parabéns! Você agora é {{ selectedPlan() === 'pro' ? 'PRO' : 'DUO' }}!</h2>
+          <p class="success-description">
+            @if (selectedPlan() === 'duo') {
+              Sua assinatura do Plano Casal foi confirmada com sucesso! Agora você e seu parceiro(a) podem compartilhar despesas, controlar o orçamento quinzenal e calcular o acerto 50/50 sem misturar contas bancárias.
+            } @else {
+              Sua assinatura foi confirmada com sucesso. Todas as funcionalidades premium, histórico de 13 meses e o Dossiê Anual em PDF já estão desbloqueados na sua conta.
+            }
+          </p>
+
+          <div class="success-features-card">
+            @if (selectedPlan() === 'duo') {
+              <div class="feature-item">✓ 2 contas conectadas com rateio inteligente 50/50</div>
+              <div class="feature-item">✓ Histórico de 13 meses móveis ativado para o casal</div>
+              <div class="feature-item">✓ Compras parceladas e despesas fixas ilimitadas</div>
+            } @else {
+              <div class="feature-item">✓ Histórico de 13 meses móveis ativado</div>
+              <div class="feature-item">✓ Compras parceladas e despesas fixas ilimitadas</div>
+              <div class="feature-item">✓ Exportação do Dossiê do Ano em PDF liberada</div>
+            }
+          </div>
+
+          @if (selectedPlan() === 'duo') {
+            <button type="button" class="btn-enjoy btn-duo-connect-cta" (click)="connectPartner()" id="btn-connect-partner-success">
+              Conectar Parceiro(a) Agora 💕
+            </button>
+          } @else {
+            <button type="button" class="btn-enjoy" (click)="closeModal()" id="btn-enjoy-pro">
+              Acessar Meus Recursos Exclusivos
+            </button>
+          }
         }
       </div>
     }

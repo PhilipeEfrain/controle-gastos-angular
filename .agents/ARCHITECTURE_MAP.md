@@ -51,7 +51,7 @@
 | `PlanPricing` / `AsaasSubscriptionPayload` / `AsaasWebhookPayload` | `src/app/core/models/payment.model.ts` | Interfaces de contratos de pagamento com o gateway Asaas (API v3, PIX, Cartão e Webhooks). |
 | `AsaasConfig` / `AsaasEnvironment` | `src/app/core/models/payment.model.ts` | Modelo de governança e configuração de credenciais Asaas v3 (`environment`, `apiKey`, `webhookSecret`, `walletId`, `isActive`, `lastTestedAt`). |
 | `ToastNotification` | `src/app/core/models/notification.model.ts` | Modelo de notificação Toast reativa (id, tipo, mensagem, duração). |
-| `DuoGroup` / `DuoSettlementSummary` | `src/app/core/models/duo.model.ts` | Interfaces do Modo Casal / Duo: grupos de pareamento, convites e saldo de acerto de contas 50/50. |
+| `DuoGroup` / `DuoSettlementSummary` / `DuoSharedExpense` | `src/app/core/models/duo.model.ts` | Interfaces do Modo Casal / Duo: grupos de pareamento, convites, compras e despesas compartilhadas ('Nossos Gastos') e visão 50/50. |
 
 ---
 
@@ -133,7 +133,8 @@
 | :--- | :--- | :--- |
 | `DashboardComponent` | `app-dashboard` | Página principal com seletor de mês, top summary cards, grid quinzenal e botões de ação rápida. |
 | `DuoPairingModalComponent` | `app-duo-pairing-modal` | Modal de pareamento com suporte a preenchimento automático via input (`initialInviteCode`), links diretos via queryParam (`?duoCode=DUO-XXXX`), cadastro de e-mail do parceiro, compartilhamento de convite via WhatsApp com link direto e sincronização reativa com AuthStore. |
-| `DuoSettlementCardComponent` | `app-duo-settlement-card` | Card no dashboard com divisão proporcional 50/50 de gastos e cálculo de acerto de contas entre os parceiros. |
+| `DuoSettlementCardComponent` | `app-duo-settlement-card` | Card no dashboard com visão colaborativa e divisão proporcional 50/50 de gastos compartilhados entre os parceiros (sem cobrança de compensação sugerida). |
+| `DuoSharedExpensesListComponent` | `app-duo-shared-expenses-list` | Painel colaborativo para listagem e acompanhamento das compras e despesas conjuntas do casal ('Nossos Gastos'), com controle de parcelamentos (ex.: geladeira, fogão), status de quitação e cota-parte de cada cônjuge. |
 | `FortnightCardComponent` | `app-fortnight-card` | Card quinzenal completo com resumo de entrada/saída, barra de progresso e listagem de despesas. |
 | `ExpenseItemRowComponent` | `app-expense-item-row` | Linha de despesa com checkbox de quitação, badge de categoria, indicador de comprovante e ações de edição/exclusão. |
 | `ExpenseFormModalComponent` | `app-expense-form-modal` | Modal com formulário reativo para criação/edição de despesas simples ou em lote parcelado. |

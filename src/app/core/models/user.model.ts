@@ -19,6 +19,8 @@ export interface UserProfile {
   gracePeriodExpiresAt?: string | null;
   asaasCustomerId?: string | null;
   asaasSubscriptionId?: string | null;
+  scheduledPlan?: PlanType | null;
+  scheduledPlanDate?: string | null;
   preferences?: UserPreferences;
   createdAt?: string;
   updatedAt?: string;

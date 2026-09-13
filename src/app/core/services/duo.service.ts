@@ -6,16 +6,18 @@ import {
   getDocs,
   setDoc,
   updateDoc,
+  deleteDoc,
+  writeBatch,
   query,
   where,
   onSnapshot,
   Firestore
 } from 'firebase/firestore';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { FirebaseService } from './firebase.service';
-import { DuoGroup, DuoSettlementSummary } from '../models/duo.model';
+import { DuoGroup, DuoSettlementSummary, DuoSharedExpense } from '../models/duo.model';
 import { Expense } from '../models/finance.model';
-import { roundBRL } from '../utils/calculations';
+import { roundBRL, addMonthsToYearMonth } from '../utils/calculations';
 
 @Injectable({
   providedIn: 'root'
@@ -114,7 +116,8 @@ export class DuoService {
     const formattedCode = inviteCode.trim().toUpperCase();
     const q = query(
       collection(this.db, 'duo_groups'),
-      where('inviteCode', '==', formattedCode)
+      where('inviteCode', '==', formattedCode),
+      where('status', '==', 'pending')
     );
     const snap = await getDocs(q);
 
@@ -289,4 +292,123 @@ export class DuoService {
       message
     };
   }
+
+  /**
+   * Conecta a stream reativa de despesas compartilhadas do casal para o mês selecionado
+   */
+  getSharedExpensesStream(groupId: string, mesAno: string): Observable<DuoSharedExpense[]> {
+    if (!groupId || !mesAno || groupId.startsWith('e2e-')) {
+      return of([]);
+    }
+
+    return new Observable<DuoSharedExpense[]>(observer => {
+      const colRef = collection(this.db, 'duo_groups', groupId, 'ciclos', mesAno, 'despesas_compartilhadas');
+      const unsubscribe = onSnapshot(
+        colRef,
+        snapshot => {
+          const items = snapshot.docs.map(docSnap => ({
+            id: docSnap.id,
+            ...(docSnap.data() as Omit<DuoSharedExpense, 'id'>)
+          }));
+          observer.next(items);
+        },
+        err => observer.error(err)
+      );
+
+      return () => unsubscribe();
+    });
+  }
+
+  /**
+   * Salva uma nova despesa compartilhada na subcoleção do casal
+   */
+  async addSharedExpense(groupId: string, expense: DuoSharedExpense): Promise<string> {
+    const colRef = collection(this.db, 'duo_groups', groupId, 'ciclos', expense.mesAno, 'despesas_compartilhadas');
+    const docRef = doc(colRef);
+    const id = docRef.id;
+
+    const payload: DuoSharedExpense = {
+      ...expense,
+      id,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    await setDoc(docRef, payload);
+    return id;
+  }
+
+  /**
+   * Cria despesas compartilhadas parceladas (ex: Geladeira em 10x) através de writeBatch atômico
+   */
+  async createSharedInstallments(
+    groupId: string,
+    baseExpense: DuoSharedExpense,
+    totalParcelas: number
+  ): Promise<void> {
+    if (totalParcelas <= 1) {
+      await this.addSharedExpense(groupId, {
+        ...baseExpense,
+        isParcelado: false
+      });
+      return;
+    }
+
+    const batch = writeBatch(this.db);
+    const grupoParcelamentoId = `duo_inst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const valorParcelaTotal = roundBRL(baseExpense.valorTotal / totalParcelas);
+    const valorParcelaOwner = roundBRL(baseExpense.valorOwner / totalParcelas);
+    const valorParcelaPartner = roundBRL(baseExpense.valorPartner / totalParcelas);
+
+    for (let i = 0; i < totalParcelas; i++) {
+      const mesAnoParcela = addMonthsToYearMonth(baseExpense.mesAno, i);
+      const colRef = collection(this.db, 'duo_groups', groupId, 'ciclos', mesAnoParcela, 'despesas_compartilhadas');
+      const docRef = doc(colRef);
+
+      const parcelaDoc: DuoSharedExpense = {
+        ...baseExpense,
+        id: docRef.id,
+        mesAno: mesAnoParcela,
+        valorTotal: valorParcelaTotal,
+        valorOwner: valorParcelaOwner,
+        valorPartner: valorParcelaPartner,
+        isParcelado: true,
+        parcelaAtual: i + 1,
+        totalParcelas,
+        grupoParcelamentoId,
+        status_pagamento: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      batch.set(docRef, parcelaDoc);
+    }
+
+    await batch.commit();
+  }
+
+  /**
+   * Alterna status de quitação de uma despesa compartilhada
+   */
+  async toggleSharedExpensePaymentStatus(
+    groupId: string,
+    mesAno: string,
+    expenseId: string,
+    status: boolean
+  ): Promise<void> {
+    const docRef = doc(this.db, 'duo_groups', groupId, 'ciclos', mesAno, 'despesas_compartilhadas', expenseId);
+    await updateDoc(docRef, {
+      status_pagamento: status,
+      updatedAt: new Date().toISOString()
+    });
+  }
+
+  /**
+   * Exclui uma despesa compartilhada
+   */
+  async deleteSharedExpense(groupId: string, mesAno: string, expenseId: string): Promise<void> {
+    const docRef = doc(this.db, 'duo_groups', groupId, 'ciclos', mesAno, 'despesas_compartilhadas', expenseId);
+    await deleteDoc(docRef);
+  }
 }
+

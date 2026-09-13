@@ -1,0 +1,128 @@
+<div class="duo-shared-container">
+  <!-- Header da Lista Compartilhada -->
+  <div class="shared-header">
+    <div class="header-left">
+      <div class="badge-duo">MODO CASAL 💕</div>
+      <h3 class="shared-title">Nossos Gastos (Compras & Contas do Casal)</h3>
+      <p class="shared-subtitle">
+        Bens e despesas divididos entre você e {{ partnerName() }} (geladeira, fogão, condomínio, compras conjuntas).
+      </p>
+    </div>
+    <button
+      type="button"
+      class="btn-add-shared"
+      (click)="addSharedExpense.emit()"
+    >
+      <svg viewBox="0 0 20 20" fill="currentColor" class="plus-icon">
+        <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+      </svg>
+      <span>Adicionar Compra Conjunta</span>
+    </button>
+  </div>
+
+  <!-- Cards de Totais da Divisão -->
+  <div class="shared-summary-grid">
+    <div class="summary-box total-box">
+      <span class="summary-label">Total Compartilhado</span>
+      <span class="summary-val">{{ formattedTotalShared() }}</span>
+    </div>
+    <div class="summary-box my-box">
+      <span class="summary-label">Sua Cota (Você)</span>
+      <span class="summary-val highlight-blue">{{ formattedMyShare() }}</span>
+    </div>
+    <div class="summary-box partner-box">
+      <span class="summary-label">Cota de {{ partnerName() }}</span>
+      <span class="summary-val highlight-pink">{{ formattedPartnerShare() }}</span>
+    </div>
+  </div>
+
+  <!-- Lista de Itens Compartilhados -->
+  @if (sharedExpenses().length === 0) {
+    <div class="empty-shared-state">
+      <div class="empty-icon">🛋️</div>
+      <h4 class="empty-title">Nenhum gasto compartilhado neste mês</h4>
+      <p class="empty-msg">
+        Quando vocês comprarem algo juntos (como eletrodomésticos, reformas, móveis ou compras da casa), cadastrem aqui para acompanhar a divisão transparente das parcelas.
+      </p>
+      <button
+        type="button"
+        class="btn-empty-add"
+        (click)="addSharedExpense.emit()"
+      >
+        Lançar Primeira Compra Conjunta
+      </button>
+    </div>
+  } @else {
+    <div class="shared-items-list">
+      @for (item of sharedExpenses(); track item.id) {
+        <div class="shared-item-card" [class.is-paid]="item.status_pagamento">
+          <div class="item-left">
+            <button
+              type="button"
+              class="btn-check"
+              [class.checked]="item.status_pagamento"
+              (click)="onToggleStatus(item)"
+              [title]="item.status_pagamento ? 'Marcar como pendente' : 'Marcar como quitado'"
+            >
+              @if (item.status_pagamento) {
+                <svg viewBox="0 0 20 20" fill="currentColor" class="check-icon">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+              }
+            </button>
+
+            <div class="item-details">
+              <div class="item-title-row">
+                <span class="item-desc">{{ item.descricao }}</span>
+                @if (item.isParcelado && item.parcelaAtual && item.totalParcelas) {
+                  <span class="parcel-badge">
+                    {{ item.parcelaAtual }}/{{ item.totalParcelas }} parcelas
+                  </span>
+                }
+                @if (item.categoria) {
+                  <span class="cat-badge">{{ item.categoria }}</span>
+                }
+              </div>
+
+              <div class="item-meta-row">
+                <span class="payer-badge">
+                  💳 Pago por: <strong>{{ item.pagoPorNome }}</strong>
+                </span>
+                <span class="quinzena-badge">
+                  Q{{ item.quinzena }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="item-right">
+            <div class="split-breakdown">
+              <div class="total-amount">
+                Total: <strong>{{ formatValue(item.valorTotal) }}</strong>
+              </div>
+              <div class="individual-splits">
+                <span class="split-chip me">
+                  Sua parte: {{ formatValue(isOwner() ? item.valorOwner : item.valorPartner) }}
+                </span>
+                <span class="split-chip partner">
+                  {{ partnerName() }}: {{ formatValue(isOwner() ? item.valorPartner : item.valorOwner) }}
+                </span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              class="btn-delete"
+              (click)="onDelete(item)"
+              title="Excluir despesa compartilhada"
+            >
+              <svg viewBox="0 0 20 20" fill="currentColor" class="trash-icon">
+                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

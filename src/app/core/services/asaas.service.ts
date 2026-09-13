@@ -207,11 +207,14 @@ export class AsaasService {
       customerId: string;
       cardData?: CreditCardData;
       holderInfo?: CreditCardHolderInfo;
+      customValue?: number;
     },
     apiKey?: string,
     environment: AsaasEnvironment = 'sandbox'
   ): Promise<AsaasSubscriptionResponse> {
-    const value = this.getPlanPrice(params.plan, params.cycle);
+    const value = params.customValue !== undefined && params.customValue > 0
+      ? params.customValue
+      : this.getPlanPrice(params.plan, params.cycle);
     if (value <= 0) {
       throw new Error('Plano gratuito não requer assinatura de pagamento.');
     }

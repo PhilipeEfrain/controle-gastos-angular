@@ -111,4 +111,18 @@ describe('DuoService', () => {
       expect(summary.message).toContain('Tudo equilibrado!');
     });
   });
+
+  describe('getSharedExpensesStream', () => {
+    it('deve retornar observable vazio se groupId for inválido ou e2e', async () => {
+      const { firstValueFrom } = await import('rxjs');
+      const items = await firstValueFrom(service.getSharedExpensesStream('e2e-user', '2026-09'));
+      expect(items).toEqual([]);
+    });
+
+    it('deve retornar observable vazio se groupId for vazio', async () => {
+      const { firstValueFrom } = await import('rxjs');
+      const items = await firstValueFrom(service.getSharedExpensesStream('', '2026-09'));
+      expect(items).toEqual([]);
+    });
+  });
 });

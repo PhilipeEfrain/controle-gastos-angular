@@ -6,7 +6,9 @@ import {
   filterExpensesByFortnight,
   calculateFortnightBalance,
   calculateGlobalBalance,
-  addMonthsToYearMonth
+  addMonthsToYearMonth,
+  calculatePlanChange,
+  PLAN_PRICES
 } from './calculations';
 import { Expense } from '../models/finance.model';
 
@@ -195,4 +197,53 @@ describe('Calculations Utility (Motor Financeiro)', () => {
       expect(addMonthsToYearMonth('2026-02', -2)).toBe('2025-12');
     });
   });
+
+  describe('calculatePlanChange (Regras de Modificação de Assinatura)', () => {
+    it('Regra 1: Free para Pro deve cobrar valor total do Pro (R$ 9,90)', () => {
+      const res = calculatePlanChange('free', 'pro');
+      expect(res.action).toBe('upgrade');
+      expect(res.fullTargetPrice).toBe(9.90);
+      expect(res.currentPlanCredit).toBe(0);
+      expect(res.amountToPay).toBe(9.90);
+    });
+
+    it('Regra 1: Free para Duo deve cobrar valor total do Duo (R$ 19,90)', () => {
+      const res = calculatePlanChange('free', 'duo');
+      expect(res.action).toBe('upgrade');
+      expect(res.fullTargetPrice).toBe(19.90);
+      expect(res.currentPlanCredit).toBe(0);
+      expect(res.amountToPay).toBe(19.90);
+    });
+
+    it('Regra 1: Pro para Duo deve cobrar APENAS a diferença (R$ 19,90 - R$ 9,90 = R$ 10,00)', () => {
+      const res = calculatePlanChange('pro', 'duo');
+      expect(res.action).toBe('upgrade');
+      expect(res.fullTargetPrice).toBe(19.90);
+      expect(res.currentPlanCredit).toBe(9.90);
+      expect(res.amountToPay).toBe(10.00);
+    });
+
+    it('Regra 3: Duo para Pro deve ser identificado como downgrade com valor a pagar R$ 0 hoje', () => {
+      const res = calculatePlanChange('duo', 'pro');
+      expect(res.action).toBe('downgrade');
+      expect(res.fullTargetPrice).toBe(9.90);
+      expect(res.currentPlanCredit).toBe(19.90);
+      expect(res.amountToPay).toBe(0);
+    });
+
+    it('Regra 3: Pro para Free deve ser identificado como downgrade com valor a pagar R$ 0 hoje', () => {
+      const res = calculatePlanChange('pro', 'free');
+      expect(res.action).toBe('downgrade');
+      expect(res.fullTargetPrice).toBe(0);
+      expect(res.currentPlanCredit).toBe(9.90);
+      expect(res.amountToPay).toBe(0);
+    });
+
+    it('Reativação do mesmo plano deve cobrar valor integral do plano', () => {
+      const res = calculatePlanChange('pro', 'pro');
+      expect(res.action).toBe('same');
+      expect(res.amountToPay).toBe(9.90);
+    });
+  });
 });
+

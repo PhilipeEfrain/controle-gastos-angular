@@ -16,9 +16,11 @@ import {
   Validators
 } from '@angular/forms';
 import { Expense, FortnightNumber } from '../../../../core/models/finance.model';
+import { DuoGroup, DuoSharedExpense } from '../../../../core/models/duo.model';
 import { ExpenseService } from '../../../../core/services/expense.service';
 import { InstallmentService } from '../../../../core/services/installment.service';
 import { PlanLimitsService } from '../../../../core/services/plan-limits.service';
+import { DuoService } from '../../../../core/services/duo.service';
 import { AuthStore } from '../../../../core/state/auth.store';
 import { formatBRL } from '../../../../core/utils/formatters';
 import { addMonthsToYearMonth, roundBRL } from '../../../../core/utils/calculations';
@@ -39,6 +41,7 @@ export class ExpenseFormModalComponent {
   private expenseService = inject(ExpenseService);
   private installmentService = inject(InstallmentService);
   private planLimitsService = inject(PlanLimitsService);
+  private duoService = inject(DuoService, { optional: true });
   private authStore = inject(AuthStore);
 
   readonly isOpen = input<boolean>(false);
@@ -46,6 +49,9 @@ export class ExpenseFormModalComponent {
   readonly expenseToEdit = input<Expense | null>(null);
   readonly mesAno = input.required<string>();
   readonly initialParcelado = input<boolean>(false);
+  readonly isDuo = input<boolean>(false);
+  readonly duoGroup = input<DuoGroup | null>(null);
+  readonly initialShared = input<boolean>(false);
 
   readonly close = output<void>();
   readonly saved = output<void>();
@@ -86,12 +92,16 @@ export class ExpenseFormModalComponent {
     data_vencimento: [''],
     recorrente: [false],
     isParcelado: [false],
-    total_parcelas: [2, [Validators.min(2), Validators.max(72)]]
+    total_parcelas: [2, [Validators.min(2), Validators.max(72)]],
+    isShared: [false],
+    tipoDivisao: ['50_50'],
+    pagoPor: ['me']
   });
 
   // Preview de parcelas computado
   readonly isParcelado = computed(() => !!this.form.get('isParcelado')?.value);
   readonly isRecorrente = computed(() => !!this.form.get('recorrente')?.value);
+  readonly isShared = computed(() => !!this.form.get('isShared')?.value);
 
   get currentCategories(): string[] {
     return this.form.get('tipo')?.value === 'renda_extra'
@@ -114,10 +124,14 @@ export class ExpenseFormModalComponent {
             data_vencimento: toEdit.data_vencimento || '',
             recorrente: !!toEdit.recorrente,
             isParcelado: false,
-            total_parcelas: 2
+            total_parcelas: 2,
+            isShared: false,
+            tipoDivisao: '50_50',
+            pagoPor: 'me'
           });
         } else {
           const startParcelado = this.initialParcelado();
+          const startShared = this.initialShared();
           this.form.reset({
             tipo: 'despesa',
             descricao: '',
@@ -127,7 +141,10 @@ export class ExpenseFormModalComponent {
             data_vencimento: '',
             recorrente: false,
             isParcelado: startParcelado,
-            total_parcelas: 2
+            total_parcelas: 2,
+            isShared: startShared,
+            tipoDivisao: '50_50',
+            pagoPor: 'me'
           });
         }
         this.errorMessage.set(null);
@@ -219,6 +236,58 @@ export class ExpenseFormModalComponent {
         }
 
         await this.expenseService.updateExpense(user.uid, this.mesAno(), toEdit.id, updatePayload);
+      } else if (formVal.isShared && this.duoGroup()?.id && this.duoGroup()?.status === 'active' && this.duoGroup()?.partnerId) {
+        // Lançamento de despesa compartilhada do casal (Nossos Gastos)
+        const group = this.duoGroup()!;
+        const valorTotal = roundBRL(parseFloat(formVal.valor));
+        let valorOwner = roundBRL(valorTotal / 2);
+        let valorPartner = roundBRL(valorTotal / 2);
+
+        if (formVal.tipoDivisao === '100_titular') {
+          valorOwner = valorTotal;
+          valorPartner = 0;
+        } else if (formVal.tipoDivisao === '100_parceiro') {
+          valorOwner = 0;
+          valorPartner = valorTotal;
+        }
+
+        const isUserOwner = user.uid === group.ownerId;
+        let pagoPorId = user.uid;
+        let pagoPorNome = user.displayName || 'Você';
+
+        if (formVal.pagoPor === 'partner') {
+          pagoPorId = isUserOwner ? group.partnerId! : group.ownerId;
+          pagoPorNome = isUserOwner ? (group.partnerName || 'Parceiro(a)') : (group.ownerName || 'Titular');
+        } else {
+          pagoPorId = isUserOwner ? group.ownerId : group.partnerId!;
+          pagoPorNome = isUserOwner ? (group.ownerName || 'Titular') : (group.partnerName || 'Parceiro(a)');
+        }
+
+        const baseShared: DuoSharedExpense = {
+          descricao: formVal.descricao.trim(),
+          valorTotal,
+          categoria: formVal.categoria,
+          quinzena: Number(formVal.quinzena) as 1 | 2,
+          mesAno: this.mesAno(),
+          pagoPorId,
+          pagoPorNome,
+          tipoDivisao: formVal.tipoDivisao || '50_50',
+          valorOwner,
+          valorPartner,
+          status_pagamento: false,
+          isParcelado: formVal.isParcelado && formVal.total_parcelas > 1,
+          members: [group.ownerId, group.partnerId!]
+        };
+
+        if (formVal.isParcelado && formVal.total_parcelas > 1 && this.duoService) {
+          await this.duoService.createSharedInstallments(group.id!, baseShared, formVal.total_parcelas);
+        } else if (this.duoService) {
+          await this.duoService.addSharedExpense(group.id!, baseShared);
+        }
+
+        this.saved.emit();
+        this.close.emit();
+        return;
       } else if (formVal.tipo !== 'renda_extra' && formVal.isParcelado && formVal.total_parcelas > 1) {
         // Validação de Limite de Compras Parceladas no Plano Free
         try {

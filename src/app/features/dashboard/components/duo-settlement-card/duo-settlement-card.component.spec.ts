@@ -48,14 +48,17 @@ describe('DuoSettlementCardComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('Cenário BDD 2: deve renderizar os dados de acerto do casal e percentuais', () => {
+  it('Cenário BDD 2: deve renderizar as despesas compartilhadas do casal e percentuais sem compensação sugerida', () => {
     const el = fixture.nativeElement as HTMLElement;
     expect(el.textContent).toContain('MODO CASAL 💕');
+    expect(el.textContent).toContain('Despesas Compartilhadas do Casal');
     expect(el.textContent).toContain('Philipe');
     expect(el.textContent).toContain('Mariana');
     expect(el.textContent).toContain('3.000,00');
     expect(el.textContent).toContain('1.000,00');
-    expect(el.textContent).toContain('Mariana deve transferir R$ 1.000,00 para Philipe.');
+    expect(el.textContent).not.toContain('Compensação Sugerida');
+    expect(el.textContent).not.toContain('Mariana deve transferir R$ 1.000,00 para Philipe.');
+    expect(el.textContent).not.toContain('transferir');
 
     expect(component.ownerPercent()).toBe(75);
     expect(component.partnerPercent()).toBe(25);

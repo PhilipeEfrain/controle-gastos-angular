@@ -25,6 +25,7 @@ import { Observable } from 'rxjs';
 import { FirebaseService } from './firebase.service';
 import { LoggerService } from './logger.service';
 import { UserProfile, PlanType, PlanStatus } from '../models/user.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -63,7 +64,7 @@ export class AuthService {
    * Login com E-mail e Senha
    */
   async loginWithEmail(email: string, password: string): Promise<UserProfile> {
-    if (email === 'e2e@quinzena.app' && password === 'senha123') {
+    if (!environment.production && email === 'e2e@quinzena.app' && password === 'senha123') {
       const mockProfile: UserProfile = {
         uid: 'e2e-test-user',
         email: 'e2e@quinzena.app',
@@ -166,6 +167,25 @@ export class AuthService {
         if (data['asaasSubscriptionId']) {
           userProfile.asaasSubscriptionId = data['asaasSubscriptionId'];
         }
+        if (data['scheduledPlan']) {
+          userProfile.scheduledPlan = data['scheduledPlan'];
+        }
+        if (data['scheduledPlanDate']) {
+          userProfile.scheduledPlanDate = data['scheduledPlanDate'];
+        }
+
+        // Verifica se o downgrade agendado atingiu a data de vigência (próxima cobrança)
+        if (userProfile.scheduledPlan && userProfile.scheduledPlanDate) {
+          const effectiveDate = new Date(userProfile.scheduledPlanDate);
+          if (!isNaN(effectiveDate.getTime()) && new Date() >= effectiveDate) {
+            userProfile.plan = userProfile.scheduledPlan;
+            userProfile.scheduledPlan = null;
+            userProfile.scheduledPlanDate = null;
+            if (userProfile.plan === 'free') {
+              userProfile.planStatus = 'active';
+            }
+          }
+        }
       }
 
       // Salva ou atualiza os dados no Firestore com merge
@@ -190,7 +210,7 @@ export class AuthService {
       planExpiresAt?: string | null;
     }
   ): Promise<void> {
-    if (userId.startsWith('e2e-')) {
+    if (!environment.production && userId.startsWith('e2e-')) {
       if (typeof window !== 'undefined') {
         try {
           const stored = localStorage.getItem('__E2E_AUTH_USER__');
@@ -234,6 +254,8 @@ export class AuthService {
     }
     if (subscriptionData.planStatus === 'active') {
       updatePayload['gracePeriodExpiresAt'] = null;
+      updatePayload['scheduledPlan'] = null;
+      updatePayload['scheduledPlanDate'] = null;
       if (subscriptionData.planExpiresAt !== undefined) {
         updatePayload['planExpiresAt'] = subscriptionData.planExpiresAt;
       } else {
@@ -258,7 +280,7 @@ export class AuthService {
    * O usuário mantém acesso aos benefícios até a data limite planExpiresAt e nenhum dado histórico é apagado.
    */
   async cancelUserSubscription(userId: string, subscriptionId?: string): Promise<void> {
-    if (userId.startsWith('e2e-')) {
+    if (!environment.production && userId.startsWith('e2e-')) {
       if (typeof window !== 'undefined') {
         try {
           const stored = localStorage.getItem('__E2E_AUTH_USER__');
@@ -282,6 +304,75 @@ export class AuthService {
       await setDoc(userDocRef, updatePayload, { merge: true });
     } catch (err) {
       this.logger.error('Erro ao cancelar assinatura no Firestore:', err);
+      throw err;
+    }
+  }
+
+  /**
+   * Agenda a redução de plano para a próxima data de cobrança (ciclo seguinte).
+   * O usuário mantém o plano atual e todos os recursos até a data limite informada.
+   */
+  async schedulePlanDowngrade(userId: string, targetPlan: PlanType, effectiveDate: string): Promise<void> {
+    if (!environment.production && userId.startsWith('e2e-')) {
+      if (typeof window !== 'undefined') {
+        try {
+          const stored = localStorage.getItem('__E2E_AUTH_USER__');
+          if (stored) {
+            const user = JSON.parse(stored);
+            user.scheduledPlan = targetPlan;
+            user.scheduledPlanDate = effectiveDate;
+            localStorage.setItem('__E2E_AUTH_USER__', JSON.stringify(user));
+          }
+        } catch {}
+      }
+      return;
+    }
+
+    const userDocRef = doc(this.firestore, `users/${userId}`);
+    const updatePayload: Record<string, any> = {
+      scheduledPlan: targetPlan,
+      scheduledPlanDate: effectiveDate,
+      updatedAt: new Date().toISOString()
+    };
+
+    try {
+      await setDoc(userDocRef, updatePayload, { merge: true });
+    } catch (err) {
+      this.logger.error('Erro ao agendar downgrade no Firestore:', err);
+      throw err;
+    }
+  }
+
+  /**
+   * Cancela uma programação de alteração futura de plano
+   */
+  async cancelScheduledDowngrade(userId: string): Promise<void> {
+    if (!environment.production && userId.startsWith('e2e-')) {
+      if (typeof window !== 'undefined') {
+        try {
+          const stored = localStorage.getItem('__E2E_AUTH_USER__');
+          if (stored) {
+            const user = JSON.parse(stored);
+            user.scheduledPlan = null;
+            user.scheduledPlanDate = null;
+            localStorage.setItem('__E2E_AUTH_USER__', JSON.stringify(user));
+          }
+        } catch {}
+      }
+      return;
+    }
+
+    const userDocRef = doc(this.firestore, `users/${userId}`);
+    const updatePayload: Record<string, any> = {
+      scheduledPlan: null,
+      scheduledPlanDate: null,
+      updatedAt: new Date().toISOString()
+    };
+
+    try {
+      await setDoc(userDocRef, updatePayload, { merge: true });
+    } catch (err) {
+      this.logger.error('Erro ao cancelar agendamento de downgrade no Firestore:', err);
       throw err;
     }
   }
@@ -333,7 +424,7 @@ export class AuthService {
    * Exclusão Definitiva de Conta e Dados em Cascata (Direito ao Esquecimento - LGPD / Art. 18)
    */
   async deleteAccountAndData(userId: string): Promise<void> {
-    if (userId.startsWith('e2e-')) {
+    if (!environment.production && userId.startsWith('e2e-')) {
       if (typeof window !== 'undefined') {
         try {
           localStorage.removeItem('__E2E_AUTH_USER__');

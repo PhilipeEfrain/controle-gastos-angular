@@ -47,8 +47,13 @@ describe('SettingsComponent', () => {
       isPlanSuspended: signal<boolean>(false),
       planExpiresAtFormatted: signal<string>('10/10/2026'),
       gracePeriodDeadlineFormatted: signal<string>(''),
+      hasScheduledDowngrade: signal<boolean>(false),
+      scheduledPlan: signal<string | null>(null),
+      scheduledPlanDateFormatted: signal<string>(''),
+      isCanceledWithAccess: signal<boolean>(false),
       updateCurrentUser: vi.fn(),
       cancelSubscription: vi.fn().mockResolvedValue(undefined),
+      cancelScheduledDowngrade: vi.fn().mockResolvedValue(undefined),
       logout: vi.fn().mockResolvedValue(undefined)
     };
 
@@ -393,6 +398,67 @@ describe('SettingsComponent', () => {
       const el = fixture.nativeElement as HTMLElement;
       const enterCodeBtn = el.querySelector('#btn-enter-duo-code-settings');
       expect(enterCodeBtn).toBeNull();
+    });
+
+    it('Regra 1: deve exibir botão de upgrade para Duo pagando a diferença quando usuário for Pro', () => {
+      (mockAuthStore.currentPlan as any).set('pro');
+      (mockAuthStore.planStatus as any).set('active');
+      component.setTab('subscription');
+      fixture.detectChanges();
+
+      const el = fixture.nativeElement as HTMLElement;
+      const upgradeDuoBtn = el.querySelector('#btn-upgrade-to-duo') as HTMLButtonElement;
+      expect(upgradeDuoBtn).toBeTruthy();
+      expect(upgradeDuoBtn.textContent).toContain('Subir para Plano Duo (Pague a diferença: R$ 10,00)');
+
+      upgradeDuoBtn.click();
+      fixture.detectChanges();
+
+      expect(component.isSubscriptionModalOpen()).toBe(true);
+      expect(component.modalInitialPlan()).toBe('duo');
+    });
+
+    it('Regra 3: deve exibir botão de downgrade para Pro quando usuário for Duo e não possuir downgrade agendado', () => {
+      (mockAuthStore.currentPlan as any).set('duo');
+      (mockAuthStore.planStatus as any).set('active');
+      (mockAuthStore.hasScheduledDowngrade as any).set(false);
+      component.setTab('subscription');
+      fixture.detectChanges();
+
+      const el = fixture.nativeElement as HTMLElement;
+      const downgradeProBtn = el.querySelector('#btn-downgrade-to-pro') as HTMLButtonElement;
+      expect(downgradeProBtn).toBeTruthy();
+      expect(downgradeProBtn.textContent).toContain('Mudar para Plano Pro na próxima cobrança');
+
+      downgradeProBtn.click();
+      fixture.detectChanges();
+
+      expect(component.isSubscriptionModalOpen()).toBe(true);
+      expect(component.modalInitialPlan()).toBe('pro');
+    });
+
+    it('Regra 3: deve exibir alerta de downgrade agendado com opção de cancelar agendamento', async () => {
+      (mockAuthStore.currentPlan as any).set('duo');
+      (mockAuthStore.planStatus as any).set('active');
+      (mockAuthStore.hasScheduledDowngrade as any).set(true);
+      (mockAuthStore.scheduledPlan as any).set('pro');
+      (mockAuthStore.scheduledPlanDateFormatted as any).set('15/11/2026');
+      component.setTab('subscription');
+      fixture.detectChanges();
+
+      const el = fixture.nativeElement as HTMLElement;
+      const banner = el.querySelector('#scheduled-downgrade-banner');
+      expect(banner).toBeTruthy();
+      expect(banner?.textContent).toContain('Alteração de Plano Agendada');
+      expect(banner?.textContent).toContain('Plano Pro Individual');
+
+      const cancelBtn = el.querySelector('#btn-cancel-scheduled-downgrade') as HTMLButtonElement;
+      expect(cancelBtn).toBeTruthy();
+
+      cancelBtn.click();
+      fixture.detectChanges();
+
+      expect(mockAuthStore.cancelScheduledDowngrade).toHaveBeenCalled();
     });
   });
 });

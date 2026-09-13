@@ -43,7 +43,11 @@ export class AuthStore {
 
     const status = user?.planStatus ?? 'active';
     if (status === 'canceled') {
-      return false;
+      if (!user?.planExpiresAt) {
+        return false;
+      }
+      const expDate = new Date(user.planExpiresAt);
+      return !isNaN(expDate.getTime()) && new Date() <= expDate;
     }
 
     if (status === 'past_due') {
@@ -75,7 +79,11 @@ export class AuthStore {
     }
     const status = user?.planStatus;
     if (status === 'canceled') {
-      return true;
+      if (!user?.planExpiresAt) {
+        return true;
+      }
+      const expDate = new Date(user.planExpiresAt);
+      return isNaN(expDate.getTime()) || new Date() > expDate;
     }
     if (status === 'past_due') {
       if (!user?.gracePeriodExpiresAt) {
@@ -114,6 +122,37 @@ export class AuthStore {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
+  });
+
+  readonly scheduledPlan = computed(() => this._currentUser()?.scheduledPlan ?? null);
+  readonly scheduledPlanDate = computed(() => this._currentUser()?.scheduledPlanDate ?? null);
+  readonly hasScheduledDowngrade = computed(() => !!this._currentUser()?.scheduledPlan);
+
+  readonly scheduledPlanDateFormatted = computed(() => {
+    const expiresAt = this._currentUser()?.scheduledPlanDate;
+    if (!expiresAt) {
+      return '';
+    }
+    const date = new Date(expiresAt);
+    if (isNaN(date.getTime())) {
+      return '';
+    }
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  });
+
+  readonly isCanceledWithAccess = computed(() => {
+    const user = this._currentUser();
+    if (user?.planStatus !== 'canceled' || (user?.plan !== 'pro' && user?.plan !== 'duo')) {
+      return false;
+    }
+    if (!user.planExpiresAt) {
+      return false;
+    }
+    const expDate = new Date(user.planExpiresAt);
+    return !isNaN(expDate.getTime()) && new Date() <= expDate;
   });
 
   readonly isDuo = computed(() => this._currentUser()?.plan === 'duo');
@@ -245,7 +284,9 @@ export class AuthStore {
       asaasCustomerId: subscriptionData.asaasCustomerId ?? user.asaasCustomerId,
       asaasSubscriptionId: subscriptionData.asaasSubscriptionId ?? user.asaasSubscriptionId,
       planExpiresAt: resolvedExpiresAt,
-      gracePeriodExpiresAt: subscriptionData.planStatus === 'active' ? null : user.gracePeriodExpiresAt
+      gracePeriodExpiresAt: subscriptionData.planStatus === 'active' ? null : user.gracePeriodExpiresAt,
+      scheduledPlan: null,
+      scheduledPlanDate: null
     });
   }
 
@@ -264,6 +305,44 @@ export class AuthStore {
     this._currentUser.set({
       ...user,
       planStatus: 'canceled'
+    });
+  }
+
+  /**
+   * Agenda o downgrade de plano para a próxima data de renovação.
+   * O usuário mantém seu plano e benefícios atuais até lá.
+   */
+  async scheduleDowngrade(targetPlan: PlanType): Promise<void> {
+    const user = this._currentUser();
+    if (!user) {
+      throw new Error('Usuário não autenticado.');
+    }
+
+    const effectiveDate = user.planExpiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+    await this.authService.schedulePlanDowngrade(user.uid, targetPlan, effectiveDate);
+
+    this._currentUser.set({
+      ...user,
+      scheduledPlan: targetPlan,
+      scheduledPlanDate: effectiveDate
+    });
+  }
+
+  /**
+   * Cancela o downgrade agendado mantendo o plano e ciclo atual
+   */
+  async cancelScheduledDowngrade(): Promise<void> {
+    const user = this._currentUser();
+    if (!user) {
+      throw new Error('Usuário não autenticado.');
+    }
+
+    await this.authService.cancelScheduledDowngrade(user.uid);
+
+    this._currentUser.set({
+      ...user,
+      scheduledPlan: null,
+      scheduledPlanDate: null
     });
   }
 

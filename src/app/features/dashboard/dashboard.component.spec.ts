@@ -93,7 +93,9 @@ describe('DashboardComponent', () => {
       }),
       setSelectedMonth: vi.fn(),
       connectMonthStream: vi.fn(),
-      connectTaxesStream: vi.fn()
+      connectTaxesStream: vi.fn(),
+      connectSharedExpensesStream: vi.fn(),
+      sharedExpenses: signal<any[]>([])
     };
 
     mockExpenseService = {
@@ -140,7 +142,10 @@ describe('DashboardComponent', () => {
       getDuoGroupForUser: vi.fn().mockResolvedValue(null),
       createOrGetDuoGroup: vi.fn().mockResolvedValue(null),
       calculateSettlement: vi.fn().mockReturnValue(null),
-      listenDuoGroup: vi.fn().mockReturnValue({ subscribe: vi.fn() })
+      listenDuoGroup: vi.fn().mockReturnValue({ subscribe: vi.fn() }),
+      getSharedExpensesStream: vi.fn().mockReturnValue(of([])),
+      toggleSharedExpensePaymentStatus: vi.fn().mockResolvedValue(undefined),
+      deleteSharedExpense: vi.fn().mockResolvedValue(undefined)
     };
 
     const mockFirebaseService = {
@@ -393,6 +398,34 @@ describe('DashboardComponent', () => {
 
       expect(component.initialDuoCode()).toBe('');
       expect(component.isDuoPairingModalOpen()).toBe(false);
+    });
+
+    it('Cenário BDD (CARD-066): deve alternar entre abas Meus Gastos, Nossos Gastos e Visão 50/50', () => {
+      mockAuthStore.isDuo.set(true);
+      component.duoGroup.set({
+        id: 'grp-1',
+        ownerId: 'user-777',
+        ownerEmail: 'philipe@test.com',
+        ownerName: 'Philipe',
+        partnerId: 'user-888',
+        partnerName: 'Mariana',
+        inviteCode: 'DUO-1234',
+        status: 'active'
+      });
+      fixture.detectChanges();
+
+      expect(component.isDuoActive()).toBe(true);
+      expect(component.activeDuoTab()).toBe('meus');
+
+      // Alterna para Nossos Gastos
+      component.activeDuoTab.set('nossos');
+      fixture.detectChanges();
+      expect(component.activeDuoTab()).toBe('nossos');
+
+      // Alterna para Visão 50/50
+      component.activeDuoTab.set('visao');
+      fixture.detectChanges();
+      expect(component.activeDuoTab()).toBe('visao');
     });
   });
 });

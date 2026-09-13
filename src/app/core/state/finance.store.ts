@@ -1,11 +1,13 @@
 import { Injectable, signal, computed, inject, DestroyRef } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { Expense, MonthlyCycle, MonthBalanceSummary, AnnualTax } from '../models/finance.model';
+import { DuoSharedExpense } from '../models/duo.model';
 import { calculateGlobalBalance, filterExpensesByFortnight, roundBRL } from '../utils/calculations';
 import { getCurrentYearMonth, formatYearMonthLabel } from '../utils/date';
 import { MonthlyCycleService } from '../services/monthly-cycle.service';
 import { ExpenseService } from '../services/expense.service';
 import { TaxService } from '../services/tax.service';
+import { DuoService } from '../services/duo.service';
 
 @Injectable({
   providedIn: 'root'
@@ -14,12 +16,14 @@ export class FinanceStore {
   private cycleService = inject(MonthlyCycleService);
   private expenseService = inject(ExpenseService);
   private taxService = inject(TaxService);
+  private duoService = inject(DuoService, { optional: true });
   private destroyRef = inject(DestroyRef);
 
   // Subscriptions ativas
   private cycleSub?: Subscription;
   private expensesSub?: Subscription;
   private taxesSub?: Subscription;
+  private sharedExpensesSub?: Subscription;
 
   // Cache em memória de meses já sincronizados com despesas recorrentes (evita leituras redundantes no Firestore)
   private readonly syncedMonths = new Set<string>();
@@ -28,6 +32,7 @@ export class FinanceStore {
   private readonly _selectedMonth = signal<string>(getCurrentYearMonth());
   private readonly _currentCycle = signal<MonthlyCycle | null>(null);
   private readonly _expenses = signal<Expense[]>([]);
+  private readonly _sharedExpenses = signal<DuoSharedExpense[]>([]);
   private readonly _taxes = signal<AnnualTax[]>([]);
   private readonly _isLoading = signal<boolean>(false);
   private readonly _error = signal<string | null>(null);
@@ -36,6 +41,7 @@ export class FinanceStore {
   readonly selectedMonth = this._selectedMonth.asReadonly();
   readonly currentCycle = this._currentCycle.asReadonly();
   readonly expenses = this._expenses.asReadonly();
+  readonly sharedExpenses = this._sharedExpenses.asReadonly();
   readonly taxes = this._taxes.asReadonly();
   readonly isLoading = this._isLoading.asReadonly();
   readonly error = this._error.asReadonly();
@@ -68,11 +74,24 @@ export class FinanceStore {
     return roundBRL(this._taxes().reduce((acc, curr) => acc + (curr.valor_pago || 0), 0));
   });
 
+  readonly totalSharedExpenses = computed(() => {
+    return roundBRL(this._sharedExpenses().reduce((acc, curr) => acc + (curr.valorTotal || 0), 0));
+  });
+
+  readonly totalSharedOwner = computed(() => {
+    return roundBRL(this._sharedExpenses().reduce((acc, curr) => acc + (curr.valorOwner || 0), 0));
+  });
+
+  readonly totalSharedPartner = computed(() => {
+    return roundBRL(this._sharedExpenses().reduce((acc, curr) => acc + (curr.valorPartner || 0), 0));
+  });
+
   constructor() {
     this.destroyRef.onDestroy(() => {
       this.cycleSub?.unsubscribe();
       this.expensesSub?.unsubscribe();
       this.taxesSub?.unsubscribe();
+      this.sharedExpensesSub?.unsubscribe();
     });
   }
 
@@ -154,6 +173,30 @@ export class FinanceStore {
     this._taxes.set(taxes);
   }
 
+  setSharedExpenses(shared: DuoSharedExpense[]): void {
+    this._sharedExpenses.set(shared);
+  }
+
+  /**
+   * Conecta a stream reativa de despesas compartilhadas do grupo Duo
+   */
+  connectSharedExpensesStream(groupId: string, mesAno: string): void {
+    this.sharedExpensesSub?.unsubscribe();
+    if (!this.duoService || !groupId) {
+      this._sharedExpenses.set([]);
+      return;
+    }
+
+    this.sharedExpensesSub = this.duoService.getSharedExpensesStream(groupId, mesAno).subscribe({
+      next: shared => {
+        this._sharedExpenses.set(shared);
+      },
+      error: () => {
+        this._sharedExpenses.set([]);
+      }
+    });
+  }
+
   /**
    * Invalida o cache de sincronização de despesas recorrentes para um mês específico ou todos
    */
@@ -172,10 +215,12 @@ export class FinanceStore {
     this.cycleSub?.unsubscribe();
     this.expensesSub?.unsubscribe();
     this.taxesSub?.unsubscribe();
+    this.sharedExpensesSub?.unsubscribe();
 
     this.syncedMonths.clear();
     this._currentCycle.set(null);
     this._expenses.set([]);
+    this._sharedExpenses.set([]);
     this._taxes.set([]);
     this._isLoading.set(false);
     this._error.set(null);

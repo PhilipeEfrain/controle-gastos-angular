@@ -24,6 +24,7 @@ import { DuoService } from '../../core/services/duo.service';
 import { DuoGroup, DuoSettlementSummary } from '../../core/models/duo.model';
 import { DuoPairingModalComponent } from './components/duo-pairing-modal/duo-pairing-modal.component';
 import { DuoSettlementCardComponent } from './components/duo-settlement-card/duo-settlement-card.component';
+import { DuoSharedExpensesListComponent } from './components/duo-shared-expenses-list/duo-shared-expenses-list.component';
 import { AppCardComponent } from '../../shared/components/app-card/app-card.component';
 import { DeficitAlertBannerComponent } from '../../shared/components/deficit-alert-banner/deficit-alert-banner.component';
 import { DunningBannerComponent } from '../../shared/components/dunning-banner/dunning-banner.component';
@@ -58,6 +59,7 @@ import { AdBannerComponent } from '../../shared/components/ad-banner/ad-banner.c
     SubscriptionModalComponent,
     DuoPairingModalComponent,
     DuoSettlementCardComponent,
+    DuoSharedExpensesListComponent,
     OnboardingChecklistComponent,
     AdBannerComponent
   ],
@@ -81,6 +83,8 @@ export class DashboardComponent implements OnInit {
   readonly duoGroup = signal<DuoGroup | null>(null);
   readonly isDuoPairingModalOpen = signal<boolean>(false);
   readonly initialDuoCode = signal<string>('');
+  readonly activeDuoTab = signal<'meus' | 'nossos' | 'visao'>('meus');
+  readonly isExpenseModalShared = signal<boolean>(false);
 
   readonly isDuoActive = computed(() => {
     return this.authStore.isDuo() || (this.duoGroup()?.status === 'active' && !!this.duoGroup()?.partnerId);
@@ -178,13 +182,30 @@ export class DashboardComponent implements OnInit {
   private readonly trackedOverdueMonths = new Set<string>();
 
   constructor() {
-    // Efeito reativo para recarregar dados quando usuário autenticado estiver pronto
+    // Efeito reativo para recarregar dados do mês quando usuário ou mês selecionado mudar
     effect(() => {
       const user = this.authStore.currentUser();
       const month = this.financeStore.selectedMonth();
       if (user) {
         this.financeStore.connectMonthStream(user.uid, month);
+      }
+    });
+
+    // Efeito isolado para tributos anuais (independente de selectedMonth)
+    effect(() => {
+      const user = this.authStore.currentUser();
+      if (user) {
         this.financeStore.connectTaxesStream(user.uid);
+      }
+    });
+
+    // Efeito reativo para despesas compartilhadas do Modo Casal (Duo)
+    effect(() => {
+      const user = this.authStore.currentUser();
+      const group = this.duoGroup();
+      const month = this.financeStore.selectedMonth();
+      if (user && group && group.id && group.status === 'active' && group.partnerId) {
+        this.financeStore.connectSharedExpensesStream(group.id, month);
       }
     });
 
@@ -249,7 +270,6 @@ export class DashboardComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     const user = this.authStore.currentUser();
     if (user) {
-      this.financeStore.connectMonthStream(user.uid, this.financeStore.selectedMonth());
       try {
         let group = await this.duoService.getDuoGroupForUser(user.uid);
         if (!group && this.authStore.isDuo()) {
@@ -356,18 +376,46 @@ export class DashboardComponent implements OnInit {
   }
 
   // Abertura de Modais
-  openNewExpenseModal(quinzena: FortnightNumber = 1, isParcelado: boolean = false): void {
+  openNewExpenseModal(quinzena: FortnightNumber = 1, isParcelado: boolean = false, isShared: boolean = false): void {
     this.expenseModalQuinzena.set(quinzena);
     this.expenseToEdit.set(null);
     this.isExpenseModalParcelado.set(isParcelado);
+    this.isExpenseModalShared.set(isShared);
     this.isExpenseModalOpen.set(true);
+  }
+
+  openNewSharedExpenseModal(): void {
+    this.openNewExpenseModal(1, false, true);
   }
 
   openEditExpenseModal(expense: Expense): void {
     this.expenseModalQuinzena.set(expense.quinzena);
     this.expenseToEdit.set(expense);
     this.isExpenseModalParcelado.set(false);
+    this.isExpenseModalShared.set(false);
     this.isExpenseModalOpen.set(true);
+  }
+
+  async onToggleSharedPayment(event: { mesAno: string; id: string; status: boolean }): Promise<void> {
+    const group = this.duoGroup();
+    if (!group || !group.id) return;
+    try {
+      await this.duoService.toggleSharedExpensePaymentStatus(group.id, event.mesAno, event.id, event.status);
+      this.notificationService.success(event.status ? 'Compra compartilhada marcada como quitada!' : 'Compra compartilhada reaberta');
+    } catch (e: any) {
+      this.actionMessage.set(e.message || 'Erro ao atualizar status da compra conjunta');
+    }
+  }
+
+  async onDeleteSharedExpense(event: { mesAno: string; id: string }): Promise<void> {
+    const group = this.duoGroup();
+    if (!group || !group.id) return;
+    try {
+      await this.duoService.deleteSharedExpense(group.id, event.mesAno, event.id);
+      this.notificationService.success('Compra compartilhada excluída com sucesso!');
+    } catch (e: any) {
+      this.actionMessage.set(e.message || 'Erro ao excluir compra compartilhada');
+    }
   }
 
   openIncomeModal(): void {
