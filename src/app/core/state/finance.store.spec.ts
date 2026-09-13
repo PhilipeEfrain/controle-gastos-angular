@@ -5,6 +5,7 @@ import { FinanceStore } from './finance.store';
 import { MonthlyCycleService } from '../services/monthly-cycle.service';
 import { ExpenseService } from '../services/expense.service';
 import { TaxService } from '../services/tax.service';
+import { DuoService } from '../services/duo.service';
 import { Expense, MonthlyCycle, AnnualTax } from '../models/finance.model';
 
 describe('FinanceStore (Signals Reactive State)', () => {
@@ -12,6 +13,7 @@ describe('FinanceStore (Signals Reactive State)', () => {
   let mockCycleService: any;
   let mockExpenseService: any;
   let mockTaxService: any;
+  let mockDuoService: any;
 
   beforeEach(() => {
     mockCycleService = {
@@ -24,13 +26,17 @@ describe('FinanceStore (Signals Reactive State)', () => {
     mockTaxService = {
       getTaxesStream: vi.fn(() => of([]))
     };
+    mockDuoService = {
+      getSharedExpensesStream: vi.fn(() => of([]))
+    };
 
     TestBed.configureTestingModule({
       providers: [
         FinanceStore,
         { provide: MonthlyCycleService, useValue: mockCycleService },
         { provide: ExpenseService, useValue: mockExpenseService },
-        { provide: TaxService, useValue: mockTaxService }
+        { provide: TaxService, useValue: mockTaxService },
+        { provide: DuoService, useValue: mockDuoService }
       ]
     });
 

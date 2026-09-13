@@ -25,6 +25,9 @@ describe('AuthStore (Signals State)', () => {
       authState$: vi.fn(() => authStateSubject.asObservable()),
       syncUserProfile: vi.fn(async () => mockUser),
       cancelUserSubscription: vi.fn(async () => {}),
+      schedulePlanDowngrade: vi.fn(async () => {}),
+      cancelScheduledDowngrade: vi.fn(async () => {}),
+      updateUserSubscription: vi.fn(async () => {}),
       logout: vi.fn(async () => {})
     };
 
@@ -237,6 +240,79 @@ describe('AuthStore (Signals State)', () => {
 
       expect(mockAuthService.cancelUserSubscription).toHaveBeenCalledWith('user-123', 'sub_xyz_999');
       expect(store.planStatus()).toBe('canceled');
+    });
+
+    it('Regra 2: usuário com plano cancelado mantém isProOrDuo=true e isPlanSuspended=false se a data de expiração for futura', () => {
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + 15);
+
+      store.setUser({
+        ...mockUser,
+        plan: 'pro',
+        planStatus: 'canceled',
+        planExpiresAt: futureDate.toISOString()
+      });
+
+      expect(store.isProOrDuo()).toBe(true);
+      expect(store.isPlanSuspended()).toBe(false);
+      expect(store.isCanceledWithAccess()).toBe(true);
+    });
+
+    it('Regra 2: usuário com plano cancelado perde acesso (isProOrDuo=false, isPlanSuspended=true) se a data de expiração já expirou', () => {
+      const pastDate = new Date();
+      pastDate.setDate(pastDate.getDate() - 1);
+
+      store.setUser({
+        ...mockUser,
+        plan: 'pro',
+        planStatus: 'canceled',
+        planExpiresAt: pastDate.toISOString()
+      });
+
+      expect(store.isProOrDuo()).toBe(false);
+      expect(store.isPlanSuspended()).toBe(true);
+      expect(store.isCanceledWithAccess()).toBe(false);
+    });
+
+    it('Regra 3: deve agendar downgrade com sucesso e registrar scheduledPlan e scheduledPlanDate', async () => {
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + 20);
+
+      store.setUser({
+        ...mockUser,
+        plan: 'duo',
+        planStatus: 'active',
+        planExpiresAt: futureDate.toISOString()
+      });
+
+      await store.scheduleDowngrade('pro');
+
+      expect(mockAuthService.schedulePlanDowngrade).toHaveBeenCalledWith(
+        'user-123',
+        'pro',
+        futureDate.toISOString()
+      );
+      expect(store.scheduledPlan()).toBe('pro');
+      expect(store.hasScheduledDowngrade()).toBe(true);
+      expect(store.scheduledPlanDateFormatted()).toBeTruthy();
+      // O plano ativo continua duo
+      expect(store.currentPlan()).toBe('duo');
+    });
+
+    it('Regra 3: deve cancelar agendamento de downgrade e limpar scheduledPlan e scheduledPlanDate', async () => {
+      store.setUser({
+        ...mockUser,
+        plan: 'duo',
+        planStatus: 'active',
+        scheduledPlan: 'pro',
+        scheduledPlanDate: '2026-10-30T00:00:00.000Z'
+      });
+
+      await store.cancelScheduledDowngrade();
+
+      expect(mockAuthService.cancelScheduledDowngrade).toHaveBeenCalledWith('user-123');
+      expect(store.scheduledPlan()).toBeNull();
+      expect(store.hasScheduledDowngrade()).toBe(false);
     });
   });
 });

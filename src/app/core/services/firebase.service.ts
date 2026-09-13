@@ -36,10 +36,9 @@ export class FirebaseService {
       localCacheConfig = memoryLocalCache();
     }
 
-    // Inicializa o Firestore com long-polling forçado para compatibilidade WebChannel e persistência offline
+    // Inicializa o Firestore com persistência offline e streaming WebChannel nativo
     this.firestore = initializeFirestore(this.app, {
-      localCache: localCacheConfig,
-      experimentalForceLongPolling: true
+      localCache: localCacheConfig
     });
   }
 }

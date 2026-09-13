@@ -48,8 +48,12 @@ describe('SubscriptionModalComponent (Checkout de Assinaturas)', () => {
         email: 'philipe@example.com',
         plan: 'free'
       }),
+      currentPlan: signal('free'),
+      planExpiresAtFormatted: signal('15/10/2026'),
       updateCurrentUser: vi.fn(),
-      upgradeSubscription: vi.fn().mockResolvedValue(undefined)
+      upgradeSubscription: vi.fn().mockResolvedValue(undefined),
+      scheduleDowngrade: vi.fn().mockResolvedValue(undefined),
+      cancelScheduledDowngrade: vi.fn().mockResolvedValue(undefined)
     };
 
     mockNotificationService = {
@@ -252,6 +256,58 @@ describe('SubscriptionModalComponent (Checkout de Assinaturas)', () => {
       const connectSpy = vi.spyOn(component, 'connectPartner');
       btn.click();
       expect(connectSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('Regras de Negócio de Modificação de Assinatura (CARD-UPGRADE-DOWNGRADE)', () => {
+    it('Regra 1: deve cobrar apenas a diferença de R$ 10,00 quando usuário Pro subir para Duo', () => {
+      mockAuthStore.currentPlan.set('pro');
+      component.selectPlan('duo');
+
+      expect(component.isUpgrade()).toBe(true);
+      expect(component.upgradeDifference()).toBe(10.00);
+      expect(component.currentPrice()).toBe(10.00);
+    });
+
+    it('Regra 1: deve enviar customValue de 10.00 para a criação de assinatura no Asaas ao realizar upgrade Pro -> Duo', async () => {
+      mockAuthStore.currentPlan.set('pro');
+      component.selectPlan('duo');
+      component.goToCheckout();
+      component.customerCpf.set('529.982.247-25');
+
+      await component.generatePixPayment();
+
+      expect(mockAsaasService.createSubscription).toHaveBeenCalledWith(
+        expect.objectContaining({
+          plan: 'duo',
+          customValue: 10.00
+        }),
+        expect.anything(),
+        expect.anything()
+      );
+    });
+
+    it('Regra 3: deve redirecionar para tela de agendamento quando usuário Duo selecionar plano Pro', () => {
+      mockAuthStore.currentPlan.set('duo');
+      component.selectPlan('pro');
+
+      expect(component.isDowngrade()).toBe(true);
+      expect(component.currentPrice()).toBe(0);
+
+      component.goToCheckout();
+      expect(component.step()).toBe('schedule-downgrade');
+    });
+
+    it('Regra 3: deve chamar authStore.scheduleDowngrade ao confirmar alteração para o próximo ciclo', async () => {
+      mockAuthStore.currentPlan.set('duo');
+      component.selectPlan('pro');
+      component.goToCheckout();
+
+      await component.confirmScheduledDowngrade();
+
+      expect(mockAuthStore.scheduleDowngrade).toHaveBeenCalledWith('pro');
+      expect(component.step()).toBe('success');
+      expect(mockNotificationService.success).toHaveBeenCalled();
     });
   });
 });

@@ -16,6 +16,7 @@ describe('ExpenseFormModalComponent', () => {
   let mockInstallmentService: any;
   let mockPlanLimitsService: any;
   let mockAuthStore: any;
+  let mockDuoService: any;
 
   const mockUser: UserProfile = {
     uid: 'user-123',
@@ -61,13 +62,19 @@ describe('ExpenseFormModalComponent', () => {
       isProOrDuo: signal(false)
     };
 
+    mockDuoService = {
+      addSharedExpense: vi.fn().mockResolvedValue('shared-1'),
+      createSharedInstallments: vi.fn().mockResolvedValue(undefined)
+    };
+
     await TestBed.configureTestingModule({
       imports: [ExpenseFormModalComponent],
       providers: [
         { provide: ExpenseService, useValue: mockExpenseService },
         { provide: InstallmentService, useValue: mockInstallmentService },
         { provide: PlanLimitsService, useValue: mockPlanLimitsService },
-        { provide: AuthStore, useValue: mockAuthStore }
+        { provide: AuthStore, useValue: mockAuthStore },
+        { provide: (await import('../../../../core/services/duo.service')).DuoService, useValue: mockDuoService }
       ]
     }).compileComponents();
 
@@ -278,5 +285,43 @@ describe('ExpenseFormModalComponent', () => {
       resourceName: 'Contas Fixas Recorrentes'
     }));
     expect(mockExpenseService.addRecurringExpense).not.toHaveBeenCalled();
+  });
+
+  it('Cenário BDD: DEVE lançar compra compartilhada (Nossos Gastos) com rateio 50/50 quando no Modo Duo', async () => {
+    fixture.componentRef.setInput('isDuo', true);
+    fixture.componentRef.setInput('duoGroup', {
+      id: 'grp-1',
+      ownerId: 'user-123',
+      ownerName: 'Philipe',
+      partnerId: 'user-456',
+      partnerName: 'Mariana',
+      status: 'active'
+    });
+    fixture.detectChanges();
+
+    component.form.patchValue({
+      tipo: 'despesa',
+      descricao: 'Geladeira Frost Free',
+      valor: 2000,
+      quinzena: 1,
+      categoria: 'Moradia',
+      isShared: true,
+      tipoDivisao: '50_50',
+      pagoPor: 'me',
+      isParcelado: false
+    });
+
+    await component.onSubmit();
+
+    expect(mockDuoService.addSharedExpense).toHaveBeenCalledWith(
+      'grp-1',
+      expect.objectContaining({
+        descricao: 'Geladeira Frost Free',
+        valorTotal: 2000,
+        valorOwner: 1000,
+        valorPartner: 1000,
+        members: ['user-123', 'user-456']
+      })
+    );
   });
 });

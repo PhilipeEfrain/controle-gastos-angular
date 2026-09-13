@@ -268,43 +268,19 @@ export class AdminService {
     };
   }
 
-  private readonly ASAAS_LOCAL_STORAGE_KEY = 'quinzena_asaas_config';
-
   /**
-   * Recupera o backup local das configurações do Asaas para resiliência de ambiente offline/desenvolvimento
-   */
-  private getLocalAsaasConfig(): AsaasConfig | null {
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        const raw = localStorage.getItem(this.ASAAS_LOCAL_STORAGE_KEY);
-        if (raw) {
-          return JSON.parse(raw) as AsaasConfig;
-        }
-      }
-    } catch {
-      // Ignora falha de leitura em ambientes sem localStorage
-    }
-    return null;
-  }
-
-  /**
-   * Salva o backup local das configurações do Asaas no localStorage
-   */
-  private setLocalAsaasConfig(config: AsaasConfig): void {
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        localStorage.setItem(this.ASAAS_LOCAL_STORAGE_KEY, JSON.stringify(config));
-      }
-    } catch {
-      // Ignora falha de escrita em ambientes sem localStorage
-    }
-  }
-
-  /**
-   * Obtém as configurações ativas do gateway Asaas salvas no Firestore, com fallback para cache local
+   * Obtém as configurações ativas do gateway Asaas salvas no Firestore (exclusivo para administradores)
    */
   async getAsaasConfig(): Promise<AsaasConfig | null> {
-    const localBackup = this.getLocalAsaasConfig();
+    // Purga proativa de chave legada caso existente em versões anteriores
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.removeItem('quinzena_asaas_config');
+      }
+    } catch {
+      // Ignora erro em ambientes sem localStorage
+    }
+
     try {
       const configDocRef = doc(this.firestore, 'system_config', 'asaas');
       const snap = await getDoc(configDocRef);
@@ -322,11 +298,7 @@ export class AdminService {
           lastTestMessage: data['lastTestMessage'] || undefined,
           updatedAt: data['updatedAt'] || undefined
         };
-        this.setLocalAsaasConfig(config);
         return config;
-      }
-      if (localBackup) {
-        return localBackup;
       }
       return {
         environment: 'sandbox',
@@ -337,10 +309,7 @@ export class AdminService {
         isActive: false
       };
     } catch (err: any) {
-      this.logger.warn('Aviso: Não foi possível carregar configurações do Asaas no Firestore. Utilizando cache local.', err);
-      if (localBackup) {
-        return localBackup;
-      }
+      this.logger.warn('Aviso: Não foi possível carregar configurações do Asaas no Firestore.', err);
       return {
         environment: 'sandbox',
         apiKey: '',
@@ -353,11 +322,16 @@ export class AdminService {
   }
 
   /**
-   * Salva com segurança as configurações do Asaas na coleção administrativa do Firestore e no cache local
+   * Salva com segurança as configurações do Asaas na coleção administrativa do Firestore (sem persistir segredos em localStorage)
    */
   async saveAsaasConfig(config: AsaasConfig): Promise<{ syncedWithCloud: boolean }> {
-    // 1. Sempre preserva em cache local primeiro
-    this.setLocalAsaasConfig(config);
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.removeItem('quinzena_asaas_config');
+      }
+    } catch {
+      // Ignora
+    }
 
     try {
       const configDocRef = doc(this.firestore, 'system_config', 'asaas');

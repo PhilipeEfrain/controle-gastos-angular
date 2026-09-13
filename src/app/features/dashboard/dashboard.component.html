@@ -318,8 +318,58 @@
       </section>
     }
 
-    <!-- Card de Acerto de Contas do Casal (Modo Duo com parceiro conectado) -->
-    @if (settlementSummary(); as settlement) {
+    <!-- Seletor de Escopo do Modo Casal (Meus Gastos vs Nossos Gastos vs Visão 50/50) -->
+    @if (isDuoActive()) {
+      <div class="duo-scope-nav">
+        <button
+          type="button"
+          class="duo-tab-btn"
+          [class.active]="activeDuoTab() === 'meus'"
+          (click)="activeDuoTab.set('meus')"
+        >
+          <span class="tab-icon">👤</span>
+          <span>Meus Gastos</span>
+        </button>
+        <button
+          type="button"
+          class="duo-tab-btn shared-tab"
+          [class.active]="activeDuoTab() === 'nossos'"
+          (click)="activeDuoTab.set('nossos')"
+        >
+          <span class="tab-icon">👫</span>
+          <span>Nossos Gastos (Casal)</span>
+          @if (financeStore.sharedExpenses().length > 0) {
+            <span class="tab-pill">{{ financeStore.sharedExpenses().length }}</span>
+          }
+        </button>
+        <button
+          type="button"
+          class="duo-tab-btn"
+          [class.active]="activeDuoTab() === 'visao'"
+          (click)="activeDuoTab.set('visao')"
+        >
+          <span class="tab-icon">📊</span>
+          <span>Visão 50/50</span>
+        </button>
+      </div>
+    }
+
+    <!-- Exibição de Nossos Gastos (Compras & Contas Conjuntas do Casal) -->
+    @if (isDuoActive() && activeDuoTab() === 'nossos') {
+      <app-duo-shared-expenses-list
+        [sharedExpenses]="financeStore.sharedExpenses()"
+        [currentUserId]="authStore.currentUser()?.uid ?? ''"
+        [isOwner]="duoGroup()?.ownerId === authStore.currentUser()?.uid"
+        [ownerName]="duoGroup()?.ownerName ?? 'Titular'"
+        [partnerName]="duoGroup()?.partnerName ?? 'Parceiro(a)'"
+        (addSharedExpense)="openNewSharedExpenseModal()"
+        (togglePayment)="onToggleSharedPayment($event)"
+        (deleteExpense)="onDeleteSharedExpense($event)"
+      />
+    }
+
+    <!-- Card Proporcional 50/50 (Modo Duo com parceiro conectado na aba Visão) -->
+    @if (isDuoActive() && activeDuoTab() === 'visao' && settlementSummary(); as settlement) {
       <section class="duo-section">
         <app-duo-settlement-card
           [group]="duoGroup()!"
@@ -329,36 +379,38 @@
       </section>
     }
 
-    <!-- Grid Quinzenal (Quinzena 1 e Quinzena 2 lado a lado) -->
-    <section class="fortnights-grid">
-      <!-- Quinzena 1: Renda do Dia 31 -->
-      <app-fortnight-card
-        [quinzena]="1"
-        [summary]="financeStore.balanceSummary().q1"
-        [expenses]="financeStore.q1Expenses()"
-        [isLoading]="financeStore.isLoading()"
-        (addExpense)="openNewExpenseModal(1)"
-        (editIncome)="openIncomeModal()"
-        (togglePaid)="onTogglePaid($event)"
-        (editExpense)="openEditExpenseModal($event)"
-        (deleteExpense)="onDeleteExpense($event)"
-        (updateReceipt)="openReceiptModal($event)"
-      />
+    <!-- Grid Quinzenal (Meus Gastos Pessoais) -->
+    @if (!isDuoActive() || activeDuoTab() === 'meus') {
+      <section class="fortnights-grid">
+        <!-- Quinzena 1: Renda do Dia 31 -->
+        <app-fortnight-card
+          [quinzena]="1"
+          [summary]="financeStore.balanceSummary().q1"
+          [expenses]="financeStore.q1Expenses()"
+          [isLoading]="financeStore.isLoading()"
+          (addExpense)="openNewExpenseModal(1)"
+          (editIncome)="openIncomeModal()"
+          (togglePaid)="onTogglePaid($event)"
+          (editExpense)="openEditExpenseModal($event)"
+          (deleteExpense)="onDeleteExpense($event)"
+          (updateReceipt)="openReceiptModal($event)"
+        />
 
-      <!-- Quinzena 2: Renda do Dia 15 -->
-      <app-fortnight-card
-        [quinzena]="2"
-        [summary]="financeStore.balanceSummary().q2"
-        [expenses]="financeStore.q2Expenses()"
-        [isLoading]="financeStore.isLoading()"
-        (addExpense)="openNewExpenseModal(2)"
-        (editIncome)="openIncomeModal()"
-        (togglePaid)="onTogglePaid($event)"
-        (editExpense)="openEditExpenseModal($event)"
-        (deleteExpense)="onDeleteExpense($event)"
-        (updateReceipt)="openReceiptModal($event)"
-      />
-    </section>
+        <!-- Quinzena 2: Renda do Dia 15 -->
+        <app-fortnight-card
+          [quinzena]="2"
+          [summary]="financeStore.balanceSummary().q2"
+          [expenses]="financeStore.q2Expenses()"
+          [isLoading]="financeStore.isLoading()"
+          (addExpense)="openNewExpenseModal(2)"
+          (editIncome)="openIncomeModal()"
+          (togglePaid)="onTogglePaid($event)"
+          (editExpense)="openEditExpenseModal($event)"
+          (deleteExpense)="onDeleteExpense($event)"
+          (updateReceipt)="openReceiptModal($event)"
+        />
+      </section>
+    }
 
     <!-- Seção de Analytics e Gráficos Financeiros -->
     <section class="analytics-section">
@@ -410,6 +462,9 @@
   [expenseToEdit]="expenseToEdit()"
   [initialParcelado]="isExpenseModalParcelado()"
   [mesAno]="financeStore.selectedMonth()"
+  [isDuo]="isDuoActive()"
+  [duoGroup]="duoGroup()"
+  [initialShared]="isExpenseModalShared()"
   (close)="isExpenseModalOpen.set(false)"
   (saved)="onExpenseSaved()"
 />

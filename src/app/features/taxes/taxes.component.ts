@@ -77,10 +77,7 @@ export class TaxesComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const user = this.authStore.currentUser();
-    if (user) {
-      this.financeStore.connectTaxesStream(user.uid);
-    }
+    // A subscrição reativa aos tributos é gerenciada pelo effect() no construtor
   }
 
   setFilter(filter: 'Todos' | 'Pendente' | 'Pago'): void {

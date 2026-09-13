@@ -98,10 +98,17 @@ describe('ExpenseItemRowComponent', () => {
 
   describe('Cenários BDD (CARD-059): Monitoramento e Alertas de Vencimento na Linha da Despesa', () => {
     it('Cenário BDD 1: deve exibir badge de Vencida e classe is-overdue quando pendente e vencimento no passado', () => {
+      const toLocalDateStr = (d: Date): string => {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+
       // Data no passado
       const pastDate = new Date();
       pastDate.setDate(pastDate.getDate() - 3);
-      const pastDateStr = pastDate.toISOString().split('T')[0];
+      const pastDateStr = toLocalDateStr(pastDate);
 
       const overdueExpense: Expense = {
         ...mockExpense,
@@ -119,7 +126,13 @@ describe('ExpenseItemRowComponent', () => {
     });
 
     it('Cenário BDD 2: deve exibir badge Vence Hoje quando a data for hoje', () => {
-      const todayStr = new Date().toISOString().split('T')[0];
+      const toLocalDateStr = (d: Date): string => {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+      const todayStr = toLocalDateStr(new Date());
 
       const todayExpense: Expense = {
         ...mockExpense,
@@ -136,9 +149,15 @@ describe('ExpenseItemRowComponent', () => {
     });
 
     it('Cenário BDD 3: deve exibir badge Vence em Breve quando o vencimento for nos próximos 1 a 3 dias', () => {
+      const toLocalDateStr = (d: Date): string => {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
       const soonDate = new Date();
       soonDate.setDate(soonDate.getDate() + 2);
-      const soonDateStr = soonDate.toISOString().split('T')[0];
+      const soonDateStr = toLocalDateStr(soonDate);
 
       const dueSoonExpense: Expense = {
         ...mockExpense,
@@ -155,9 +174,15 @@ describe('ExpenseItemRowComponent', () => {
     });
 
     it('Cenário BDD 4: despesa quitada (status_pagamento = true) NÃO deve exibir badge de alerta de atraso nem classe is-overdue', () => {
+      const toLocalDateStr = (d: Date): string => {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
       const pastDate = new Date();
       pastDate.setDate(pastDate.getDate() - 5);
-      const pastDateStr = pastDate.toISOString().split('T')[0];
+      const pastDateStr = toLocalDateStr(pastDate);
 
       const paidExpense: Expense = {
         ...mockExpense,
