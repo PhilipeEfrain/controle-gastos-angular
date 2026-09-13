@@ -78,6 +78,8 @@
 | `PlanLimitsService` | `src/app/core/services/plan-limits.service.ts` | Validação de regras e limites da matriz de planos SaaS (Free: máx 3 recorrentes, 3 parcelamentos, 1 tributo, 1 viagem, 2 meses histórico; Pro/Duo: ilimitado, 13 meses e PDF). |
 | `AnalyticsService` | `src/app/core/services/analytics.service.ts` | Serviço centralizado de telemetria Google Analytics 4 (GA4) / Firebase Analytics: rastreamento automático de rotas SPA, sanitização estrita de PII (LGPD), injeção via `ANALYTICS_ADAPTER`, `setUserId`, `setUserProperties` e suporte ao Google Consent Mode v2. |
 | `SeoService` | `src/app/core/services/seo.service.ts` | Gerenciamento dinâmico de metatags On-Page (`Title`, `Meta`), URLs canônicas, OpenGraph, Twitter Cards e controle de indexação de rotas (`noindex` em áreas privadas). |
+| `CaixinhaService` | `src/app/core/services/caixinha.service.ts` | Gestão de Caixinha / Reserva de Emergência Figurativa (`getCaixinhaStream`, `initOrUpdateCaixinha`, `registrarAporte`, `registrarResgate` com injeção automática de renda extra no ciclo, `getMovimentacoesStream` limitado a 20 registros). |
+| `NavigationModalService` | `src/app/core/services/navigation-modal.service.ts` | Coordenação reativa e desacoplada de modais globais (Caixinha, Exportação, Nova Despesa) acionados a partir de menus Desktop e Mobile Bottom Navigation. |
 
 ---
 

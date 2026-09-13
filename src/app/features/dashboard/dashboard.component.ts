@@ -40,6 +40,7 @@ import { SubscriptionModalComponent } from '../../shared/components/subscription
 import { OnboardingChecklistComponent } from './components/onboarding-checklist/onboarding-checklist.component';
 import { AdBannerComponent } from '../../shared/components/ad-banner/ad-banner.component';
 import { CaixinhaModalComponent } from '../caixinha/caixinha-modal/caixinha-modal.component';
+import { NavigationModalService } from '../../core/services/navigation-modal.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -80,6 +81,7 @@ export class DashboardComponent implements OnInit {
   private readonly analyticsService = inject(AnalyticsService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  readonly navModalService = inject(NavigationModalService);
 
   // Modo Casal / Duo State
   readonly duoGroup = signal<DuoGroup | null>(null);
@@ -232,6 +234,26 @@ export class DashboardComponent implements OnInit {
         });
       }
     });
+
+    // Sincronização com o NavigationModalService para acionamento global de modais (CARD-069)
+    effect(() => {
+      if (this.navModalService.isCaixinhaOpen()) {
+        this.isCaixinhaModalOpen.set(true);
+      }
+    });
+
+    effect(() => {
+      if (this.navModalService.isExportOpen()) {
+        this.isExportModalOpen.set(true);
+      }
+    });
+
+    effect(() => {
+      if (this.navModalService.isNewExpenseOpen()) {
+        const q = this.navModalService.newExpenseQuinzena();
+        this.openNewExpenseModal(q);
+      }
+    });
   }
 
   // Onboarding & Guia de Primeiro Acesso
@@ -309,6 +331,38 @@ export class DashboardComponent implements OnInit {
           queryParams: {},
           replaceUrl: true
         });
+      }
+
+      if (params['action'] === 'caixinha') {
+        this.isCaixinhaModalOpen.set(true);
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: {},
+          replaceUrl: true
+        });
+      }
+
+      if (params['action'] === 'export') {
+        this.isExportModalOpen.set(true);
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: {},
+          replaceUrl: true
+        });
+      }
+
+      if (params['action'] === 'newExpense') {
+        const q = Number(params['q']) === 2 ? 2 : 1;
+        this.openNewExpenseModal(q as FortnightNumber);
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: {},
+          replaceUrl: true
+        });
+      }
+
+      if (params['tab'] === 'nossos') {
+        this.activeDuoTab.set('nossos');
       }
 
       const duoCode = params['duoCode'];
@@ -444,6 +498,21 @@ export class DashboardComponent implements OnInit {
 
   onReceiptSaved(): void {
     this.notificationService.success('Comprovante bancário vinculado com sucesso!');
+  }
+
+  onExpenseModalClosed(): void {
+    this.isExpenseModalOpen.set(false);
+    this.navModalService.closeNewExpense();
+  }
+
+  onExportModalClosed(): void {
+    this.isExportModalOpen.set(false);
+    this.navModalService.closeExport();
+  }
+
+  onCaixinhaModalClosed(): void {
+    this.isCaixinhaModalOpen.set(false);
+    this.navModalService.closeCaixinha();
   }
 
   // Ações Diretas de Despesas

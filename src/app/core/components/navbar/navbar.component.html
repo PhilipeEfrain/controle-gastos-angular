@@ -2,18 +2,21 @@
   <div class="header-container">
     <!-- Brand / Logo -->
     <div class="header-brand">
-      <a routerLink="/dashboard" (click)="closeMobileMenu()" class="brand-link">
+      <a routerLink="/dashboard" (click)="closeAllMenus()" class="brand-link">
         <app-brand-logo [size]="'sm'" />
       </a>
     </div>
 
-    <!-- Desktop Navigation Links -->
+    <!-- Desktop Navigation Links (Pilares Semânticos) -->
     <nav class="desktop-nav" aria-label="Navegação principal">
+      <!-- 1. Painel Quinzenal (Core) -->
       <a
         routerLink="/dashboard"
         routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
         class="nav-link"
         id="nav-dashboard"
+        title="Painel de Gastos Quinzenais"
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="nav-icon">
           <rect width="7" height="9" x="3" y="3" rx="1" />
@@ -21,76 +24,127 @@
           <rect width="7" height="9" x="14" y="12" rx="1" />
           <rect width="7" height="5" x="3" y="16" rx="1" />
         </svg>
-        <span>Dashboard</span>
+        <span>Painel</span>
       </a>
 
-      <a
-        routerLink="/tributos"
-        routerLinkActive="active"
-        class="nav-link"
-        id="nav-tributos"
+      <!-- 2. Minhas Reservas (Caixinha) -->
+      <button
+        type="button"
+        class="nav-link nav-btn"
+        (click)="openCaixinha()"
+        id="nav-reservas"
+        title="Minhas Reservas & Caixinha de Emergência"
       >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="nav-icon">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
-        <span>Tributos & Anuais</span>
-      </a>
+        <span class="nav-emoji">🐷</span>
+        <span>Reservas</span>
+      </button>
 
-      <a
-        routerLink="/viagens"
-        routerLinkActive="active"
-        class="nav-link"
-        id="nav-viagens"
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="nav-icon">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <span>Gastos de Viagem</span>
-      </a>
-
+      <!-- 3. Compromissos Fixos & Parcelas -->
       <a
         routerLink="/parcelamentos"
         routerLinkActive="active"
         class="nav-link"
         id="nav-parcelamentos"
+        title="Compras Parceladas & Fixos"
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="nav-icon">
           <rect x="2" y="5" width="20" height="14" rx="2" />
           <line x1="2" y1="10" x2="22" y2="10" />
         </svg>
-        <span>Parcelas</span>
+        <span>Compromissos</span>
       </a>
 
-      <a
-        routerLink="/configuracoes"
-        routerLinkActive="active"
-        class="nav-link"
-        id="nav-configuracoes"
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="nav-icon">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" />
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-        </svg>
-        <span>Ajustes</span>
-      </a>
+      <!-- 4. Espaço Casal (Condicional Duo) -->
+      @if (isDuo() || currentPlan() === 'duo') {
+        <button
+          type="button"
+          class="nav-link nav-btn nav-btn-duo"
+          (click)="navigateToDuo()"
+          id="nav-casal"
+          title="Espaço do Casal - Meus Gastos e Nossos Gastos"
+        >
+          <span class="nav-emoji">👫</span>
+          <span>Casal</span>
+          <span class="nav-badge-duo">Duo</span>
+        </button>
+      }
 
-      @if (isAdmin()) {
-        <a
-          routerLink="/admin"
-          routerLinkActive="active"
-          class="nav-link nav-link-admin"
-          id="nav-admin"
-          title="Painel Administrativo"
+      <!-- 5. Relatórios & Dossiê (Dropdown Semântico) -->
+      <div class="nav-dropdown-wrapper">
+        <button
+          type="button"
+          class="nav-link nav-btn nav-dropdown-btn"
+          (click)="toggleReportsMenu()"
+          [class.active]="isReportsMenuOpen()"
+          id="nav-relatorios"
+          aria-haspopup="true"
+          [attr.aria-expanded]="isReportsMenuOpen()"
+          title="Relatórios, Tributos, Viagens e Exportação"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="nav-icon">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
           </svg>
-          <span>Admin</span>
-        </a>
-      }
+          <span>Relatórios</span>
+          <svg viewBox="0 0 20 20" fill="currentColor" class="dropdown-chevron" [class.rotated]="isReportsMenuOpen()">
+            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.21 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+          </svg>
+        </button>
+
+        @if (isReportsMenuOpen()) {
+          <div class="nav-dropdown-menu" role="menu">
+            <a
+              routerLink="/tributos"
+              (click)="closeReportsMenu()"
+              class="dropdown-item"
+              id="dropdown-tributos"
+              role="menuitem"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="dropdown-item-icon">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <div class="dropdown-item-content">
+                <span class="item-title">Tributos & Anuais</span>
+                <span class="item-desc">IPVA, IPTU, seguros e tributos anuais</span>
+              </div>
+            </a>
+
+            <a
+              routerLink="/viagens"
+              (click)="closeReportsMenu()"
+              class="dropdown-item"
+              id="dropdown-viagens"
+              role="menuitem"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="dropdown-item-icon">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div class="dropdown-item-content">
+                <span class="item-title">Gastos de Viagem</span>
+                <span class="item-desc">Roteiros, rateios e conversão de moeda</span>
+              </div>
+            </a>
+
+            <button
+              type="button"
+              class="dropdown-item"
+              (click)="openExport()"
+              id="dropdown-exportar"
+              role="menuitem"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="dropdown-item-icon">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+              <div class="dropdown-item-content">
+                <span class="item-title">Exportar Dossiê</span>
+                <span class="item-desc">Relatórios completos em PDF e Excel</span>
+              </div>
+            </button>
+          </div>
+        }
+      </div>
     </nav>
 
-    <!-- User Profile & Actions -->
+    <!-- User Profile & System Actions -->
     <div class="header-actions">
       <!-- Alternador de Tema Dark/Dark-Blue/Light -->
       <button
@@ -102,17 +156,14 @@
         id="btn-navbar-theme"
       >
         @if (currentTheme() === 'dark') {
-          <!-- Ícone Modo Escuro Quinzena (Lua Crescente) -->
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon">
             <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
           </svg>
         } @else if (currentTheme() === 'dark-blue') {
-          <!-- Ícone Modo Escuro Azul Noturno (Lua Estilizada) -->
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon theme-icon-blue">
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
           </svg>
         } @else {
-          <!-- Ícone Modo Claro (Sol) -->
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon theme-icon-sun">
             <circle cx="12" cy="12" r="5" />
             <line x1="12" y1="1" x2="12" y2="3" />
@@ -127,6 +178,7 @@
         }
       </button>
 
+      <!-- Botão Upgrade PRO -->
       @if (isAuthenticated() && !isProOrDuo()) {
         <button
           type="button"
@@ -140,13 +192,15 @@
         </button>
       }
 
+      <!-- Status Offline -->
       @if (!isOnline()) {
-        <div class="offline-status-badge" title="Você está desconectado. Modo offline ativo com sincronização automática.">
+        <div class="offline-status-badge" title="Modo offline ativo com sincronização automática.">
           <span class="offline-dot"></span>
           <span class="offline-label">Offline</span>
         </div>
       }
 
+      <!-- Instalar PWA -->
       @if (canInstall()) {
         <button
           type="button"
@@ -161,44 +215,112 @@
         </button>
       }
 
+      <!-- Profile & Account Dropdown -->
       @if (user(); as currentUser) {
-        <a routerLink="/configuracoes" class="user-profile-badge" title="Ver Configurações & Perfil">
-          <div class="user-avatar">
-            @if (currentUser.photoURL) {
-              <img [src]="currentUser.photoURL" [alt]="currentUser.displayName" class="avatar-img" />
-            } @else {
-              <span class="avatar-initials">{{ userInitials() }}</span>
-            }
-          </div>
-          <div class="user-info">
-            <span class="user-name">{{ currentUser.displayName }}</span>
-            <span class="user-email">{{ currentUser.email }}</span>
-          </div>
-        </a>
+        <div class="user-profile-wrapper">
+          <button
+            type="button"
+            class="user-profile-badge"
+            (click)="toggleProfileMenu()"
+            [attr.aria-expanded]="isProfileMenuOpen()"
+            title="Minha Conta e Preferências"
+            id="btn-navbar-profile"
+          >
+            <div class="user-avatar">
+              @if (currentUser.photoURL) {
+                <img [src]="currentUser.photoURL" [alt]="currentUser.displayName" class="avatar-img" />
+              } @else {
+                <span class="avatar-initials">{{ userInitials() }}</span>
+              }
+            </div>
+            <div class="user-info">
+              <span class="user-name">{{ currentUser.displayName }}</span>
+              <span class="user-email">{{ currentUser.email }}</span>
+            </div>
+            <svg viewBox="0 0 20 20" fill="currentColor" class="profile-chevron" [class.rotated]="isProfileMenuOpen()">
+              <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.21 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+            </svg>
+          </button>
 
-        <button
-          type="button"
-          class="btn-logout"
-          (click)="logout()"
-          [disabled]="isLoggingOut()"
-          title="Sair da conta"
-          aria-label="Sair da conta"
-          id="btn-navbar-logout"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="logout-icon">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
-          </svg>
-          <span class="logout-text">Sair</span>
-        </button>
+          @if (isProfileMenuOpen()) {
+            <div class="user-profile-menu" role="menu">
+              <div class="profile-header-info">
+                <span class="profile-fullname">{{ currentUser.displayName || 'Usuário Quinzena' }}</span>
+                <span class="profile-mail">{{ currentUser.email }}</span>
+                <span class="profile-plan-badge" [class.plan-pro]="isProOrDuo()">
+                  Plano {{ currentPlan() | uppercase }}
+                </span>
+              </div>
+
+              <div class="profile-divider"></div>
+
+              <a
+                routerLink="/configuracoes"
+                (click)="closeProfileMenu()"
+                class="profile-menu-item"
+                id="nav-configuracoes"
+                role="menuitem"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="menu-item-icon">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                </svg>
+                <span>Configurações & Perfil</span>
+              </a>
+
+              @if (isAdmin()) {
+                <a
+                  routerLink="/admin"
+                  (click)="closeProfileMenu()"
+                  class="profile-menu-item profile-admin-item"
+                  id="nav-admin"
+                  role="menuitem"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="menu-item-icon">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                  </svg>
+                  <span>Painel Admin</span>
+                </a>
+              }
+
+              <button
+                type="button"
+                class="profile-menu-item"
+                (click)="isSubscriptionModalOpen.set(true); closeProfileMenu()"
+                role="menuitem"
+              >
+                <span class="menu-item-emoji">⭐</span>
+                <span>Assinatura & Planos</span>
+              </button>
+
+              <div class="profile-divider"></div>
+
+              <button
+                type="button"
+                class="profile-menu-item profile-logout-item"
+                (click)="logout()"
+                [disabled]="isLoggingOut()"
+                id="btn-navbar-logout"
+                role="menuitem"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="menu-item-icon">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+                </svg>
+                <span>Sair da conta</span>
+              </button>
+            </div>
+          }
+        </div>
       }
 
-      <!-- Mobile Hamburger Toggle -->
+      <!-- Mobile Menu Hamburger Button -->
       <button
         type="button"
         class="mobile-toggle"
         (click)="toggleMobileMenu()"
         [attr.aria-expanded]="isMobileMenuOpen()"
-        aria-label="Abrir menu de navegação"
+        aria-label="Menu de opções"
+        id="btn-mobile-toggle"
       >
         @if (isMobileMenuOpen()) {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="toggle-icon">
@@ -212,164 +334,306 @@
       </button>
     </div>
   </div>
+</header>
 
-  <!-- Mobile Drawer Menu -->
-  @if (isMobileMenuOpen()) {
-    <div class="mobile-menu" role="menu">
-      <nav class="mobile-nav">
-        <a
-          routerLink="/dashboard"
-          routerLinkActive="active"
-          (click)="closeMobileMenu()"
-          class="mobile-nav-link"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="nav-icon">
-            <rect width="7" height="9" x="3" y="3" rx="1" />
-            <rect width="7" height="5" x="14" y="3" rx="1" />
-            <rect width="7" height="9" x="14" y="12" rx="1" />
-            <rect width="7" height="5" x="3" y="16" rx="1" />
-          </svg>
-          <span>Dashboard</span>
-        </a>
+<!-- ======================================================== -->
+<!-- MOBILE BOTTOM NAVIGATION BAR (Fixa e Ergonômica)          -->
+<!-- ======================================================== -->
+@if (isAuthenticated()) {
+  <nav class="mobile-bottom-nav" aria-label="Navegação móvel principal">
+    <!-- 1. Painel Quinzenal -->
+    <a
+      routerLink="/dashboard"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      (click)="closeAllMenus()"
+      class="bottom-nav-item"
+      id="bottom-nav-dashboard"
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="bottom-nav-icon">
+        <rect width="7" height="9" x="3" y="3" rx="1" />
+        <rect width="7" height="5" x="14" y="3" rx="1" />
+        <rect width="7" height="9" x="14" y="12" rx="1" />
+        <rect width="7" height="5" x="3" y="16" rx="1" />
+      </svg>
+      <span class="bottom-nav-label">Painel</span>
+    </a>
 
+    <!-- 2. Minhas Reservas (Caixinha) -->
+    <button
+      type="button"
+      class="bottom-nav-item bottom-nav-btn"
+      (click)="openCaixinha()"
+      id="bottom-nav-reservas"
+    >
+      <span class="bottom-nav-emoji">🐷</span>
+      <span class="bottom-nav-label">Reservas</span>
+    </button>
+
+    <!-- 3. Botão Flutuante Central: Novo Lançamento Rápido -->
+    <button
+      type="button"
+      class="bottom-nav-action-center"
+      (click)="openNewExpense(1)"
+      id="bottom-nav-action-new"
+      title="Registrar Novo Gasto"
+      aria-label="Registrar Novo Gasto"
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="action-plus-icon">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+      </svg>
+    </button>
+
+    <!-- 4. Compromissos (Parcelas & Fixos) -->
+    <a
+      routerLink="/parcelamentos"
+      routerLinkActive="active"
+      (click)="closeAllMenus()"
+      class="bottom-nav-item"
+      id="bottom-nav-compromissos"
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="bottom-nav-icon">
+        <rect x="2" y="5" width="20" height="14" rx="2" />
+        <line x1="2" y1="10" x2="22" y2="10" />
+      </svg>
+      <span class="bottom-nav-label">Parcelas</span>
+    </a>
+
+    <!-- 5. Mais Opções (Drawer Lateral/Inferior) -->
+    <button
+      type="button"
+      class="bottom-nav-item bottom-nav-btn"
+      [class.active]="isMobileMenuOpen()"
+      (click)="toggleMobileMenu()"
+      id="bottom-nav-more"
+      aria-label="Mais opções de menu"
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="bottom-nav-icon">
+        <circle cx="12" cy="12" r="1.5" />
+        <circle cx="19" cy="12" r="1.5" />
+        <circle cx="5" cy="12" r="1.5" />
+      </svg>
+      <span class="bottom-nav-label">Mais</span>
+    </button>
+  </nav>
+}
+
+<!-- ======================================================== -->
+<!-- MOBILE DRAWER / GAVETA "MAIS"                            -->
+<!-- ======================================================== -->
+@if (isMobileMenuOpen()) {
+  <div class="mobile-drawer-backdrop" (click)="closeMobileMenu()"></div>
+  <div class="mobile-menu-drawer" role="dialog" aria-modal="true" aria-label="Menu Completo">
+    <div class="drawer-header">
+      <div class="drawer-user-info">
+        <div class="drawer-avatar">
+          @if (user()?.photoURL) {
+            <img [src]="user()?.photoURL" [alt]="user()?.displayName" class="avatar-img" />
+          } @else {
+            <span>{{ userInitials() }}</span>
+          }
+        </div>
+        <div class="drawer-user-text">
+          <span class="drawer-name">{{ user()?.displayName || 'Usuário Quinzena' }}</span>
+          <span class="drawer-plan">Plano {{ currentPlan() | uppercase }}</span>
+        </div>
+      </div>
+      <button type="button" class="btn-drawer-close" (click)="closeMobileMenu()" aria-label="Fechar menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="drawer-content">
+      <!-- Seção: Recursos Coletivos & Casal -->
+      @if (isDuo() || currentPlan() === 'duo') {
+        <div class="drawer-group">
+          <span class="drawer-group-title">Espaço Casal</span>
+          <button
+            type="button"
+            class="mobile-nav-link"
+            (click)="navigateToDuo()"
+            id="mobile-nav-duo"
+          >
+            <span class="drawer-emoji">👫</span>
+            <div class="drawer-link-text">
+              <span class="drawer-link-main">Modo Casal & Acordo 50/50</span>
+              <span class="drawer-link-sub">Meus Gastos, Nossos Gastos e Balanço Conjunto</span>
+            </div>
+          </button>
+        </div>
+      }
+
+      <!-- Seção: Relatórios & Tributos -->
+      <div class="drawer-group">
+        <span class="drawer-group-title">Relatórios & Planejamento</span>
         <a
           routerLink="/tributos"
-          routerLinkActive="active"
           (click)="closeMobileMenu()"
           class="mobile-nav-link"
+          id="mobile-nav-tributos"
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="drawer-icon">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          <span>Tributos & Anuais</span>
+          <div class="drawer-link-text">
+            <span class="drawer-link-main">Tributos & Anuais</span>
+            <span class="drawer-link-sub">Planejamento de IPTU, IPVA e seguros</span>
+          </div>
         </a>
 
         <a
           routerLink="/viagens"
-          routerLinkActive="active"
           (click)="closeMobileMenu()"
           class="mobile-nav-link"
+          id="mobile-nav-viagens"
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="drawer-icon">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span>Gastos de Viagem</span>
+          <div class="drawer-link-text">
+            <span class="drawer-link-main">Gastos de Viagem</span>
+            <span class="drawer-link-sub">Rateios em grupo e moedas estrangeiras</span>
+          </div>
         </a>
 
-        <a
-          routerLink="/parcelamentos"
-          routerLinkActive="active"
-          (click)="closeMobileMenu()"
+        <button
+          type="button"
           class="mobile-nav-link"
+          (click)="openExport()"
+          id="mobile-nav-exportar"
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="nav-icon">
-            <rect x="2" y="5" width="20" height="14" rx="2" />
-            <line x1="2" y1="10" x2="22" y2="10" />
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="drawer-icon">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
           </svg>
-          <span>Parcelamentos</span>
-        </a>
+          <div class="drawer-link-text">
+            <span class="drawer-link-main">Exportar Dossiê</span>
+            <span class="drawer-link-sub">Gerar relatório consolidado em PDF / Excel</span>
+          </div>
+        </button>
+      </div>
 
+      <!-- Seção: Preferências & Sistema -->
+      <div class="drawer-group">
+        <span class="drawer-group-title">Conta & Preferências</span>
         <a
           routerLink="/configuracoes"
-          routerLinkActive="active"
           (click)="closeMobileMenu()"
           class="mobile-nav-link"
+          id="mobile-nav-configuracoes"
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="drawer-icon">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" />
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
           </svg>
-          <span>Configurações</span>
+          <div class="drawer-link-text">
+            <span class="drawer-link-main">Configurações Gerais</span>
+            <span class="drawer-link-sub">Perfil, categorias e dados da conta</span>
+          </div>
         </a>
 
         @if (isAdmin()) {
           <a
             routerLink="/admin"
-            routerLinkActive="active"
             (click)="closeMobileMenu()"
             class="mobile-nav-link mobile-nav-admin"
             id="mobile-nav-admin"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="drawer-icon">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
             </svg>
-            <span>Painel Admin</span>
+            <div class="drawer-link-text">
+              <span class="drawer-link-main">Painel Administrativo</span>
+              <span class="drawer-link-sub">Gestão de usuários e métricas</span>
+            </div>
           </a>
         }
 
         <button
           type="button"
           class="mobile-nav-link mobile-theme-btn"
-          (click)="toggleTheme(); closeMobileMenu()"
+          (click)="toggleTheme()"
         >
           @if (currentTheme() === 'dark') {
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="drawer-icon">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
             </svg>
-            <span>Tema: Escuro Quinzena (Mudar)</span>
+            <div class="drawer-link-text">
+              <span class="drawer-link-main">Tema: Escuro Quinzena</span>
+              <span class="drawer-link-sub">Toque para alternar</span>
+            </div>
           } @else if (currentTheme() === 'dark-blue') {
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="drawer-icon">
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
             </svg>
-            <span>Tema: Escuro Azul Original (Mudar)</span>
+            <div class="drawer-link-text">
+              <span class="drawer-link-main">Tema: Escuro Azul</span>
+              <span class="drawer-link-sub">Toque para alternar</span>
+            </div>
           } @else {
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="drawer-icon">
               <circle cx="12" cy="12" r="5" />
               <line x1="12" y1="1" x2="12" y2="3" />
               <line x1="12" y1="21" x2="12" y2="23" />
-              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-              <line x1="1" y1="12" x2="3" y2="12" />
-              <line x1="21" y1="12" x2="23" y2="12" />
-              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
             </svg>
-            <span>Tema: Modo Claro (Mudar)</span>
+            <div class="drawer-link-text">
+              <span class="drawer-link-main">Tema: Modo Claro</span>
+              <span class="drawer-link-sub">Toque para alternar</span>
+            </div>
           }
         </button>
 
         @if (canInstall()) {
           <button
             type="button"
-            class="mobile-btn-install"
+            class="mobile-nav-link"
             (click)="installPwa(); closeMobileMenu()"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="drawer-icon">
               <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
             </svg>
-            <span>Instalar Aplicativo</span>
+            <div class="drawer-link-text">
+              <span class="drawer-link-main">Instalar Aplicativo</span>
+              <span class="drawer-link-sub">Adicione à tela inicial do seu aparelho</span>
+            </div>
           </button>
         }
 
         @if (isAuthenticated() && !isProOrDuo()) {
           <button
             type="button"
-            class="mobile-btn-upgrade"
+            class="mobile-nav-link mobile-btn-upgrade-drawer"
             (click)="isSubscriptionModalOpen.set(true); closeMobileMenu()"
           >
-            <span>⭐ Fazer Upgrade para o PRO</span>
+            <span class="drawer-emoji">⭐</span>
+            <div class="drawer-link-text">
+              <span class="drawer-link-main">Fazer Upgrade para o PRO</span>
+              <span class="drawer-link-sub">Histórico ampliado, modo Duo e relatórios</span>
+            </div>
           </button>
         }
+      </div>
 
-        @if (user()) {
-          <div class="mobile-user-actions">
-            <button
-              type="button"
-              class="mobile-btn-logout"
-              (click)="logout()"
-              [disabled]="isLoggingOut()"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="logout-icon">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
-              </svg>
-              <span>Sair da conta</span>
-            </button>
-          </div>
-        }
-      </nav>
+      <!-- Logout -->
+      @if (user()) {
+        <div class="drawer-footer">
+          <button
+            type="button"
+            class="drawer-btn-logout"
+            (click)="logout()"
+            [disabled]="isLoggingOut()"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="logout-icon">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+            </svg>
+            <span>Sair da conta</span>
+          </button>
+        </div>
+      }
     </div>
-  }
-</header>
+  </div>
+}
 
 <!-- Modal de Assinatura Recorrente -->
 @if (isSubscriptionModalOpen()) {
@@ -378,4 +642,3 @@
     (openDuoPairing)="onOpenDuoPairingFromNavbar()"
   />
 }
-
