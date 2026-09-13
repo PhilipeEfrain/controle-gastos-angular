@@ -165,4 +165,107 @@ describe('FinanceStore (Signals Reactive State)', () => {
     expensesSubject.next([]);
     expect(mockExpenseService.syncRecurringExpensesForMonth).toHaveBeenCalledTimes(3);
   });
+
+  it('Cenário BDD CARD-070: deve unificar reativamente a cota-parte de despesas compartilhadas em expenses e q1Expenses para o titular', () => {
+    store.setCurrentUserId('owner-1');
+    store.setExpenses([
+      { id: 'p1', descricao: 'Almoço individual', valor: 50, quinzena: 1, status_pagamento: true, categoria: 'Alimentação' }
+    ]);
+
+    store.setSharedExpenses([
+      {
+        id: 's1',
+        descricao: 'Geladeira Nova',
+        valorTotal: 2000,
+        valorOwner: 1000,
+        valorPartner: 1000,
+        pagoPorId: 'owner-1',
+        pagoPorNome: 'Titular',
+        quinzena: 1,
+        mesAno: '2026-09',
+        tipoDivisao: '50_50',
+        members: ['owner-1', 'partner-2']
+      }
+    ]);
+
+    const allExp = store.expenses();
+    expect(allExp.length).toBe(2);
+
+    const sharedProjected = allExp.find(e => e.id === 'shared_s1');
+    expect(sharedProjected).toBeDefined();
+    expect(sharedProjected?.valor).toBe(1000);
+    expect(sharedProjected?.isShared).toBe(true);
+    expect(sharedProjected?.quinzena).toBe(1);
+
+    expect(store.q1Expenses().length).toBe(2);
+  });
+
+  it('Cenário BDD CARD-070: deve projetar a cota-parte correta para o parceiro quando este for o usuário atual', () => {
+    store.setCurrentUserId('partner-2');
+    store.setExpenses([]);
+
+    store.setSharedExpenses([
+      {
+        id: 's1',
+        descricao: 'Fogão',
+        valorTotal: 1200,
+        valorOwner: 800,
+        valorPartner: 400,
+        pagoPorId: 'owner-1',
+        pagoPorNome: 'Titular',
+        quinzena: 2,
+        mesAno: '2026-09',
+        tipoDivisao: 'personalizado',
+        members: ['owner-1', 'partner-2']
+      }
+    ]);
+
+    const allExp = store.expenses();
+    expect(allExp.length).toBe(1);
+
+    const sharedProjected = allExp[0];
+    expect(sharedProjected.valor).toBe(400); // Cota-parte do parceiro
+    expect(sharedProjected.isShared).toBe(true);
+    expect(store.q2Expenses().length).toBe(1);
+    expect(store.q1Expenses().length).toBe(0);
+  });
+
+  it('Cenário BDD CARD-070: deve abater a cota-parte compartilhada do saldo no balanceSummary', () => {
+    store.setCurrentUserId('owner-1');
+    store.setCycle({
+      mesAno: '2026-09',
+      renda_quinzena_1: 3000,
+      renda_quinzena_2: 3000,
+      total_renda: 6000,
+      total_gastos: 0,
+      saldo_final: 6000
+    });
+
+    store.setExpenses([
+      { id: 'p1', descricao: 'Internet', valor: 200, quinzena: 1, status_pagamento: true, categoria: 'Contas' }
+    ]);
+
+    store.setSharedExpenses([
+      {
+        id: 's1',
+        descricao: 'Mercado Mensal',
+        valorTotal: 1000,
+        valorOwner: 500,
+        valorPartner: 500,
+        pagoPorId: 'owner-1',
+        pagoPorNome: 'Titular',
+        quinzena: 1,
+        mesAno: '2026-09',
+        tipoDivisao: '50_50',
+        members: ['owner-1', 'partner-2']
+      }
+    ]);
+
+    const balance = store.balanceSummary();
+    // Gastos Q1: 200 (individual) + 500 (cota de mercado) = 700
+    expect(balance.q1.totalGastos).toBe(700);
+    expect(balance.q1.saldo).toBe(2300);
+    expect(balance.totalGastos).toBe(700);
+    expect(balance.saldoFinal).toBe(5300);
+  });
 });

@@ -270,6 +270,8 @@ export class ExpenseFormModalComponent {
           pagoPorNome = isUserOwner ? (group.ownerName || 'Titular') : (group.partnerName || 'Parceiro(a)');
         }
 
+        const validMembers = [group.ownerId, group.partnerId].filter((id): id is string => !!id && typeof id === 'string');
+
         const baseShared: DuoSharedExpense = {
           descricao: formVal.descricao.trim(),
           valorTotal,
@@ -283,7 +285,7 @@ export class ExpenseFormModalComponent {
           valorPartner,
           status_pagamento: false,
           isParcelado: formVal.isParcelado && formVal.total_parcelas > 1,
-          members: [group.ownerId, group.partnerId!]
+          members: validMembers
         };
 
         if (formVal.data_vencimento?.trim()) {
