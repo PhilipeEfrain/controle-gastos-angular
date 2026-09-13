@@ -145,6 +145,7 @@ describe('DashboardComponent', () => {
       getDuoGroupForUser: vi.fn().mockResolvedValue(null),
       createOrGetDuoGroup: vi.fn().mockResolvedValue(null),
       calculateSettlement: vi.fn().mockReturnValue(null),
+      calculateSettlementFromShared: vi.fn().mockReturnValue(null),
       listenDuoGroup: vi.fn().mockReturnValue({ subscribe: vi.fn() }),
       getSharedExpensesStream: vi.fn().mockReturnValue(of([])),
       toggleSharedExpensePaymentStatus: vi.fn().mockResolvedValue(undefined),
@@ -469,6 +470,73 @@ describe('DashboardComponent', () => {
       component.onExportModalClosed();
       expect(component.isExportModalOpen()).toBe(false);
       expect(navService.isExportOpen()).toBe(false);
+    });
+
+    it('Cenário BDD (CARD-070): deve alternar status de quitação de despesa compartilhada do casal', async () => {
+      component.duoGroup.set({
+        id: 'grp-1',
+        ownerId: 'user-777',
+        ownerEmail: 'philipe@test.com',
+        ownerName: 'Philipe',
+        partnerId: 'user-888',
+        partnerName: 'Mariana',
+        inviteCode: 'DUO-1234',
+        status: 'active'
+      });
+
+      const sharedExpense: Expense = {
+        id: 'shared_s123',
+        descricao: 'Geladeira',
+        valor: 1000,
+        categoria: 'Casal',
+        quinzena: 1,
+        status_pagamento: false,
+        isShared: true,
+        sharedExpenseId: 's123'
+      };
+
+      await component.onTogglePaid(sharedExpense);
+
+      expect(mockDuoService.toggleSharedExpensePaymentStatus).toHaveBeenCalledWith(
+        'grp-1',
+        '2025-03',
+        's123',
+        true
+      );
+    });
+
+    it('Cenário BDD (CARD-070): deve excluir despesa compartilhada do casal com confirmação', async () => {
+      vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+      component.duoGroup.set({
+        id: 'grp-1',
+        ownerId: 'user-777',
+        ownerEmail: 'philipe@test.com',
+        ownerName: 'Philipe',
+        partnerId: 'user-888',
+        partnerName: 'Mariana',
+        inviteCode: 'DUO-1234',
+        status: 'active'
+      });
+
+      const sharedExpense: Expense = {
+        id: 'shared_s123',
+        descricao: 'Geladeira',
+        valor: 1000,
+        categoria: 'Casal',
+        quinzena: 1,
+        status_pagamento: false,
+        isShared: true,
+        sharedExpenseId: 's123'
+      };
+
+      await component.onDeleteExpense(sharedExpense);
+
+      expect(mockDuoService.deleteSharedExpense).toHaveBeenCalledWith(
+        'grp-1',
+        '2025-03',
+        's123'
+      );
     });
   });
 });

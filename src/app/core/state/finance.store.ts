@@ -34,17 +34,61 @@ export class FinanceStore {
   private readonly _expenses = signal<Expense[]>([]);
   private readonly _sharedExpenses = signal<DuoSharedExpense[]>([]);
   private readonly _taxes = signal<AnnualTax[]>([]);
+  private readonly _currentUserId = signal<string>('');
   private readonly _isLoading = signal<boolean>(false);
   private readonly _error = signal<string | null>(null);
 
   // Seletores Públicos (ReadOnly Signals)
   readonly selectedMonth = this._selectedMonth.asReadonly();
   readonly currentCycle = this._currentCycle.asReadonly();
-  readonly expenses = this._expenses.asReadonly();
+  readonly personalExpenses = this._expenses.asReadonly();
   readonly sharedExpenses = this._sharedExpenses.asReadonly();
   readonly taxes = this._taxes.asReadonly();
+  readonly currentUserId = this._currentUserId.asReadonly();
   readonly isLoading = this._isLoading.asReadonly();
   readonly error = this._error.asReadonly();
+
+  // Lista unificada de despesas do usuário (Pessoais + Cota-parte em despesas do casal)
+  readonly expenses = computed<Expense[]>(() => {
+    const personal = this._expenses();
+    const shared = this._sharedExpenses();
+    const currentUid = this._currentUserId();
+
+    if (!shared || shared.length === 0 || !currentUid) {
+      return personal;
+    }
+
+    const sharedAsPersonal: Expense[] = [];
+
+    for (const s of shared) {
+      // Determina se o usuário logado é o titular (primeiro membro) ou o parceiro
+      const isOwner = s.members && s.members[0] === currentUid;
+      const userShare = isOwner ? (s.valorOwner ?? 0) : (s.valorPartner ?? 0);
+
+      if (userShare > 0) {
+        sharedAsPersonal.push({
+          id: `shared_${s.id}`,
+          descricao: s.descricao,
+          valor: userShare,
+          categoria: s.categoria || 'Casal',
+          quinzena: s.quinzena,
+          status_pagamento: !!s.status_pagamento,
+          tipo: 'despesa',
+          data_vencimento: s.data_vencimento,
+          codigo_comprovante: s.codigoComprovante || undefined,
+          parcela_atual: s.parcelaAtual,
+          total_parcelas: s.totalParcelas,
+          isShared: true,
+          sharedExpenseId: s.id,
+          sharedTotal: s.valorTotal,
+          pagoPorNome: s.pagoPorNome,
+          createdAt: s.createdAt
+        });
+      }
+    }
+
+    return [...personal, ...sharedAsPersonal];
+  });
 
   // Valores Computados Derivados
   readonly selectedMonthLabel = computed(() =>
@@ -52,18 +96,18 @@ export class FinanceStore {
   );
 
   readonly q1Expenses = computed(() =>
-    filterExpensesByFortnight(this._expenses(), 1)
+    filterExpensesByFortnight(this.expenses(), 1)
   );
 
   readonly q2Expenses = computed(() =>
-    filterExpensesByFortnight(this._expenses(), 2)
+    filterExpensesByFortnight(this.expenses(), 2)
   );
 
   readonly balanceSummary = computed<MonthBalanceSummary>(() => {
     const cycle = this._currentCycle();
     const rendaQ1 = cycle?.renda_quinzena_1 ?? 0;
     const rendaQ2 = cycle?.renda_quinzena_2 ?? 0;
-    return calculateGlobalBalance(rendaQ1, rendaQ2, this._expenses());
+    return calculateGlobalBalance(rendaQ1, rendaQ2, this.expenses());
   });
 
   readonly totalTaxesBudget = computed(() => {
@@ -107,6 +151,7 @@ export class FinanceStore {
    * Conecta as streams em tempo real do Firestore para o mês selecionado
    */
   connectMonthStream(userId: string, mesAno: string): void {
+    this._currentUserId.set(userId);
     this._isLoading.set(true);
     this._error.set(null);
 
@@ -161,6 +206,10 @@ export class FinanceStore {
   }
 
   // Mutadores diretos (úteis para testes unitários ou updates otimistas)
+  setCurrentUserId(userId: string): void {
+    this._currentUserId.set(userId);
+  }
+
   setExpenses(expenses: Expense[]): void {
     this._expenses.set(expenses);
   }
@@ -180,18 +229,23 @@ export class FinanceStore {
   /**
    * Conecta a stream reativa de despesas compartilhadas do grupo Duo
    */
-  connectSharedExpensesStream(groupId: string, mesAno: string): void {
+  connectSharedExpensesStream(groupId: string, mesAno: string, userId?: string): void {
+    if (userId) {
+      this._currentUserId.set(userId);
+    }
     this.sharedExpensesSub?.unsubscribe();
     if (!this.duoService || !groupId) {
       this._sharedExpenses.set([]);
       return;
     }
 
-    this.sharedExpensesSub = this.duoService.getSharedExpensesStream(groupId, mesAno).subscribe({
+    const effectiveUid = userId || this._currentUserId();
+    this.sharedExpensesSub = this.duoService.getSharedExpensesStream(groupId, mesAno, effectiveUid).subscribe({
       next: shared => {
         this._sharedExpenses.set(shared);
       },
-      error: () => {
+      error: (err) => {
+        console.error('[FinanceStore] Erro ao carregar despesas compartilhadas:', err);
         this._sharedExpenses.set([]);
       }
     });
@@ -218,6 +272,7 @@ export class FinanceStore {
     this.sharedExpensesSub?.unsubscribe();
 
     this.syncedMonths.clear();
+    this._currentUserId.set('');
     this._currentCycle.set(null);
     this._expenses.set([]);
     this._sharedExpenses.set([]);

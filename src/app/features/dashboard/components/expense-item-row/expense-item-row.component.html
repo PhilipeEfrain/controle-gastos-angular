@@ -50,6 +50,12 @@
           🔁 Recorrente
         </span>
       }
+
+      @if (expense().isShared) {
+        <span class="shared-badge" title="Gasto Compartilhado do Casal (Duo)">
+          👫 Casal
+        </span>
+      }
     </div>
 
     <div class="expense-meta-line">

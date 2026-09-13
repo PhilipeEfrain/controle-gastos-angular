@@ -103,6 +103,17 @@ export class DashboardComponent implements OnInit {
     const group = this.duoGroup();
     if (!group || group.status !== 'active' || !group.partnerId) return null;
 
+    const shared = this.financeStore.sharedExpenses();
+    if (shared && shared.length > 0) {
+      return this.duoService.calculateSettlementFromShared(
+        shared,
+        group.ownerId,
+        group.ownerName || 'Titular',
+        group.partnerId,
+        group.partnerName || 'Parceiro(a)'
+      );
+    }
+
     return this.duoService.calculateSettlement(
       this.financeStore.expenses(),
       group.ownerId,
@@ -209,8 +220,8 @@ export class DashboardComponent implements OnInit {
       const user = this.authStore.currentUser();
       const group = this.duoGroup();
       const month = this.financeStore.selectedMonth();
-      if (user && group && group.id && group.status === 'active' && group.partnerId) {
-        this.financeStore.connectSharedExpensesStream(group.id, month);
+      if (user && group && group.id && (group.status === 'active' || group.partnerId)) {
+        this.financeStore.connectSharedExpensesStream(group.id, month, user.uid);
       }
     });
 
@@ -520,6 +531,27 @@ export class DashboardComponent implements OnInit {
     const user = this.authStore.currentUser();
     if (!user || !expense.id) return;
 
+    // Se for uma despesa compartilhada do casal projetada na quinzena
+    if (expense.isShared || expense.id.startsWith('shared_')) {
+      const sharedId = expense.sharedExpenseId || expense.id.replace('shared_', '');
+      const group = this.duoGroup();
+      if (group?.id) {
+        try {
+          await this.duoService.toggleSharedExpensePaymentStatus(
+            group.id,
+            this.financeStore.selectedMonth(),
+            sharedId,
+            !expense.status_pagamento
+          );
+          const novoStatus = !expense.status_pagamento ? 'paga' : 'pendente';
+          this.notificationService.info(`Despesa do casal marcada como ${novoStatus}.`);
+        } catch (err: any) {
+          this.notificationService.error('Erro ao atualizar status da despesa do casal: ' + err.message);
+        }
+      }
+      return;
+    }
+
     try {
       await this.expenseService.togglePaymentStatus(
         user.uid,
@@ -537,6 +569,28 @@ export class DashboardComponent implements OnInit {
   async onDeleteExpense(expense: Expense): Promise<void> {
     const user = this.authStore.currentUser();
     if (!user || !expense.id) return;
+
+    // Se for uma despesa compartilhada do casal projetada na quinzena
+    if (expense.isShared || expense.id.startsWith('shared_')) {
+      const sharedId = expense.sharedExpenseId || expense.id.replace('shared_', '');
+      const group = this.duoGroup();
+      if (!group?.id) return;
+
+      const confirm = window.confirm(`Deseja realmente excluir a despesa do casal "${expense.descricao}"? Ela será removida para ambos.`);
+      if (!confirm) return;
+
+      try {
+        await this.duoService.deleteSharedExpense(
+          group.id,
+          this.financeStore.selectedMonth(),
+          sharedId
+        );
+        this.notificationService.success(`Despesa do casal "${expense.descricao}" excluída com sucesso.`);
+      } catch (err: any) {
+        this.notificationService.error('Erro ao excluir despesa do casal: ' + err.message);
+      }
+      return;
+    }
 
     const confirm = window.confirm(`Deseja realmente excluir "${expense.descricao}"?`);
     if (!confirm) return;

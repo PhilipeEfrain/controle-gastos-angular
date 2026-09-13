@@ -296,15 +296,20 @@ export class DuoService {
   /**
    * Conecta a stream reativa de despesas compartilhadas do casal para o mês selecionado
    */
-  getSharedExpensesStream(groupId: string, mesAno: string): Observable<DuoSharedExpense[]> {
+  getSharedExpensesStream(groupId: string, mesAno: string, userId?: string): Observable<DuoSharedExpense[]> {
     if (!groupId || !mesAno || groupId.startsWith('e2e-')) {
       return of([]);
     }
 
     return new Observable<DuoSharedExpense[]>(observer => {
       const colRef = collection(this.db, 'duo_groups', groupId, 'ciclos', mesAno, 'despesas_compartilhadas');
+      const filterUid = userId || this.firebaseService?.auth?.currentUser?.uid;
+      const q = filterUid
+        ? query(colRef, where('members', 'array-contains', filterUid))
+        : colRef;
+
       const unsubscribe = onSnapshot(
-        colRef,
+        q,
         snapshot => {
           const items = snapshot.docs.map(docSnap => ({
             id: docSnap.id,
@@ -312,11 +317,75 @@ export class DuoService {
           }));
           observer.next(items);
         },
-        err => observer.error(err)
+        err => {
+          console.error('[DuoService] Erro ao carregar despesas compartilhadas:', err);
+          observer.error(err);
+        }
       );
 
       return () => unsubscribe();
     });
+  }
+
+  /**
+   * Calcula o acerto de contas do casal diretamente a partir dos documentos de despesas compartilhadas
+   */
+  calculateSettlementFromShared(
+    sharedExpenses: DuoSharedExpense[],
+    ownerId: string,
+    ownerName: string,
+    partnerId: string,
+    partnerName: string
+  ): DuoSettlementSummary {
+    let ownerTotalPaid = 0;
+    let partnerTotalPaid = 0;
+    let totalOwnerShare = 0;
+    let totalPartnerShare = 0;
+
+    for (const exp of sharedExpenses) {
+      const total = exp.valorTotal || 0;
+      if (exp.pagoPorId === partnerId) {
+        partnerTotalPaid = roundBRL(partnerTotalPaid + total);
+      } else {
+        ownerTotalPaid = roundBRL(ownerTotalPaid + total);
+      }
+      totalOwnerShare = roundBRL(totalOwnerShare + (exp.valorOwner || 0));
+      totalPartnerShare = roundBRL(totalPartnerShare + (exp.valorPartner || 0));
+    }
+
+    const totalShared = roundBRL(ownerTotalPaid + partnerTotalPaid);
+    const targetSharePerPerson = roundBRL(totalShared / 2);
+
+    const ownerNetDiff = roundBRL(ownerTotalPaid - totalOwnerShare);
+    const partnerNetDiff = roundBRL(partnerTotalPaid - totalPartnerShare);
+
+    let debtor: 'owner' | 'partner' | 'even' = 'even';
+    let settlementAmount = 0;
+    let message = 'Tudo equilibrado! Cada um pagou sua cota exata das despesas do casal.';
+
+    if (ownerNetDiff > 0) {
+      debtor = 'partner';
+      settlementAmount = ownerNetDiff;
+      message = `${partnerName} deve transferir R$ ${settlementAmount.toFixed(2).replace('.', ',')} para ${ownerName} para equalizar os gastos compartilhados.`;
+    } else if (partnerNetDiff > 0) {
+      debtor = 'owner';
+      settlementAmount = partnerNetDiff;
+      message = `${ownerName} deve transferir R$ ${settlementAmount.toFixed(2).replace('.', ',')} para ${partnerName} para equalizar os gastos compartilhados.`;
+    }
+
+    return {
+      ownerId,
+      ownerName,
+      ownerTotalPaid,
+      partnerId,
+      partnerName,
+      partnerTotalPaid,
+      totalShared,
+      targetSharePerPerson,
+      debtor,
+      settlementAmount,
+      message
+    };
   }
 
   /**

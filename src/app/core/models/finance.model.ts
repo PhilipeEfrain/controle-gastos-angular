@@ -15,6 +15,10 @@ export interface Expense {
   parcela_atual?: number;
   total_parcelas?: number;
   grupo_parcela_id?: string;
+  isShared?: boolean;
+  sharedExpenseId?: string;
+  sharedTotal?: number;
+  pagoPorNome?: string;
   createdAt?: string;
 }
 
