@@ -45,6 +45,8 @@ export interface DuoSharedExpense {
   grupoParcelamentoId?: string;
   codigoComprovante?: string | null;
   observacao?: string;
+  data_vencimento?: string;
+  recorrente?: boolean;
   members: string[]; // [ownerId, partnerId]
   createdAt?: string;
   updatedAt?: string;

@@ -334,7 +334,11 @@ export class DuoService {
       updatedAt: new Date().toISOString()
     };
 
-    await setDoc(docRef, payload);
+    const cleanPayload = Object.fromEntries(
+      Object.entries(payload).filter(([_, v]) => v !== undefined)
+    ) as DuoSharedExpense;
+
+    await setDoc(docRef, cleanPayload);
     return id;
   }
 
@@ -381,7 +385,11 @@ export class DuoService {
         updatedAt: new Date().toISOString()
       };
 
-      batch.set(docRef, parcelaDoc);
+      const cleanDoc = Object.fromEntries(
+        Object.entries(parcelaDoc).filter(([_, v]) => v !== undefined)
+      );
+
+      batch.set(docRef, cleanDoc);
     }
 
     await batch.commit();

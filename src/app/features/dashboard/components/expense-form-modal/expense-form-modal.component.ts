@@ -236,9 +236,16 @@ export class ExpenseFormModalComponent {
         }
 
         await this.expenseService.updateExpense(user.uid, this.mesAno(), toEdit.id, updatePayload);
-      } else if (formVal.isShared && this.duoGroup()?.id && this.duoGroup()?.status === 'active' && this.duoGroup()?.partnerId) {
+      } else if (formVal.isShared) {
+        // Validação defensiva de pareamento ativo no Modo Casal
+        const group = this.duoGroup();
+        if (!group || !group.id || group.status !== 'active' || !group.partnerId) {
+          this.isLoading.set(false);
+          this.errorMessage.set('Para lançar gastos compartilhados, é necessário que o seu parceiro(a) esteja conectado no Modo Casal.');
+          return;
+        }
+
         // Lançamento de despesa compartilhada do casal (Nossos Gastos)
-        const group = this.duoGroup()!;
         const valorTotal = roundBRL(parseFloat(formVal.valor));
         let valorOwner = roundBRL(valorTotal / 2);
         let valorPartner = roundBRL(valorTotal / 2);
@@ -278,6 +285,10 @@ export class ExpenseFormModalComponent {
           isParcelado: formVal.isParcelado && formVal.total_parcelas > 1,
           members: [group.ownerId, group.partnerId!]
         };
+
+        if (formVal.data_vencimento?.trim()) {
+          baseShared.data_vencimento = formVal.data_vencimento.trim();
+        }
 
         if (formVal.isParcelado && formVal.total_parcelas > 1 && this.duoService) {
           await this.duoService.createSharedInstallments(group.id!, baseShared, formVal.total_parcelas);

@@ -158,6 +158,7 @@ service cloud.firestore {
         'pagoPorId', 'pagoPorNome', 'tipoDivisao', 'valorOwner', 'valorPartner',
         'status_pagamento', 'isParcelado', 'parcelaAtual', 'totalParcelas',
         'grupoParcelamentoId', 'codigoComprovante', 'observacao', 'observacoes',
+        'data_vencimento', 'tipo', 'recorrente', 'ativo',
         'members', 'createdAt', 'updatedAt'
       ])
         && isValidPositiveNumber(data.valorTotal)
@@ -178,6 +179,10 @@ service cloud.firestore {
         && (!('codigoComprovante' in data) || data.codigoComprovante == null || data.codigoComprovante is string)
         && (!('observacao' in data) || data.observacao == null || data.observacao is string)
         && (!('observacoes' in data) || data.observacoes == null || data.observacoes is string)
+        && (!('data_vencimento' in data) || data.data_vencimento == null || (data.data_vencimento is string && data.data_vencimento.size() <= 30))
+        && (!('tipo' in data) || data.tipo in ['despesa', 'compartilhado', 'renda_extra'])
+        && (!('recorrente' in data) || data.recorrente is bool)
+        && (!('ativo' in data) || data.ativo is bool)
         && data.members is list
         && data.members.size() >= 1 && data.members.size() <= 2;
     }

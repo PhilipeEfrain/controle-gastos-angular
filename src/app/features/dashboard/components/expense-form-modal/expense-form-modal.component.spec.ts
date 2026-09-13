@@ -324,4 +324,69 @@ describe('ExpenseFormModalComponent', () => {
       })
     );
   });
+
+  it('Cenário BDD (CARD-067): DEVE lançar compra compartilhada com data_vencimento informada', async () => {
+    fixture.componentRef.setInput('isDuo', true);
+    fixture.componentRef.setInput('duoGroup', {
+      id: 'grp-1',
+      ownerId: 'user-123',
+      ownerName: 'Philipe',
+      partnerId: 'user-456',
+      partnerName: 'Mariana',
+      status: 'active'
+    });
+    fixture.detectChanges();
+
+    component.form.patchValue({
+      tipo: 'despesa',
+      descricao: 'Conta de Energia Copel',
+      valor: 350,
+      quinzena: 2,
+      categoria: 'Moradia',
+      data_vencimento: '2025-03-22',
+      isShared: true,
+      tipoDivisao: '50_50',
+      pagoPor: 'me',
+      isParcelado: false
+    });
+
+    await component.onSubmit();
+
+    expect(mockDuoService.addSharedExpense).toHaveBeenCalledWith(
+      'grp-1',
+      expect.objectContaining({
+        descricao: 'Conta de Energia Copel',
+        valorTotal: 350,
+        data_vencimento: '2025-03-22',
+        members: ['user-123', 'user-456']
+      })
+    );
+  });
+
+  it('Cenário BDD (CARD-067): DEVE exibir erro amigável ao tentar lançar despesa compartilhada quando parceiro ainda não está conectado (status pending)', async () => {
+    fixture.componentRef.setInput('isDuo', true);
+    fixture.componentRef.setInput('duoGroup', {
+      id: 'grp-pending',
+      ownerId: 'user-123',
+      ownerName: 'Philipe',
+      partnerId: null,
+      partnerName: null,
+      status: 'pending'
+    });
+    fixture.detectChanges();
+
+    component.form.patchValue({
+      tipo: 'despesa',
+      descricao: 'Sofá Retrátil',
+      valor: 1800,
+      quinzena: 1,
+      isShared: true
+    });
+
+    await component.onSubmit();
+
+    expect(component.errorMessage()).toContain('é necessário que o seu parceiro(a) esteja conectado no Modo Casal');
+    expect(mockDuoService.addSharedExpense).not.toHaveBeenCalled();
+    expect(mockExpenseService.addExpense).not.toHaveBeenCalled();
+  });
 });
