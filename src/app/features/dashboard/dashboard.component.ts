@@ -39,6 +39,7 @@ import { LimitReachedModalComponent } from '../../shared/components/limit-reache
 import { SubscriptionModalComponent } from '../../shared/components/subscription-modal/subscription-modal.component';
 import { OnboardingChecklistComponent } from './components/onboarding-checklist/onboarding-checklist.component';
 import { AdBannerComponent } from '../../shared/components/ad-banner/ad-banner.component';
+import { CaixinhaModalComponent } from '../caixinha/caixinha-modal/caixinha-modal.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -61,7 +62,8 @@ import { AdBannerComponent } from '../../shared/components/ad-banner/ad-banner.c
     DuoSettlementCardComponent,
     DuoSharedExpensesListComponent,
     OnboardingChecklistComponent,
-    AdBannerComponent
+    AdBannerComponent,
+    CaixinhaModalComponent
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
@@ -85,6 +87,7 @@ export class DashboardComponent implements OnInit {
   readonly initialDuoCode = signal<string>('');
   readonly activeDuoTab = signal<'meus' | 'nossos' | 'visao'>('meus');
   readonly isExpenseModalShared = signal<boolean>(false);
+  readonly isCaixinhaModalOpen = signal<boolean>(false);
 
   readonly isDuoActive = computed(() => {
     return this.authStore.isDuo() || (this.duoGroup()?.status === 'active' && !!this.duoGroup()?.partnerId);
@@ -519,6 +522,13 @@ export class DashboardComponent implements OnInit {
   onOpenDuoPairingFromSubscription(): void {
     this.isSubscriptionModalOpen.set(false);
     this.isDuoPairingModalOpen.set(true);
+  }
+
+  onCaixinhaMovementSuccess(): void {
+    const user = this.authStore.currentUser();
+    if (user?.uid) {
+      this.financeStore.setSelectedMonth(this.financeStore.selectedMonth(), user.uid);
+    }
   }
 
   async onLogout(): Promise<void> {

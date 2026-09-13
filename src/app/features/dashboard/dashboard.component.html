@@ -131,6 +131,17 @@
           <span>Parcelas</span>
         </button>
 
+        <!-- Botão Caixinha / Reserva de Emergência -->
+        <button
+          type="button"
+          class="taxes-nav-btn caixinha-nav-btn"
+          (click)="isCaixinhaModalOpen.set(true)"
+          title="Caixinha / Reserva de Emergência"
+        >
+          <span class="btn-emoji">🐷</span>
+          <span>Caixinha</span>
+        </button>
+
         <!-- Botão Exportar Balanço -->
         <button
           type="button"
@@ -527,4 +538,12 @@
     (openDuoPairing)="onOpenDuoPairingFromSubscription()"
   />
 }
+
+<!-- Modal da Caixinha / Reserva de Emergência -->
+<app-caixinha-modal
+  [isOpen]="isCaixinhaModalOpen()"
+  [selectedMonth]="financeStore.selectedMonth()"
+  (close)="isCaixinhaModalOpen.set(false)"
+  (movementSuccess)="onCaixinhaMovementSuccess()"
+/>
 

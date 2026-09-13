@@ -250,6 +250,23 @@
       }
     }
   }
+
+  &.caixinha-nav-btn {
+    border-color: rgba(16, 185, 129, 0.35);
+    background: rgba(16, 185, 129, 0.08);
+    color: #059669;
+
+    .btn-emoji {
+      font-size: 0.9375rem;
+    }
+
+    &:hover {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      color: #ffffff;
+      border-color: transparent;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+    }
+  }
 }
 
 .logout-btn {
