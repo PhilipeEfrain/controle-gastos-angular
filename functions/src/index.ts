@@ -1,7 +1,9 @@
 import { onRequest } from 'firebase-functions/v2/https';
+import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { initializeApp, getApps } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { handleAsaasWebhook } from './webhook-handler.js';
+import { cleanupAllExpiredCycles } from './cleanup.js';
 import type { AsaasWebhookPayload } from './types.js';
 
 if (!getApps().length) {
@@ -46,5 +48,22 @@ export const asaasWebhook = onRequest(
         message: 'Erro interno ao processar webhook.'
       });
     }
+  }
+);
+
+/**
+ * Rotina agendada para limpeza automática de dados de ciclos históricos expirados (CARD-072).
+ * Executa mensalmente no dia 1 às 03:00 da manhã (fuso de São Paulo), após o encerramento do mês de carência (+1).
+ */
+export const scheduledCleanupExpiredCycles = onSchedule(
+  {
+    schedule: '0 3 1 * *',
+    timeZone: 'America/Sao_Paulo',
+    maxInstances: 1
+  },
+  async () => {
+    console.log('[Cleanup] Iniciando rotina de expurgo de ciclos mensais expirados...');
+    const result = await cleanupAllExpiredCycles(db);
+    console.log('[Cleanup] Concluído com sucesso:', result);
   }
 );

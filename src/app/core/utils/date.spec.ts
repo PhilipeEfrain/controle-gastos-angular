@@ -6,7 +6,9 @@ import {
   parseFirestoreDate,
   getMonthOffset,
   formatDateBR,
-  getExpenseDueDateInfo
+  getExpenseDueDateInfo,
+  getDaysRemainingInCurrentMonth,
+  addMonthsToYearMonth
 } from './date';
 
 describe('Date Utility', () => {
@@ -36,6 +38,19 @@ describe('Date Utility', () => {
       expect(formatYearMonthLabel('2025-03')).toBe('Março de 2025');
       expect(formatYearMonthLabel('2025-12')).toBe('Dezembro de 2025');
       expect(formatYearMonthLabel('2026-01')).toBe('Janeiro de 2026');
+    });
+  });
+
+  describe('addMonthsToYearMonth', () => {
+    it('deve subtrair meses corretamente inclusive com virada de ano', () => {
+      expect(addMonthsToYearMonth('2026-09', -3)).toBe('2026-06');
+      expect(addMonthsToYearMonth('2026-01', -1)).toBe('2025-12');
+      expect(addMonthsToYearMonth('2026-09', -12)).toBe('2025-09');
+    });
+
+    it('deve somar meses corretamente', () => {
+      expect(addMonthsToYearMonth('2026-06', 3)).toBe('2026-09');
+      expect(addMonthsToYearMonth('2025-12', 1)).toBe('2026-01');
     });
   });
 
@@ -179,6 +194,26 @@ describe('Date Utility', () => {
       expect(inSeptember?.status).toBe('due_soon');
       expect(inSeptember?.daysDiff).toBe(2);
       expect(inSeptember?.label).toBe('Vence em 2 dias');
+    });
+  });
+
+  describe('getDaysRemainingInCurrentMonth', () => {
+    it('deve calcular os dias restantes para o fim do mês com precisão', () => {
+      // Setembro tem 30 dias. No dia 12, restam 18 dias.
+      const sep12 = new Date(2026, 8, 12);
+      expect(getDaysRemainingInCurrentMonth(sep12)).toBe(18);
+
+      // No último dia do mês (dia 30 de Setembro), restam 0 dias.
+      const sep30 = new Date(2026, 8, 30);
+      expect(getDaysRemainingInCurrentMonth(sep30)).toBe(0);
+
+      // Fevereiro de 2026 tem 28 dias. No dia 10, restam 18 dias.
+      const feb10 = new Date(2026, 1, 10);
+      expect(getDaysRemainingInCurrentMonth(feb10)).toBe(18);
+
+      // Janeiro tem 31 dias. No dia 1, restam 30 dias.
+      const jan1 = new Date(2026, 0, 1);
+      expect(getDaysRemainingInCurrentMonth(jan1)).toBe(30);
     });
   });
 });

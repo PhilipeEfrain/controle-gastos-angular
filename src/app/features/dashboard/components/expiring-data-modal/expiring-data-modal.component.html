@@ -1,0 +1,101 @@
+@if (isOpen() && info()) {
+  <div class="modal-backdrop" (click)="onClose()" role="dialog" aria-modal="true" aria-labelledby="expiring-modal-title">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <!-- Header -->
+      <div class="modal-header">
+        <div class="icon-wrapper">
+          <svg class="header-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <button type="button" class="btn-close" (click)="onClose()" aria-label="Fechar modal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="close-icon">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Corpo -->
+      <div class="modal-body">
+        <div class="badge-tag">
+          @if (info()?.daysRemainingInMonth === 0) {
+            Expira hoje
+          } @else if (info()?.daysRemainingInMonth === 1) {
+            Último dia de carência
+          } @else {
+            Restam {{ info()?.daysRemainingInMonth }} dias de carência
+          }
+        </div>
+
+        <h2 id="expiring-modal-title" class="modal-title">
+          Seu histórico de {{ info()?.label }} vai expirar
+        </h2>
+
+        <p class="modal-intro">
+          Pela política de ciclo de vida de dados do seu plano
+          <strong>{{ info()?.plan === 'free' ? 'Gratuito (3 meses)' : 'PRO (12 meses)' }}</strong>,
+          os lançamentos de <strong>{{ info()?.label }}</strong> entraram no período final de tolerância.
+        </p>
+
+        <div class="info-card">
+          <div class="info-card-item">
+            <div class="dot amber"></div>
+            <div class="info-card-text">
+              <strong>Exclusão definitiva ao fim do mês:</strong> No último dia deste mês, os registros deste ciclo serão expurgados do banco de dados para manter a plataforma segura e otimizada.
+            </div>
+          </div>
+          <div class="info-card-item">
+            <div class="dot green"></div>
+            <div class="info-card-text">
+              <strong>Seu backup garantido:</strong> Você pode exportar o relatório financeiro completo em PDF agora mesmo para guardá-lo nos seus arquivos pessoais.
+            </div>
+          </div>
+        </div>
+
+        @if (info()?.plan === 'free') {
+          <div class="pro-promo-card">
+            <div class="promo-header">
+              <span class="pro-badge">👑 Deseja manter por 12 meses?</span>
+            </div>
+            <p class="promo-desc">
+              Com o <strong>Plano PRO</strong>, você retém um ano inteiro de lançamentos históricos, gráficos comparativos e relatórios anuais completos.
+            </p>
+          </div>
+        }
+      </div>
+
+      <!-- Footer / Botões -->
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn-primary"
+          (click)="onDownload()"
+          [disabled]="isDownloading()"
+        >
+          @if (isDownloading()) {
+            <svg class="spinner" viewBox="0 0 24 24" fill="none">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+            </svg>
+            <span>Gerando PDF...</span>
+          } @else {
+            <svg class="btn-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            <span>Baixar Relatório em PDF</span>
+          }
+        </button>
+
+        @if (info()?.plan === 'free') {
+          <button type="button" class="btn-upgrade" (click)="onUpgrade()">
+            <span>Evoluir para o PRO</span>
+          </button>
+        }
+
+        <button type="button" class="btn-secondary" (click)="onClose()">
+          Entendi, fechar aviso
+        </button>
+      </div>
+    </div>
+  </div>
+}

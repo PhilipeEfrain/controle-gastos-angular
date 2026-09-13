@@ -13,6 +13,18 @@
       (upgradeClick)="openSubscriptionModal()"
     />
 
+    <!-- Banner de Dados em Mês de Carência / Prestes a Expirar (CARD-072) -->
+    @if (expiringCycleData(); as expiringInfo) {
+      @if (!isExpiringDataBannerDismissed()) {
+        <app-expiring-data-banner
+          [info]="expiringInfo"
+          [isDownloading]="isDownloadingExpiringPdf()"
+          (downloadPdf)="downloadExpiringCyclePdf($event)"
+          (dismiss)="dismissExpiringBanner()"
+        />
+      }
+    }
+
     <!-- Header do Dashboard: Mês Seletor e Perfil -->
     <header class="dashboard-header">
       <div class="header-left">
@@ -496,4 +508,14 @@
   (confirm)="confirmDeleteExpense()"
   (cancel)="cancelDeleteExpense()"
 ></app-confirmation-modal>
+
+<!-- Modal de Aviso de Retenção e Expiração de Dados (CARD-072) -->
+<app-expiring-data-modal
+  [isOpen]="isExpiringDataModalOpen()"
+  [info]="expiringCycleData()"
+  [isDownloading]="isDownloadingExpiringPdf()"
+  (downloadPdf)="downloadExpiringCyclePdf($event)"
+  (upgrade)="onUpgradeFromExpiring()"
+  (close)="dismissExpiringModal()"
+></app-expiring-data-modal>
 
