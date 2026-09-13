@@ -69,13 +69,44 @@ describe('PlanLimitsService', () => {
       expect(service.checkTripLimit(1).limitMessage).toContain('limite de 1 viagem');
     });
 
-    it('deve limitar histórico a 2 meses (atual + anterior)', () => {
+    it('deve limitar histórico a 4 meses no Free (3 ativos + 1 carência)', () => {
       expect(service.isHistoryMonthAllowed(0)).toBe(true);  // mês atual
       expect(service.isHistoryMonthAllowed(-1)).toBe(true); // 1 mês atrás
-      expect(service.isHistoryMonthAllowed(-2)).toBe(false); // 2 meses atrás (bloqueado)
+      expect(service.isHistoryMonthAllowed(-2)).toBe(true); // 2 meses atrás
+      expect(service.isHistoryMonthAllowed(-3)).toBe(true); // 3 meses atrás (mês de carência)
+      expect(service.isHistoryMonthAllowed(-4)).toBe(false); // 4 meses atrás (bloqueado)
     });
 
-    it('não deve permitir exportação em PDF no plano Free', () => {
+    it('deve identificar mês em carência e expirado no Free (3 + 1)', () => {
+      expect(service.isCycleInGracePeriod(-3)).toBe(true);
+      expect(service.isCycleInGracePeriod(-2)).toBe(false);
+      expect(service.isCycleInGracePeriod(-4)).toBe(false);
+
+      expect(service.isCycleExpired(-4)).toBe(true);
+      expect(service.isCycleExpired(-3)).toBe(false);
+      expect(service.isCycleExpired(-2)).toBe(false);
+    });
+
+    it('deve retornar ExpiringCycleInfo para o ciclo de offset -3 no Free', () => {
+      const available = ['2026-09', '2026-08', '2026-07', '2026-06'];
+      // Em 2026-09, 2026-06 tem offset -3
+      const refDate = new Date(2026, 8, 12); // 12 de Setembro de 2026 (Setembro tem 30 dias -> 18 dias restantes)
+      const expiring = service.getExpiringCycleInfo(available, '2026-09', refDate);
+
+      expect(expiring).not.toBeNull();
+      expect(expiring?.mesAno).toBe('2026-06');
+      expect(expiring?.label).toBe('Junho de 2026');
+      expect(expiring?.daysRemainingInMonth).toBe(18);
+      expect(expiring?.plan).toBe('free');
+    });
+
+    it('não deve retornar ExpiringCycleInfo se o ciclo -3 não existir nos ciclos do usuário', () => {
+      const available = ['2026-09', '2026-08', '2026-07'];
+      const expiring = service.getExpiringCycleInfo(available, '2026-09');
+      expect(expiring).toBeNull();
+    });
+
+    it('não deve permitir exportação em PDF regular no plano Free', () => {
       expect(service.canExportPdf()).toBe(false);
     });
   });
@@ -105,10 +136,32 @@ describe('PlanLimitsService', () => {
       expect(service.checkTripLimit(5).allowed).toBe(true);
     });
 
-    it('deve permitir janela de 13 meses de histórico', () => {
+    it('deve permitir janela de 13 meses de histórico (12 ativos + 1 carência)', () => {
       expect(service.isHistoryMonthAllowed(0)).toBe(true);
-      expect(service.isHistoryMonthAllowed(-12)).toBe(true); // 12 meses atrás
-      expect(service.isHistoryMonthAllowed(-13)).toBe(false); // além de 13 meses
+      expect(service.isHistoryMonthAllowed(-11)).toBe(true); // 11 meses atrás
+      expect(service.isHistoryMonthAllowed(-12)).toBe(true); // 12 meses atrás (carência)
+      expect(service.isHistoryMonthAllowed(-13)).toBe(false); // além de 13 meses (bloqueado)
+    });
+
+    it('deve identificar mês em carência e expirado no Pro (12 + 1)', () => {
+      expect(service.isCycleInGracePeriod(-12)).toBe(true);
+      expect(service.isCycleInGracePeriod(-11)).toBe(false);
+      expect(service.isCycleInGracePeriod(-13)).toBe(false);
+
+      expect(service.isCycleExpired(-13)).toBe(true);
+      expect(service.isCycleExpired(-12)).toBe(false);
+    });
+
+    it('deve retornar ExpiringCycleInfo para o ciclo de offset -12 no Pro', () => {
+      const available = ['2026-09', '2026-08', '2025-09'];
+      const refDate = new Date(2026, 8, 12);
+      const expiring = service.getExpiringCycleInfo(available, '2026-09', refDate);
+
+      expect(expiring).not.toBeNull();
+      expect(expiring?.mesAno).toBe('2025-09');
+      expect(expiring?.label).toBe('Setembro de 2025');
+      expect(expiring?.daysRemainingInMonth).toBe(18);
+      expect(expiring?.plan).toBe('pro');
     });
 
     it('deve permitir exportação em PDF', () => {
@@ -139,7 +192,7 @@ describe('PlanLimitsService', () => {
     });
 
     it('deve restringir histórico e exportação em PDF quando o plano estiver suspenso', () => {
-      expect(service.isHistoryMonthAllowed(-2)).toBe(false);
+      expect(service.isHistoryMonthAllowed(-4)).toBe(false);
       expect(service.canExportPdf()).toBe(false);
     });
   });

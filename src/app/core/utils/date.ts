@@ -102,6 +102,21 @@ export function getMonthOffset(targetYearMonth: string, baseYearMonth: string = 
   return (targetY - baseY) * 12 + (targetM - baseM);
 }
 
+/**
+ * Retorna o 'YYYY-MM' resultante de somar/subtrair N meses de um mês base
+ * Ex: addMonthsToYearMonth('2026-09', -3) -> '2026-06'
+ * Ex: addMonthsToYearMonth('2026-01', -1) -> '2025-12'
+ */
+export function addMonthsToYearMonth(baseYearMonth: string, monthsToAdd: number): string {
+  if (!baseYearMonth || !baseYearMonth.includes('-')) return baseYearMonth;
+  const [yearStr, monthStr] = baseYearMonth.split('-').map(Number);
+  if (isNaN(yearStr) || isNaN(monthStr)) return baseYearMonth;
+  const date = new Date(yearStr, monthStr - 1 + monthsToAdd, 1);
+  const newY = date.getFullYear();
+  const newM = String(date.getMonth() + 1).padStart(2, '0');
+  return `${newY}-${newM}`;
+}
+
 export type DueDateStatus = 'overdue' | 'due_today' | 'due_soon' | 'paid' | 'normal';
 
 export interface DueDateInfo {
@@ -228,5 +243,14 @@ export function getExpenseDueDateInfo(
   };
 }
 
-
-
+/**
+ * Retorna a quantidade de dias restantes até o encerramento do mês corrente.
+ * Ex: Se hoje é dia 12 em um mês de 30 dias, retorna 18.
+ */
+export function getDaysRemainingInCurrentMonth(referenceDate: Date = new Date()): number {
+  const year = referenceDate.getFullYear();
+  const month = referenceDate.getMonth();
+  const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+  const currentDay = referenceDate.getDate();
+  return Math.max(0, lastDayOfMonth - currentDay);
+}

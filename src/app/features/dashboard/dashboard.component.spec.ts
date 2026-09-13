@@ -105,11 +105,13 @@ describe('DashboardComponent', () => {
       deleteExpense: vi.fn().mockResolvedValue(undefined),
       addExpense: vi.fn().mockResolvedValue('exp-new'),
       updateExpense: vi.fn().mockResolvedValue(undefined),
-      updateReceiptCode: vi.fn().mockResolvedValue(undefined)
+      updateReceiptCode: vi.fn().mockResolvedValue(undefined),
+      getExpensesStream: vi.fn().mockReturnValue(of([]))
     };
 
     mockCycleService = {
-      saveIncome: vi.fn().mockResolvedValue(undefined)
+      saveIncome: vi.fn().mockResolvedValue(undefined),
+      getCycle: vi.fn().mockResolvedValue(null)
     };
 
     mockRouter = {
@@ -132,7 +134,9 @@ describe('DashboardComponent', () => {
       checkTaxLimit: vi.fn().mockReturnValue({ allowed: true }),
       checkTripLimit: vi.fn().mockReturnValue({ allowed: true }),
       isHistoryMonthAllowed: vi.fn().mockReturnValue(true),
-      canExportPdf: vi.fn().mockReturnValue(true)
+      canExportPdf: vi.fn().mockReturnValue(true),
+      getGracePeriodMonth: vi.fn().mockReturnValue('2024-11'),
+      currentPlan: vi.fn().mockReturnValue('free')
     };
 
     const mockExportService = {
@@ -576,6 +580,118 @@ describe('DashboardComponent', () => {
         'exp-123'
       );
       expect(component.isDeleteExpenseModalOpen()).toBe(false);
+    });
+  });
+
+  describe('Cenários BDD CARD-072: Retenção, Carência e Download de PDF Expirando', () => {
+    beforeEach(() => {
+      sessionStorage.clear();
+    });
+
+    it('deve identificar ciclo em carência e abrir o modal se ainda não foi dispensado na sessão', async () => {
+      mockCycleService.getCycle.mockResolvedValueOnce({
+        id: '2024-11',
+        mesAno: '2024-11',
+        renda_quinzena_1: 2000,
+        renda_quinzena_2: 1500
+      });
+
+      await component.checkExpiringCycle();
+
+      expect(component.expiringCycleData()).toEqual(
+        expect.objectContaining({
+          mesAno: '2024-11',
+          label: 'Novembro de 2024',
+          plan: 'free'
+        })
+      );
+      expect(component.isExpiringDataModalOpen()).toBe(true);
+      expect(component.isExpiringDataBannerDismissed()).toBe(false);
+    });
+
+    it('não deve abrir o modal de aviso se já tiver sido dispensado na sessão atual', async () => {
+      sessionStorage.setItem('quinzena_expiring_modal_dismissed_user-777_2024-11', 'true');
+
+      mockCycleService.getCycle.mockResolvedValueOnce({
+        id: '2024-11',
+        mesAno: '2024-11',
+        renda_quinzena_1: 2000,
+        renda_quinzena_2: 1500
+      });
+
+      await component.checkExpiringCycle();
+
+      expect(component.expiringCycleData()).not.toBeNull();
+      expect(component.isExpiringDataModalOpen()).toBe(false);
+    });
+
+    it('deve fechar o modal e persistir no sessionStorage ao dispensar', () => {
+      component.expiringCycleData.set({
+        mesAno: '2024-11',
+        label: 'Novembro de 2024',
+        daysRemainingInMonth: 10,
+        plan: 'free'
+      });
+      component.isExpiringDataModalOpen.set(true);
+
+      component.dismissExpiringModal();
+
+      expect(component.isExpiringDataModalOpen()).toBe(false);
+      expect(sessionStorage.getItem('quinzena_expiring_modal_dismissed_user-777_2024-11')).toBe('true');
+    });
+
+    it('deve dispensar o banner do topo ao chamar dismissExpiringBanner()', () => {
+      expect(component.isExpiringDataBannerDismissed()).toBe(false);
+      component.dismissExpiringBanner();
+      expect(component.isExpiringDataBannerDismissed()).toBe(true);
+    });
+
+    it('deve gerar PDF do ciclo em carência e exibir feedback de sucesso', async () => {
+      const mockExpiringExpenses: Expense[] = [
+        {
+          id: 'exp-old-1',
+          descricao: 'Internet Passada',
+          valor: 120,
+          categoria: 'Serviços',
+          quinzena: 1,
+          status_pagamento: true
+        }
+      ];
+
+      mockExpenseService.getExpensesStream.mockReturnValueOnce(of(mockExpiringExpenses));
+      mockCycleService.getCycle.mockResolvedValueOnce({
+        id: '2024-11',
+        mesAno: '2024-11',
+        renda_quinzena_1: 2500,
+        renda_quinzena_2: 2000
+      });
+
+      const exportService = TestBed.inject(ExportService);
+      vi.spyOn(exportService, 'exportToPDF').mockImplementation(() => {});
+
+      await component.downloadExpiringCyclePdf('2024-11');
+
+      expect(exportService.exportToPDF).toHaveBeenCalledWith(
+        '2024-11',
+        mockExpiringExpenses,
+        expect.objectContaining({
+          totalRenda: 4500,
+          totalGastos: 120,
+          saldoFinal: 4380
+        }),
+        'Investidor Pro'
+      );
+      expect(component.isDownloadingExpiringPdf()).toBe(false);
+    });
+
+    it('deve fechar o modal de expiração e abrir o modal de assinatura ao escolher fazer upgrade', () => {
+      component.isExpiringDataModalOpen.set(true);
+      expect(component.isSubscriptionModalOpen()).toBe(false);
+
+      component.onUpgradeFromExpiring();
+
+      expect(component.isExpiringDataModalOpen()).toBe(false);
+      expect(component.isSubscriptionModalOpen()).toBe(true);
     });
   });
 });

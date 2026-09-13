@@ -1,6 +1,13 @@
 import { Injectable, inject, computed } from '@angular/core';
 import { AuthStore } from '../state/auth.store';
 import { PlanType } from '../models/user.model';
+import {
+  formatYearMonthLabel,
+  getCurrentYearMonth,
+  getMonthOffset,
+  getDaysRemainingInCurrentMonth,
+  addMonthsToYearMonth
+} from '../utils/date';
 
 export interface PlanLimitInfo {
   allowed: boolean;
@@ -16,8 +23,17 @@ export interface PlanFeatures {
   maxTaxes: number;
   maxTrips: number;
   historyMonths: number;
+  activeRetentionMonths: number;
+  gracePeriodMonths: number;
   canExportPdf: boolean;
   canUseDuoShared: boolean;
+}
+
+export interface ExpiringCycleInfo {
+  mesAno: string;
+  label: string;
+  daysRemainingInMonth: number;
+  plan: PlanType;
 }
 
 export const PLAN_CONFIGS: Record<PlanType, PlanFeatures> = {
@@ -26,7 +42,9 @@ export const PLAN_CONFIGS: Record<PlanType, PlanFeatures> = {
     maxActiveInstallments: 3,
     maxTaxes: 1,
     maxTrips: 1,
-    historyMonths: 2,
+    historyMonths: 4,
+    activeRetentionMonths: 3,
+    gracePeriodMonths: 1,
     canExportPdf: false,
     canUseDuoShared: false
   },
@@ -36,6 +54,8 @@ export const PLAN_CONFIGS: Record<PlanType, PlanFeatures> = {
     maxTaxes: Infinity,
     maxTrips: Infinity,
     historyMonths: 13,
+    activeRetentionMonths: 12,
+    gracePeriodMonths: 1,
     canExportPdf: true,
     canUseDuoShared: false
   },
@@ -45,6 +65,8 @@ export const PLAN_CONFIGS: Record<PlanType, PlanFeatures> = {
     maxTaxes: Infinity,
     maxTrips: Infinity,
     historyMonths: 13,
+    activeRetentionMonths: 12,
+    gracePeriodMonths: 1,
     canExportPdf: true,
     canUseDuoShared: true
   }
@@ -169,5 +191,55 @@ export class PlanLimitsService {
    */
   canExportPdf(): boolean {
     return this.currentFeatures().canExportPdf;
+  }
+
+  /**
+   * Verifica se o offset do mês está exatamente no período de carência (+1 mês)
+   */
+  isCycleInGracePeriod(monthOffset: number): boolean {
+    return monthOffset === -this.currentFeatures().activeRetentionMonths;
+  }
+
+  /**
+   * Verifica se o offset do mês já expirou (além da carência)
+   */
+  isCycleExpired(monthOffset: number): boolean {
+    return monthOffset < -this.currentFeatures().activeRetentionMonths;
+  }
+
+  /**
+   * Retorna o mês alvo (YYYY-MM) que está no período de carência (+1) para o plano atual
+   */
+  getGracePeriodMonth(currentMonth: string = getCurrentYearMonth()): string {
+    const activeLimit = this.currentFeatures().activeRetentionMonths;
+    return addMonthsToYearMonth(currentMonth, -activeLimit);
+  }
+
+  /**
+   * Identifica se dentre os ciclos informados há algum ciclo atualmente no mês de carência (+1).
+   * Retorna os detalhes do ciclo prestes a expirar ou null se nenhum estiver em carência.
+   */
+  getExpiringCycleInfo(
+    availableCycles: string[],
+    currentMonth: string = getCurrentYearMonth(),
+    referenceDate: Date = new Date()
+  ): ExpiringCycleInfo | null {
+    if (!availableCycles || availableCycles.length === 0) return null;
+
+    const activeLimit = this.currentFeatures().activeRetentionMonths;
+    // O mês em carência é aquele cujo offset é exatamente -activeRetentionMonths
+    for (const mesAno of availableCycles) {
+      const offset = getMonthOffset(mesAno, currentMonth);
+      if (offset === -activeLimit) {
+        return {
+          mesAno,
+          label: formatYearMonthLabel(mesAno),
+          daysRemainingInMonth: getDaysRemainingInCurrentMonth(referenceDate),
+          plan: this.currentPlan()
+        };
+      }
+    }
+
+    return null;
   }
 }

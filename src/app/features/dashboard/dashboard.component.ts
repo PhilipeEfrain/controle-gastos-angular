@@ -8,17 +8,25 @@ import {
   effect
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { firstValueFrom } from 'rxjs';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FinanceStore } from '../../core/state/finance.store';
 import { AuthStore } from '../../core/state/auth.store';
 import { ExpenseService } from '../../core/services/expense.service';
 import { MonthlyCycleService } from '../../core/services/monthly-cycle.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { Expense, FortnightNumber, MonthlyCycle } from '../../core/models/finance.model';
+import { Expense, FortnightNumber, MonthlyCycle, MonthBalanceSummary } from '../../core/models/finance.model';
 import { formatBRL } from '../../core/utils/formatters';
-import { addMonthsToYearMonth } from '../../core/utils/calculations';
-import { getCurrentYearMonth, getMonthOffset, getExpenseDueDateInfo } from '../../core/utils/date';
-import { PlanLimitsService } from '../../core/services/plan-limits.service';
+import { addMonthsToYearMonth, roundBRL } from '../../core/utils/calculations';
+import {
+  getCurrentYearMonth,
+  getMonthOffset,
+  getExpenseDueDateInfo,
+  formatYearMonthLabel,
+  getDaysRemainingInCurrentMonth
+} from '../../core/utils/date';
+import { PlanLimitsService, ExpiringCycleInfo } from '../../core/services/plan-limits.service';
+import { ExportService } from '../../core/services/export.service';
 import { AnalyticsService } from '../../core/services/analytics.service';
 import { DuoService } from '../../core/services/duo.service';
 import { DuoGroup, DuoSettlementSummary } from '../../core/models/duo.model';
@@ -42,6 +50,8 @@ import { AdBannerComponent } from '../../shared/components/ad-banner/ad-banner.c
 import { CaixinhaModalComponent } from '../caixinha/caixinha-modal/caixinha-modal.component';
 import { NavigationModalService } from '../../core/services/navigation-modal.service';
 import { ConfirmationModalComponent } from '../../shared/components/confirmation-modal/confirmation-modal.component';
+import { ExpiringDataBannerComponent } from './components/expiring-data-banner/expiring-data-banner.component';
+import { ExpiringDataModalComponent } from './components/expiring-data-modal/expiring-data-modal.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -66,7 +76,9 @@ import { ConfirmationModalComponent } from '../../shared/components/confirmation
     OnboardingChecklistComponent,
     AdBannerComponent,
     CaixinhaModalComponent,
-    ConfirmationModalComponent
+    ConfirmationModalComponent,
+    ExpiringDataBannerComponent,
+    ExpiringDataModalComponent
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
@@ -84,6 +96,13 @@ export class DashboardComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   readonly navModalService = inject(NavigationModalService);
+  private readonly exportService = inject(ExportService);
+
+  // Estado de Dados em Mês de Carência / Prestes a Expirar (CARD-072)
+  readonly expiringCycleData = signal<ExpiringCycleInfo | null>(null);
+  readonly isExpiringDataModalOpen = signal<boolean>(false);
+  readonly isExpiringDataBannerDismissed = signal<boolean>(false);
+  readonly isDownloadingExpiringPdf = signal<boolean>(false);
 
   // Modo Casal / Duo State
   readonly duoGroup = signal<DuoGroup | null>(null);
@@ -353,6 +372,12 @@ export class DashboardComponent implements OnInit {
         }
       } catch {
         // Ignora erro
+      }
+
+      try {
+        await this.checkExpiringCycle();
+      } catch (e) {
+        console.error('Erro ao verificar ciclo em carência:', e);
       }
     }
 
@@ -691,6 +716,121 @@ export class DashboardComponent implements OnInit {
     const user = this.authStore.currentUser();
     if (user?.uid) {
       this.financeStore.setSelectedMonth(this.financeStore.selectedMonth(), user.uid);
+    }
+  }
+
+  /**
+   * Checa se o usuário possui ciclo no mês de carência (+1) e gerencia modal/banner (CARD-072)
+   */
+  async checkExpiringCycle(): Promise<void> {
+    const user = this.authStore.currentUser();
+    if (!user) return;
+
+    const expiringMonth = this.planLimitsService.getGracePeriodMonth();
+    try {
+      const cycle = await this.cycleService.getCycle(user.uid, expiringMonth);
+      if (cycle) {
+        const daysRemaining = getDaysRemainingInCurrentMonth();
+        const info: ExpiringCycleInfo = {
+          mesAno: expiringMonth,
+          label: formatYearMonthLabel(expiringMonth),
+          daysRemainingInMonth: daysRemaining,
+          plan: this.planLimitsService.currentPlan()
+        };
+        this.expiringCycleData.set(info);
+
+        // Verifica se o modal já foi dispensado nesta sessão
+        try {
+          const modalDismissed = sessionStorage.getItem(`quinzena_expiring_modal_dismissed_${user.uid}_${expiringMonth}`);
+          if (!modalDismissed) {
+            this.isExpiringDataModalOpen.set(true);
+          }
+        } catch {
+          this.isExpiringDataModalOpen.set(true);
+        }
+      }
+    } catch (err) {
+      console.warn('Erro ao verificar ciclo em carência:', err);
+    }
+  }
+
+  dismissExpiringModal(): void {
+    const user = this.authStore.currentUser();
+    const info = this.expiringCycleData();
+    if (user && info) {
+      try {
+        sessionStorage.setItem(`quinzena_expiring_modal_dismissed_${user.uid}_${info.mesAno}`, 'true');
+      } catch {
+        // Ignora caso sessionStorage não esteja disponível
+      }
+    }
+    this.isExpiringDataModalOpen.set(false);
+  }
+
+  dismissExpiringBanner(): void {
+    this.isExpiringDataBannerDismissed.set(true);
+  }
+
+  onUpgradeFromExpiring(): void {
+    this.dismissExpiringModal();
+    this.openSubscriptionModal();
+  }
+
+  async downloadExpiringCyclePdf(mesAno: string): Promise<void> {
+    const user = this.authStore.currentUser();
+    if (!user || this.isDownloadingExpiringPdf()) return;
+
+    this.isDownloadingExpiringPdf.set(true);
+    try {
+      const expenses = await firstValueFrom(this.expenseService.getExpensesStream(user.uid, mesAno));
+      const cycle = await this.cycleService.getCycle(user.uid, mesAno);
+
+      const q1Income = cycle?.renda_quinzena_1 || 0;
+      const q2Income = cycle?.renda_quinzena_2 || 0;
+      const q1Expenses = expenses.filter(e => e.quinzena === 1 && e.tipo !== 'renda_extra');
+      const q2Expenses = expenses.filter(e => e.quinzena === 2 && e.tipo !== 'renda_extra');
+      const extraIncomes = expenses.filter(e => e.tipo === 'renda_extra');
+
+      const q1TotalExpenses = roundBRL(q1Expenses.reduce((acc, e) => acc + (e.valor || 0), 0));
+      const q2TotalExpenses = roundBRL(q2Expenses.reduce((acc, e) => acc + (e.valor || 0), 0));
+      const totalExtra = roundBRL(extraIncomes.reduce((acc, e) => acc + (e.valor || 0), 0));
+      const totalRenda = roundBRL(q1Income + q2Income + totalExtra);
+      const totalGastos = roundBRL(q1TotalExpenses + q2TotalExpenses);
+      const saldoFinal = roundBRL(totalRenda - totalGastos);
+
+      const summary: MonthBalanceSummary = {
+        q1: {
+          quinzena: 1,
+          label: '1ª Quinzena (Dia 31)',
+          renda: q1Income,
+          totalGastos: q1TotalExpenses,
+          saldo: roundBRL(q1Income - q1TotalExpenses),
+          isDeficit: q1Income < q1TotalExpenses,
+          percentualGasto: q1Income > 0 ? roundBRL((q1TotalExpenses / q1Income) * 100) : 0
+        },
+        q2: {
+          quinzena: 2,
+          label: '2ª Quinzena (Dia 15)',
+          renda: q2Income,
+          totalGastos: q2TotalExpenses,
+          saldo: roundBRL(q2Income - q2TotalExpenses),
+          isDeficit: q2Income < q2TotalExpenses,
+          percentualGasto: q2Income > 0 ? roundBRL((q2TotalExpenses / q2Income) * 100) : 0
+        },
+        totalRenda,
+        totalGastos,
+        saldoFinal,
+        temDeficitGlobal: saldoFinal < 0,
+        q1CobreQ2: (q1Income - q1TotalExpenses) >= (q2TotalExpenses - q2Income),
+        totalExtraIncome: totalExtra
+      };
+
+      this.exportService.exportToPDF(mesAno, expenses, summary, user.displayName || undefined);
+      this.notificationService.success(`Relatório em PDF de ${formatYearMonthLabel(mesAno)} gerado com sucesso!`);
+    } catch (err: any) {
+      this.notificationService.error('Erro ao gerar relatório em PDF: ' + (err.message || err));
+    } finally {
+      this.isDownloadingExpiringPdf.set(false);
     }
   }
 

@@ -1,0 +1,62 @@
+<aside class="expiring-banner" role="alert" aria-live="polite">
+  <div class="banner-content">
+    <div class="banner-icon-container">
+      <svg class="banner-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    </div>
+    
+    <div class="banner-text">
+      <div class="banner-heading">
+        <span class="banner-title">Atenção: Histórico de {{ info().label }} vai expirar</span>
+        <span class="days-pill">
+          @if (info().daysRemainingInMonth === 0) {
+            Expira hoje
+          } @else if (info().daysRemainingInMonth === 1) {
+            Último dia
+          } @else {
+            Restam {{ info().daysRemainingInMonth }} dias
+          }
+        </span>
+      </div>
+      <p class="banner-desc">
+        Pela política de retenção do seu plano, os lançamentos de {{ info().label }} estão no mês de carência e serão excluídos do banco ao final deste mês. Baixe seu relatório em PDF para não perder seus registros.
+      </p>
+    </div>
+  </div>
+
+  <div class="banner-actions">
+    <button
+      type="button"
+      class="btn-download"
+      (click)="onDownload()"
+      [disabled]="isDownloading()"
+      [attr.aria-busy]="isDownloading()"
+    >
+      @if (isDownloading()) {
+        <svg class="spinner" viewBox="0 0 24 24" fill="none">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+        </svg>
+        <span>Gerando PDF...</span>
+      } @else {
+        <svg class="action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+        <span>Baixar PDF</span>
+      }
+    </button>
+
+    <button
+      type="button"
+      class="btn-dismiss"
+      (click)="onDismiss()"
+      title="Fechar aviso temporariamente"
+      aria-label="Fechar aviso"
+    >
+      <svg class="close-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+</aside>
