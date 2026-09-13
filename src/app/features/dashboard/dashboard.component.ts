@@ -41,6 +41,7 @@ import { OnboardingChecklistComponent } from './components/onboarding-checklist/
 import { AdBannerComponent } from '../../shared/components/ad-banner/ad-banner.component';
 import { CaixinhaModalComponent } from '../caixinha/caixinha-modal/caixinha-modal.component';
 import { NavigationModalService } from '../../core/services/navigation-modal.service';
+import { ConfirmationModalComponent } from '../../shared/components/confirmation-modal/confirmation-modal.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -64,7 +65,8 @@ import { NavigationModalService } from '../../core/services/navigation-modal.ser
     DuoSharedExpensesListComponent,
     OnboardingChecklistComponent,
     AdBannerComponent,
-    CaixinhaModalComponent
+    CaixinhaModalComponent,
+    ConfirmationModalComponent
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
@@ -161,6 +163,26 @@ export class DashboardComponent implements OnInit {
 
   readonly isExportModalOpen = signal<boolean>(false);
   readonly isSubscriptionModalOpen = signal<boolean>(false);
+
+  readonly isDeleteExpenseModalOpen = signal<boolean>(false);
+  readonly expenseToDelete = signal<Expense | null>(null);
+
+  readonly deleteModalTitle = computed<string>(() => {
+    const exp = this.expenseToDelete();
+    if (exp?.isShared || exp?.id?.startsWith('shared_')) {
+      return 'Excluir Despesa Compartilhada';
+    }
+    return 'Excluir Despesa';
+  });
+
+  readonly deleteModalMessage = computed<string>(() => {
+    const exp = this.expenseToDelete();
+    if (!exp) return '';
+    if (exp.isShared || exp.id?.startsWith('shared_')) {
+      return `Deseja realmente excluir a despesa do casal "${exp.descricao}"? Ela será removida das listas de ambos os parceiros.`;
+    }
+    return `Deseja realmente excluir a despesa "${exp.descricao}"?`;
+  });
 
   // Formatações computadas para os Top Cards
   readonly formattedTotalRenda = computed(() =>
@@ -566,18 +588,35 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  async onDeleteExpense(expense: Expense): Promise<void> {
+  onDeleteExpense(expense: Expense): void {
+    if (!expense.id) return;
+    this.expenseToDelete.set(expense);
+    this.isDeleteExpenseModalOpen.set(true);
+  }
+
+  cancelDeleteExpense(): void {
+    this.isDeleteExpenseModalOpen.set(false);
+    this.expenseToDelete.set(null);
+  }
+
+  async confirmDeleteExpense(): Promise<void> {
     const user = this.authStore.currentUser();
-    if (!user || !expense.id) return;
+    const expense = this.expenseToDelete();
+    if (!user || !expense?.id) {
+      this.isDeleteExpenseModalOpen.set(false);
+      return;
+    }
+
+    this.isDeleteExpenseModalOpen.set(false);
 
     // Se for uma despesa compartilhada do casal projetada na quinzena
     if (expense.isShared || expense.id.startsWith('shared_')) {
       const sharedId = expense.sharedExpenseId || expense.id.replace('shared_', '');
       const group = this.duoGroup();
-      if (!group?.id) return;
-
-      const confirm = window.confirm(`Deseja realmente excluir a despesa do casal "${expense.descricao}"? Ela será removida para ambos.`);
-      if (!confirm) return;
+      if (!group?.id) {
+        this.expenseToDelete.set(null);
+        return;
+      }
 
       try {
         await this.duoService.deleteSharedExpense(
@@ -588,12 +627,11 @@ export class DashboardComponent implements OnInit {
         this.notificationService.success(`Despesa do casal "${expense.descricao}" excluída com sucesso.`);
       } catch (err: any) {
         this.notificationService.error('Erro ao excluir despesa do casal: ' + err.message);
+      } finally {
+        this.expenseToDelete.set(null);
       }
       return;
     }
-
-    const confirm = window.confirm(`Deseja realmente excluir "${expense.descricao}"?`);
-    if (!confirm) return;
 
     try {
       await this.expenseService.deleteExpense(
@@ -604,6 +642,8 @@ export class DashboardComponent implements OnInit {
       this.notificationService.success(`Despesa "${expense.descricao}" excluída com sucesso.`);
     } catch (err: any) {
       this.notificationService.error('Erro ao excluir despesa: ' + err.message);
+    } finally {
+      this.expenseToDelete.set(null);
     }
   }
 

@@ -4,6 +4,7 @@ import { Expense, MonthBalanceSummary, MonthlyCycle, AnnualTax } from '../models
 import { formatBRL } from '../utils/formatters';
 import { roundBRL, calculateGlobalBalance } from '../utils/calculations';
 import { FirebaseService } from './firebase.service';
+import { NotificationService } from './notification.service';
 
 export interface AnnualMonthSummary {
   mesAno: string;
@@ -46,6 +47,7 @@ export interface AnnualDossierData {
 })
 export class ExportService {
   private firebaseService = inject(FirebaseService, { optional: true });
+  private notificationService = inject(NotificationService, { optional: true });
 
   private readonly monthNames = [
     'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -123,7 +125,7 @@ export class ExportService {
     const htmlContent = this.generatePDFReportHTML(mesAno, expenses, summary, userName);
     const printWindow = window.open('', '_blank', 'width=900,height=750');
     if (!printWindow) {
-      alert('Por favor, permita popups para gerar a visualização de impressão em PDF.');
+      this.notificationService?.warning('Por favor, permita popups para gerar a visualização de impressão em PDF.');
       return;
     }
 
@@ -277,7 +279,7 @@ export class ExportService {
 
     const printWindow = window.open('', '_blank', 'width=1000,height=850');
     if (!printWindow) {
-      alert('Por favor, permita popups para gerar a visualização do Dossiê Anual em PDF.');
+      this.notificationService?.warning('Por favor, permita popups para gerar a visualização do Dossiê Anual em PDF.');
       return;
     }
 

@@ -125,4 +125,15 @@
       }
     </div>
   }
+
+  <!-- Modal de Confirmação de Exclusão de Despesa Compartilhada -->
+  <app-confirmation-modal
+    [isOpen]="isDeleteModalOpen()"
+    title="Excluir Despesa Compartilhada"
+    [message]="deleteModalMessage()"
+    confirmButtonText="Excluir"
+    variant="danger"
+    (confirm)="confirmDelete()"
+    (cancel)="cancelDelete()"
+  ></app-confirmation-modal>
 </div>
