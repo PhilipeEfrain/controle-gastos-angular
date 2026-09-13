@@ -139,6 +139,30 @@ service cloud.firestore {
         && (!('quantidade_participantes' in data) || (data.quantidade_participantes is number && data.quantidade_participantes >= 1 && data.quantidade_participantes <= 100));
     }
 
+    // Validador de Caixinha / Reserva de Emergência Figurativa (CARD-068)
+    function isValidCaixinha(data) {
+      return data.keys().hasOnly([
+        'id', 'userId', 'saldo', 'meta', 'nome', 'createdAt', 'updatedAt'
+      ])
+        && isValidPositiveNumber(data.saldo)
+        && (!('userId' in data) || isValidString(data.userId, 1, 100))
+        && (!('meta' in data) || data.meta == null || isValidPositiveNumber(data.meta))
+        && (!('nome' in data) || (data.nome is string && data.nome.size() <= 100));
+    }
+
+    // Validador de Movimentação da Caixinha (Aporte / Resgate)
+    function isValidCaixinhaMovimentacao(data) {
+      return data.keys().hasOnly([
+        'id', 'caixinhaId', 'userId', 'tipo', 'valor', 'data',
+        'observacao', 'mesAnoDestino', 'quinzenaDestino', 'createdAt'
+      ])
+        && data.tipo in ['aporte', 'resgate']
+        && isValidPositiveNumber(data.valor) && data.valor > 0
+        && (!('quinzenaDestino' in data) || isValidFortnight(data.quinzenaDestino))
+        && (!('mesAnoDestino' in data) || isValidYearMonth(data.mesAnoDestino))
+        && (!('observacao' in data) || data.observacao == null || (data.observacao is string && data.observacao.size() <= 200));
+    }
+
     // Validador de Grupos do Plano Duo / Casal
     function isValidDuoGroup(data) {
       return data.keys().hasOnly([
@@ -274,6 +298,20 @@ service cloud.firestore {
         allow read: if isOwner(userId);
         allow create, update: if isOwner(userId) && isValidTravel(request.resource.data);
         allow delete: if isOwner(userId);
+      }
+
+      // Caixinha / Reserva de Emergência Figurativa (CARD-068)
+      match /caixinhas/{caixinhaId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidCaixinha(request.resource.data);
+        allow delete: if isOwner(userId);
+
+        // Movimentações de Aporte e Resgate da Caixinha
+        match /movimentacoes/{movId} {
+          allow read: if isOwner(userId);
+          allow create: if isOwner(userId) && isValidCaixinhaMovimentacao(request.resource.data);
+          allow update, delete: if false; // Imutabilidade de histórico de movimentação
+        }
       }
 
       // Bloqueio de subcoleções não modeladas (Fechamento do Catch-all de segurança)

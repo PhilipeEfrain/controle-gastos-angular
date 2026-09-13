@@ -1,0 +1,257 @@
+@if (isOpen()) {
+  <div class="modal-backdrop" (click)="onClose()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <div class="header-title-row">
+          <span class="header-icon">🐷</span>
+          <div>
+            <h2 class="modal-title">{{ caixinha()?.nome || 'Reserva de Emergência' }}</h2>
+            <p class="modal-subtitle">Caixinha de valor figurativo e isolado do orçamento quinzenal</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close" (click)="onClose()" aria-label="Fechar modal">✕</button>
+      </div>
+
+      <!-- Alerta Explicativo de Isolamento Financeiro -->
+      <div class="caixinha-info-banner">
+        <span class="banner-icon">🛡️</span>
+        <div class="banner-text">
+          <strong>Saldo 100% Protegido e Separado:</strong>
+          Este valor fica guardado de forma figurativa e não afeta o cálculo do seu saldo quinzenal.
+          O dinheiro só entra no seu fluxo do mês quando você realiza um <strong>resgate</strong> para cobrir imprevistos.
+        </div>
+      </div>
+
+      <!-- Feedback de Erro -->
+      @if (errorMessage()) {
+        <div class="form-alert-danger">
+          {{ errorMessage() }}
+        </div>
+      }
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <!-- Card de Saldo Atual -->
+        <div class="saldo-card">
+          <div class="saldo-header">
+            <span class="saldo-label">Saldo Guardado na Reserva</span>
+            <button type="button" class="btn-config-toggle" (click)="setMode('config')" title="Configurar saldo inicial e meta">
+              ⚙️ Ajustar
+            </button>
+          </div>
+          <div class="saldo-value">{{ formattedSaldo() }}</div>
+
+          @if (formattedMeta()) {
+            <div class="meta-section">
+              <div class="meta-row">
+                <span>Meta: {{ formattedMeta() }}</span>
+                <span>{{ progressPercent() }}%</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-bar" [style.width.%]="progressPercent()"></div>
+              </div>
+            </div>
+          }
+
+          <!-- Botões de Ação Rápida -->
+          @if (activeMode() === 'view') {
+            <div class="action-buttons-row">
+              <button type="button" class="btn-action btn-aporte" (click)="setMode('aporte')">
+                <span>➕ Guardar Dinheiro</span>
+              </button>
+              <button type="button" class="btn-action btn-resgate" (click)="setMode('resgate')" [disabled]="(caixinha()?.saldo ?? 0) <= 0">
+                <span>💸 Resgatar para o Mês</span>
+              </button>
+            </div>
+          }
+        </div>
+
+        <!-- Modo: Aporte (Guardar) -->
+        @if (activeMode() === 'aporte') {
+          <div class="movement-form-box">
+            <h3 class="form-section-title">➕ Guardar Dinheiro na Caixinha</h3>
+            <p class="form-section-subtitle">O valor será somado ao saldo da sua reserva de emergência.</p>
+
+            <form [formGroup]="aporteForm" (ngSubmit)="submitAporte()">
+              <div class="form-group">
+                <label class="form-label" for="aporteValor">Valor a Guardar (R$) *</label>
+                <input
+                  id="aporteValor"
+                  type="number"
+                  step="0.01"
+                  formControlName="valor"
+                  class="form-input"
+                  placeholder="0,00"
+                  [class.is-invalid]="aporteForm.get('valor')?.invalid && aporteForm.get('valor')?.touched"
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="aporteObs">Motivo / Observação (Opcional)</label>
+                <input
+                  id="aporteObs"
+                  type="text"
+                  formControlName="observacao"
+                  class="form-input"
+                  placeholder="Ex: Sobra do salário, Venda de item, Economia"
+                />
+              </div>
+
+              <div class="form-actions">
+                <button type="button" class="btn-cancel" (click)="setMode('view')" [disabled]="isLoading()">Cancelar</button>
+                <button type="submit" class="btn-submit btn-submit-aporte" [disabled]="aporteForm.invalid || isLoading()">
+                  {{ isLoading() ? 'Salvando...' : 'Confirmar Aporte' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        }
+
+        <!-- Modo: Resgate (Retirar para cobrir despesas) -->
+        @if (activeMode() === 'resgate') {
+          <div class="movement-form-box resgate-theme">
+            <h3 class="form-section-title">💸 Resgatar da Caixinha para o Ciclo Atual</h3>
+            <p class="form-section-subtitle">
+              O valor será debitado da caixinha e <strong>injetado como Renda Extra</strong> na quinzena escolhida para cobrir despesas e equilibrar suas finanças!
+            </p>
+
+            <form [formGroup]="resgateForm" (ngSubmit)="submitResgate()">
+              <div class="form-row">
+                <div class="form-group flex-1">
+                  <label class="form-label" for="resgateValor">Valor do Resgate (R$) *</label>
+                  <input
+                    id="resgateValor"
+                    type="number"
+                    step="0.01"
+                    formControlName="valor"
+                    class="form-input"
+                    placeholder="0,00"
+                    [class.is-invalid]="resgateForm.get('valor')?.invalid && resgateForm.get('valor')?.touched"
+                  />
+                </div>
+
+                <div class="form-group flex-1">
+                  <label class="form-label" for="resgateQuinzena">Destino no Mês *</label>
+                  <select id="resgateQuinzena" formControlName="quinzena" class="form-select">
+                    <option [value]="1">1ª Quinzena (Dia 31)</option>
+                    <option [value]="2">2ª Quinzena (Dia 15)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="resgateObs">Motivo da Emergência (Opcional)</label>
+                <input
+                  id="resgateObs"
+                  type="text"
+                  formControlName="observacao"
+                  class="form-input"
+                  placeholder="Ex: Manutenção do carro, Remédio imprevisto, Dentista"
+                />
+              </div>
+
+              <div class="form-actions">
+                <button type="button" class="btn-cancel" (click)="setMode('view')" [disabled]="isLoading()">Cancelar</button>
+                <button type="submit" class="btn-submit btn-submit-resgate" [disabled]="resgateForm.invalid || isLoading()">
+                  {{ isLoading() ? 'Resgatando...' : 'Confirmar Resgate' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        }
+
+        <!-- Modo: Configuração / Ajuste Inicial -->
+        @if (activeMode() === 'config') {
+          <div class="movement-form-box">
+            <h3 class="form-section-title">⚙️ Configurações da Caixinha</h3>
+            <p class="form-section-subtitle">Defina o nome, saldo inicial ou atualize a meta de economia.</p>
+
+            <form [formGroup]="configForm" (ngSubmit)="submitConfig()">
+              <div class="form-group">
+                <label class="form-label" for="configNome">Nome da Caixinha *</label>
+                <input
+                  id="configNome"
+                  type="text"
+                  formControlName="nome"
+                  class="form-input"
+                  placeholder="Ex: Reserva de Emergência, Fundo de Garantia"
+                />
+              </div>
+
+              <div class="form-row">
+                <div class="form-group flex-1">
+                  <label class="form-label" for="configSaldo">Saldo Atual (R$) *</label>
+                  <input
+                    id="configSaldo"
+                    type="number"
+                    step="0.01"
+                    formControlName="saldoInicial"
+                    class="form-input"
+                    placeholder="0,00"
+                  />
+                </div>
+
+                <div class="form-group flex-1">
+                  <label class="form-label" for="configMeta">Meta Total (R$) (Opcional)</label>
+                  <input
+                    id="configMeta"
+                    type="number"
+                    step="0.01"
+                    formControlName="meta"
+                    class="form-input"
+                    placeholder="Ex: 5000,00"
+                  />
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="button" class="btn-cancel" (click)="setMode('view')" [disabled]="isLoading()">Cancelar</button>
+                <button type="submit" class="btn-submit" [disabled]="configForm.invalid || isLoading()">
+                  {{ isLoading() ? 'Salvando...' : 'Salvar Alterações' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        }
+
+        <!-- Extrato de Movimentações -->
+        <div class="extrato-section">
+          <h3 class="extrato-title">📋 Extrato de Movimentações</h3>
+
+          @if (movimentacoes().length === 0) {
+            <div class="empty-extrato">
+              <span class="empty-icon">🌱</span>
+              <p>Nenhuma movimentação registrada na caixinha ainda.</p>
+              <span class="empty-hint">Use o botão "Guardar Dinheiro" para começar sua reserva!</span>
+            </div>
+          } @else {
+            <div class="movimentacoes-list">
+              @for (item of movimentacoes(); track item.id) {
+                <div class="mov-item" [class.is-aporte]="item.tipo === 'aporte'" [class.is-resgate]="item.tipo === 'resgate'">
+                  <div class="mov-icon-box">
+                    <span>{{ item.tipo === 'aporte' ? '📥' : '📤' }}</span>
+                  </div>
+                  <div class="mov-info">
+                    <div class="mov-desc-row">
+                      <span class="mov-desc">{{ item.observacao || (item.tipo === 'aporte' ? 'Aporte na Reserva' : 'Resgate de Emergência') }}</span>
+                      <span class="mov-valor" [class.text-emerald]="item.tipo === 'aporte'" [class.text-amber]="item.tipo === 'resgate'">
+                        {{ item.tipo === 'aporte' ? '+ ' : '- ' }}R$ {{ item.valor.toFixed(2) }}
+                      </span>
+                    </div>
+                    <div class="mov-meta-row">
+                      <span class="mov-date">{{ item.data }}</span>
+                      @if (item.tipo === 'resgate' && item.quinzenaDestino) {
+                        <span class="mov-destination-tag">Injetado na Q{{ item.quinzenaDestino }}</span>
+                      }
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+}

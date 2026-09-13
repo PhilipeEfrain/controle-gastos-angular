@@ -15,6 +15,7 @@ import { Expense } from '../../core/models/finance.model';
 import { FirebaseService } from '../../core/services/firebase.service';
 import { ExportService } from '../../core/services/export.service';
 import { DuoService } from '../../core/services/duo.service';
+import { CaixinhaService } from '../../core/services/caixinha.service';
 
 describe('DashboardComponent', () => {
   let component: DashboardComponent;
@@ -148,6 +149,14 @@ describe('DashboardComponent', () => {
       deleteSharedExpense: vi.fn().mockResolvedValue(undefined)
     };
 
+    const mockCaixinhaService = {
+      getCaixinhaStream: vi.fn().mockReturnValue(of(null)),
+      getMovimentacoesStream: vi.fn().mockReturnValue(of([])),
+      registrarAporte: vi.fn().mockResolvedValue(undefined),
+      registrarResgate: vi.fn().mockResolvedValue(undefined),
+      initOrUpdateCaixinha: vi.fn().mockResolvedValue(undefined)
+    };
+
     const mockFirebaseService = {
       firestore: {},
       auth: {}
@@ -167,6 +176,7 @@ describe('DashboardComponent', () => {
         { provide: NotificationService, useValue: mockNotificationService },
         { provide: ExportService, useValue: mockExportService },
         { provide: DuoService, useValue: mockDuoService },
+        { provide: CaixinhaService, useValue: mockCaixinhaService },
         { provide: FirebaseService, useValue: mockFirebaseService },
         { provide: Router, useValue: mockRouter },
         { provide: ActivatedRoute, useValue: { queryParams: queryParamsSubject.asObservable() } }
@@ -426,6 +436,15 @@ describe('DashboardComponent', () => {
       component.activeDuoTab.set('visao');
       fixture.detectChanges();
       expect(component.activeDuoTab()).toBe('visao');
+    });
+
+    it('Cenário BDD (CARD-068): deve gerenciar abertura do modal da caixinha de emergência', () => {
+      expect(component.isCaixinhaModalOpen()).toBe(false);
+      component.isCaixinhaModalOpen.set(true);
+      expect(component.isCaixinhaModalOpen()).toBe(true);
+
+      component.onCaixinhaMovementSuccess();
+      expect(mockFinanceStore.setSelectedMonth).toHaveBeenCalledWith('2025-03', 'user-777');
     });
   });
 });

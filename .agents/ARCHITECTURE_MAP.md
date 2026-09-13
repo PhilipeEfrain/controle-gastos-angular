@@ -52,6 +52,7 @@
 | `AsaasConfig` / `AsaasEnvironment` | `src/app/core/models/payment.model.ts` | Modelo de governança e configuração de credenciais Asaas v3 (`environment`, `apiKey`, `webhookSecret`, `walletId`, `isActive`, `lastTestedAt`). |
 | `ToastNotification` | `src/app/core/models/notification.model.ts` | Modelo de notificação Toast reativa (id, tipo, mensagem, duração). |
 | `DuoGroup` / `DuoSettlementSummary` / `DuoSharedExpense` | `src/app/core/models/duo.model.ts` | Interfaces do Modo Casal / Duo: grupos de pareamento, convites, compras e despesas compartilhadas ('Nossos Gastos') e visão 50/50. |
+| `Caixinha` / `CaixinhaMovimentacao` | `src/app/core/models/caixinha.model.ts` | Interfaces da Caixinha / Reserva de Emergência Figurativa (saldo, meta, aportes e resgates isolados do ciclo). |
 
 ---
 
@@ -62,6 +63,7 @@
 | `AuthService` | `src/app/core/services/auth.service.ts` | Gerenciamento de login (Google, E-mail/Senha), cadastro, logout, signal do usuário atual, persistência definitiva de assinaturas no Firestore (`updateUserSubscription`) e cancelamento assistido (`cancelUserSubscription`). |
 | `MonthlyCycleService` | `src/app/core/services/monthly-cycle.service.ts` | CRUD e stream em tempo real para `users/{userId}/ciclos_mensais/{mesAno}`. |
 | `ExpenseService` | `src/app/core/services/expense.service.ts` | CRUD de despesas, alternância de pagamento, atualização de comprovante, gestão e sincronização automática de despesas recorrentes (`syncRecurringExpensesForMonth`) e geração em lote de parcelas (`createInstallments`). |
+| `CaixinhaService` | `src/app/core/services/caixinha.service.ts` | Gestão da Caixinha de Emergência Figurativa (`users/{userId}/caixinhas/principal`), aportes atômicos e resgates com injeção automática de renda extraordinária no ciclo quinzenal. |
 | `TaxService` | `src/app/core/services/tax.service.ts` | CRUD e sincronização em tempo real de tributos em `users/{userId}/tributos_e_parcelas`. |
 | `TravelService` | `src/app/core/services/travel.service.ts` | CRUD e stream em tempo real para controle de gastos de viagem e rateio (`users/{userId}/viagens`). |
 | `InstallmentService` | `src/app/core/services/installment.service.ts` | Agrupamento de parcelamentos ativos nos ciclos do usuário e quitação/cancelamento em lote via `writeBatch`. |
@@ -172,8 +174,12 @@
 | :--- | :--- | :--- |
 | `SettingsComponent` | `app-settings` | Gestão de perfil, alternância de tema Dark/Light, redefinição de senha, painel 'Minha Assinatura' com visualização da data de expiração/renovação, troca de cartão de crédito, cancelamento assistido, gestão de parceiro Duo e card de inserção de código de convite para usuários Free/Pro. |
 
+### I. Feature: Caixinha / Reserva de Emergência (`src/app/features/caixinha/`)
+| Componente | Seletor | Descrição |
+| :--- | :--- | :--- |
+| `CaixinhaModalComponent` | `app-caixinha-modal` | Modal interativo para visualização de reserva figurativa isolada, registro de aportes, resgates com injeção automática no ciclo quinzenal, ajuste de meta e extrato histórico de movimentações. |
 
-### I. Feature: Landing Page & Apresentação (`src/app/features/landing/`)
+### J. Feature: Landing Page & Apresentação (`src/app/features/landing/`)
 | Componente | Seletor | Descrição |
 | :--- | :--- | :--- |
 | `LandingComponent` | `app-landing` | Landing Page de conversão de alto impacto com Glassmorphism, proposta de valor dos 4 pilares do Quinzena, mockups interativos, FAQ e CTAs. |
