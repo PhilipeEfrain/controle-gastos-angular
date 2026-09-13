@@ -19,6 +19,7 @@ export class ConfirmationModalComponent {
 
   readonly confirm = output<void>();
   readonly cancel = output<void>();
+  readonly close = output<void>();
 
   onConfirm(): void {
     this.confirm.emit();
@@ -26,5 +27,6 @@ export class ConfirmationModalComponent {
 
   onCancel(): void {
     this.cancel.emit();
+    this.close.emit();
   }
 }

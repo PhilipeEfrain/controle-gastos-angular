@@ -14,11 +14,12 @@ import { DuoService } from '../../../../core/services/duo.service';
 import { AuthStore } from '../../../../core/state/auth.store';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { DuoGroup } from '../../../../core/models/duo.model';
+import { ConfirmationModalComponent } from '../../../../shared/components/confirmation-modal/confirmation-modal.component';
 
 @Component({
   selector: 'app-duo-pairing-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ConfirmationModalComponent],
   templateUrl: './duo-pairing-modal.component.html',
   styleUrls: ['./duo-pairing-modal.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -38,6 +39,7 @@ export class DuoPairingModalComponent {
   readonly isCopied = signal<boolean>(false);
   readonly partnerEmailInput = signal<string>('');
   readonly isSavingEmail = signal<boolean>(false);
+  readonly isDisconnectConfirmOpen = signal<boolean>(false);
 
   readonly isOwner = computed(() => {
     const group = this.currentGroup();
@@ -161,13 +163,24 @@ export class DuoPairingModalComponent {
     }
   }
 
-  async onDisconnect(): Promise<void> {
+  onDisconnect(): void {
     const group = this.currentGroup();
     if (!group?.id) return;
+    this.isDisconnectConfirmOpen.set(true);
+  }
 
-    const confirm = window.confirm('Deseja realmente desvincular o parceiro do Modo Casal?');
-    if (!confirm) return;
+  cancelDisconnect(): void {
+    this.isDisconnectConfirmOpen.set(false);
+  }
 
+  async confirmDisconnect(): Promise<void> {
+    const group = this.currentGroup();
+    if (!group?.id) {
+      this.isDisconnectConfirmOpen.set(false);
+      return;
+    }
+
+    this.isDisconnectConfirmOpen.set(false);
     this.isLoading.set(true);
     try {
       await this.duoService.disconnectPartner(group.id);

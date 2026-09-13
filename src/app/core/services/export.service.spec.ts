@@ -3,10 +3,12 @@ import { ExportService, AnnualDossierData } from './export.service';
 import { Expense, MonthBalanceSummary } from '../models/finance.model';
 
 import { FirebaseService } from './firebase.service';
+import { NotificationService } from './notification.service';
 
 describe('ExportService', () => {
   let service: ExportService;
   let mockFirebaseService: any;
+  let mockNotificationService: any;
 
   const mockSummary: MonthBalanceSummary = {
     q1: {
@@ -76,10 +78,18 @@ describe('ExportService', () => {
       auth: {}
     };
 
+    mockNotificationService = {
+      warning: vi.fn(),
+      success: vi.fn(),
+      error: vi.fn(),
+      info: vi.fn()
+    };
+
     TestBed.configureTestingModule({
       providers: [
         ExportService,
-        { provide: FirebaseService, useValue: mockFirebaseService }
+        { provide: FirebaseService, useValue: mockFirebaseService },
+        { provide: NotificationService, useValue: mockNotificationService }
       ]
     });
     service = TestBed.inject(ExportService);
@@ -301,13 +311,12 @@ describe('ExportService', () => {
       }
     });
 
-    it('deve exibir alert se popup for bloqueado', () => {
+    it('deve exibir aviso se popup for bloqueado', () => {
       vi.spyOn(window, 'open').mockReturnValue(null);
-      vi.spyOn(window, 'alert').mockImplementation(() => {});
 
       service.exportToPDF('09-2026', mockExpenses, mockSummary);
 
-      expect(window.alert).toHaveBeenCalledWith(
+      expect(mockNotificationService.warning).toHaveBeenCalledWith(
         'Por favor, permita popups para gerar a visualização de impressão em PDF.'
       );
     });

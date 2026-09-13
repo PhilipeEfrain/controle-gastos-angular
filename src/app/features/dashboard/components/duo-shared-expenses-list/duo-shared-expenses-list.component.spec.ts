@@ -109,15 +109,31 @@ describe('DuoSharedExpensesListComponent', () => {
     });
   });
 
-  it('deve emitir deleteExpense ao confirmar exclusão', () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
+  it('deve abrir modal de confirmação ao clicar no botão de exclusão e emitir deleteExpense ao confirmar', () => {
     const spy = vi.spyOn(component.deleteExpense, 'emit');
     const btnDelete = fixture.nativeElement.querySelector('.btn-delete') as HTMLButtonElement;
     btnDelete.click();
 
+    expect(component.isDeleteModalOpen()).toBe(true);
+    expect(component.itemToDelete()?.id).toBe('shared-1');
+    expect(spy).not.toHaveBeenCalled();
+
+    // Confirma exclusão
+    component.confirmDelete();
     expect(spy).toHaveBeenCalledWith({
       mesAno: '2026-09',
       id: 'shared-1'
     });
+    expect(component.isDeleteModalOpen()).toBe(false);
+  });
+
+  it('deve fechar modal sem emitir evento ao cancelar exclusão', () => {
+    const spy = vi.spyOn(component.deleteExpense, 'emit');
+    component.onDelete(mockSharedExpenses[0]);
+    expect(component.isDeleteModalOpen()).toBe(true);
+
+    component.cancelDelete();
+    expect(component.isDeleteModalOpen()).toBe(false);
+    expect(spy).not.toHaveBeenCalled();
   });
 });

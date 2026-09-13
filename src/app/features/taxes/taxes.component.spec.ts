@@ -156,4 +156,31 @@ describe('TaxesComponent', () => {
     expect(component.isTaxModalOpen()).toBe(false);
     expect(component.limitModalMessage()).toContain('limite de 1 tributo anual');
   });
+
+  it('Cenário BDD CARD-071: deve abrir modal de confirmação ao clicar para excluir tributo e excluir apenas ao confirmar', async () => {
+    mockTaxService.deleteTax = vi.fn().mockResolvedValue(undefined);
+    const tax = mockTaxes[0];
+
+    expect(component.isDeleteModalOpen()).toBe(false);
+
+    // Clica para excluir -> abre modal
+    component.onDeleteTax(tax);
+    expect(component.isDeleteModalOpen()).toBe(true);
+    expect(component.taxToDelete()).toEqual(tax);
+    expect(mockTaxService.deleteTax).not.toHaveBeenCalled();
+
+    // Cancela
+    component.cancelDeleteTax();
+    expect(component.isDeleteModalOpen()).toBe(false);
+    expect(component.taxToDelete()).toBeNull();
+    expect(mockTaxService.deleteTax).not.toHaveBeenCalled();
+
+    // Reabre e confirma
+    component.onDeleteTax(tax);
+    await component.confirmDeleteTax();
+
+    expect(mockTaxService.deleteTax).toHaveBeenCalledWith('user-tax-99', 'tax-1');
+    expect(component.isDeleteModalOpen()).toBe(false);
+    expect(component.taxToDelete()).toBeNull();
+  });
 });

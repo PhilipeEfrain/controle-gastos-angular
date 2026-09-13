@@ -20,6 +20,7 @@ import { AppCardComponent } from '../../shared/components/app-card/app-card.comp
 import { TaxComparisonCardComponent } from './components/tax-comparison-card/tax-comparison-card.component';
 import { TaxFormModalComponent } from './components/tax-form-modal/tax-form-modal.component';
 import { LimitReachedModalComponent } from '../../shared/components/limit-reached-modal/limit-reached-modal.component';
+import { ConfirmationModalComponent } from '../../shared/components/confirmation-modal/confirmation-modal.component';
 
 @Component({
   selector: 'app-taxes',
@@ -29,7 +30,8 @@ import { LimitReachedModalComponent } from '../../shared/components/limit-reache
     AppCardComponent,
     TaxComparisonCardComponent,
     TaxFormModalComponent,
-    LimitReachedModalComponent
+    LimitReachedModalComponent,
+    ConfirmationModalComponent
   ],
   templateUrl: './taxes.component.html',
   styleUrls: ['./taxes.component.scss'],
@@ -49,6 +51,12 @@ export class TaxesComponent implements OnInit {
   readonly taxToEdit = signal<AnnualTax | null>(null);
   readonly statusFilter = signal<'Todos' | 'Pendente' | 'Pago'>('Todos');
   readonly actionMessage = signal<string | null>(null);
+  readonly isDeleteModalOpen = signal<boolean>(false);
+  readonly taxToDelete = signal<AnnualTax | null>(null);
+  readonly deleteModalMessage = computed(() => {
+    const tax = this.taxToDelete();
+    return `Deseja realmente excluir o tributo "${tax?.titulo || ''}"?`;
+  });
 
   readonly filteredTaxes = computed(() => {
     const all = this.financeStore.taxes();
@@ -129,18 +137,33 @@ export class TaxesComponent implements OnInit {
     }
   }
 
-  async onDeleteTax(tax: AnnualTax): Promise<void> {
+  onDeleteTax(tax: AnnualTax): void {
+    if (!tax.id) return;
+    this.taxToDelete.set(tax);
+    this.isDeleteModalOpen.set(true);
+  }
+
+  cancelDeleteTax(): void {
+    this.isDeleteModalOpen.set(false);
+    this.taxToDelete.set(null);
+  }
+
+  async confirmDeleteTax(): Promise<void> {
     const user = this.authStore.currentUser();
-    if (!user || !tax.id) return;
+    const tax = this.taxToDelete();
+    if (!user || !tax?.id) {
+      this.isDeleteModalOpen.set(false);
+      return;
+    }
 
-    const confirm = window.confirm(`Deseja realmente excluir "${tax.titulo}"?`);
-    if (!confirm) return;
-
+    this.isDeleteModalOpen.set(false);
     try {
       await this.taxService.deleteTax(user.uid, tax.id);
       this.notificationService.success(`Tributo "${tax.titulo}" excluído.`);
     } catch (err: any) {
       this.notificationService.error('Erro ao excluir tributo: ' + err.message);
+    } finally {
+      this.taxToDelete.set(null);
     }
   }
 

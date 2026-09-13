@@ -505,9 +505,7 @@ describe('DashboardComponent', () => {
       );
     });
 
-    it('Cenário BDD (CARD-070): deve excluir despesa compartilhada do casal com confirmação', async () => {
-      vi.spyOn(window, 'confirm').mockReturnValue(true);
-
+    it('Cenário BDD (CARD-070/CARD-071): deve abrir modal de confirmação e excluir despesa compartilhada do casal', async () => {
       component.duoGroup.set({
         id: 'grp-1',
         ownerId: 'user-777',
@@ -530,13 +528,54 @@ describe('DashboardComponent', () => {
         sharedExpenseId: 's123'
       };
 
-      await component.onDeleteExpense(sharedExpense);
+      component.onDeleteExpense(sharedExpense);
+      expect(component.isDeleteExpenseModalOpen()).toBe(true);
+      expect(component.deleteModalTitle()).toBe('Excluir Despesa Compartilhada');
+      expect(component.deleteModalMessage()).toContain('Geladeira');
+      expect(mockDuoService.deleteSharedExpense).not.toHaveBeenCalled();
+
+      // Confirma exclusão
+      await component.confirmDeleteExpense();
 
       expect(mockDuoService.deleteSharedExpense).toHaveBeenCalledWith(
         'grp-1',
         '2025-03',
         's123'
       );
+      expect(component.isDeleteExpenseModalOpen()).toBe(false);
+    });
+
+    it('Cenário BDD CARD-071: deve abrir modal de confirmação para despesa individual e excluir ao confirmar', async () => {
+      const personalExp: Expense = {
+        id: 'exp-123',
+        descricao: 'Aluguel',
+        valor: 1500,
+        categoria: 'Moradia',
+        quinzena: 1,
+        status_pagamento: false
+      };
+
+      component.onDeleteExpense(personalExp);
+      expect(component.isDeleteExpenseModalOpen()).toBe(true);
+      expect(component.deleteModalTitle()).toBe('Excluir Despesa');
+      expect(component.deleteModalMessage()).toContain('Aluguel');
+      expect(mockExpenseService.deleteExpense).not.toHaveBeenCalled();
+
+      // Cancela
+      component.cancelDeleteExpense();
+      expect(component.isDeleteExpenseModalOpen()).toBe(false);
+      expect(mockExpenseService.deleteExpense).not.toHaveBeenCalled();
+
+      // Reabre e confirma
+      component.onDeleteExpense(personalExp);
+      await component.confirmDeleteExpense();
+
+      expect(mockExpenseService.deleteExpense).toHaveBeenCalledWith(
+        'user-777',
+        '2025-03',
+        'exp-123'
+      );
+      expect(component.isDeleteExpenseModalOpen()).toBe(false);
     });
   });
 });

@@ -159,4 +159,40 @@ describe('DuoPairingModalComponent', () => {
 
     expect(newComponent.inviteCodeInput()).toBe('DUO-5555');
   });
+
+  it('Cenário BDD CARD-071: deve abrir modal de confirmação ao clicar para desvincular e desconectar apenas ao confirmar', async () => {
+    mockDuoService.disconnectPartner = vi.fn().mockResolvedValue(undefined);
+    component.currentGroup.set({
+      id: 'grp-active',
+      ownerId: 'user-1',
+      ownerEmail: 'user1@test.com',
+      ownerName: 'User 1',
+      partnerId: 'user-2',
+      partnerEmail: 'user2@test.com',
+      partnerName: 'User 2',
+      inviteCode: 'DUO-9999',
+      status: 'active'
+    });
+
+    expect(component.isDisconnectConfirmOpen()).toBe(false);
+
+    // Clica para desconectar -> abre modal de confirmação
+    component.onDisconnect();
+    expect(component.isDisconnectConfirmOpen()).toBe(true);
+    expect(mockDuoService.disconnectPartner).not.toHaveBeenCalled();
+
+    // Cancela
+    component.cancelDisconnect();
+    expect(component.isDisconnectConfirmOpen()).toBe(false);
+    expect(mockDuoService.disconnectPartner).not.toHaveBeenCalled();
+
+    // Reabre e confirma
+    component.onDisconnect();
+    expect(component.isDisconnectConfirmOpen()).toBe(true);
+
+    await component.confirmDisconnect();
+    expect(mockDuoService.disconnectPartner).toHaveBeenCalledWith('grp-active');
+    expect(component.isDisconnectConfirmOpen()).toBe(false);
+    expect(mockNotificationService.info).toHaveBeenCalledWith('Parceiro desvinculado com sucesso.');
+  });
 });

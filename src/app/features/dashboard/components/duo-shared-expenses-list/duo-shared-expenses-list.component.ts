@@ -3,17 +3,19 @@ import {
   ChangeDetectionStrategy,
   input,
   output,
-  computed
+  computed,
+  signal
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DuoSharedExpense } from '../../../../core/models/duo.model';
 import { formatBRL } from '../../../../core/utils/formatters';
 import { roundBRL } from '../../../../core/utils/calculations';
+import { ConfirmationModalComponent } from '../../../../shared/components/confirmation-modal/confirmation-modal.component';
 
 @Component({
   selector: 'app-duo-shared-expenses-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ConfirmationModalComponent],
   templateUrl: './duo-shared-expenses-list.component.html',
   styleUrls: ['./duo-shared-expenses-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -28,6 +30,13 @@ export class DuoSharedExpensesListComponent {
   readonly addSharedExpense = output<void>();
   readonly togglePayment = output<{ mesAno: string; id: string; status: boolean }>();
   readonly deleteExpense = output<{ mesAno: string; id: string }>();
+
+  readonly isDeleteModalOpen = signal<boolean>(false);
+  readonly itemToDelete = signal<DuoSharedExpense | null>(null);
+  readonly deleteModalMessage = computed(() => {
+    const item = this.itemToDelete();
+    return `Deseja realmente excluir a despesa do casal "${item?.descricao || ''}"? Ela será removida das listas de ambos.`;
+  });
 
   readonly totalShared = computed(() => {
     return roundBRL(this.sharedExpenses().reduce((acc, curr) => acc + (curr.valorTotal || 0), 0));
@@ -70,11 +79,24 @@ export class DuoSharedExpensesListComponent {
 
   onDelete(item: DuoSharedExpense): void {
     if (!item.id || !item.mesAno) return;
-    if (confirm(`Deseja remover "${item.descricao}" das despesas compartilhadas?`)) {
+    this.itemToDelete.set(item);
+    this.isDeleteModalOpen.set(true);
+  }
+
+  confirmDelete(): void {
+    const item = this.itemToDelete();
+    if (item?.id && item?.mesAno) {
       this.deleteExpense.emit({
         mesAno: item.mesAno,
         id: item.id
       });
     }
+    this.isDeleteModalOpen.set(false);
+    this.itemToDelete.set(null);
+  }
+
+  cancelDelete(): void {
+    this.isDeleteModalOpen.set(false);
+    this.itemToDelete.set(null);
   }
 }

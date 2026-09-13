@@ -12,6 +12,7 @@ import { FormsModule } from '@angular/forms';
 import { ExportService } from '../../../../core/services/export.service';
 import { PlanLimitsService } from '../../../../core/services/plan-limits.service';
 import { AuthStore } from '../../../../core/state/auth.store';
+import { NotificationService } from '../../../../core/services/notification.service';
 import { Expense, MonthBalanceSummary } from '../../../../core/models/finance.model';
 import { formatBRL } from '../../../../core/utils/formatters';
 
@@ -36,6 +37,7 @@ export class ExportModalComponent {
   private readonly exportService = inject(ExportService);
   readonly planLimitsService = inject(PlanLimitsService);
   private readonly authStore = inject(AuthStore);
+  private readonly notificationService = inject(NotificationService);
 
   readonly currentYear = new Date().getFullYear();
   readonly availableYears = [this.currentYear - 2, this.currentYear - 1, this.currentYear, this.currentYear + 1];
@@ -88,7 +90,7 @@ export class ExportModalComponent {
       this.close.emit();
     } catch (err) {
       console.error('Erro ao gerar Dossiê Anual:', err);
-      alert('Não foi possível compilar o Dossiê Anual no momento.');
+      this.notificationService.error('Não foi possível compilar o Dossiê Anual no momento.');
     } finally {
       this.isGeneratingAnnual.set(false);
     }

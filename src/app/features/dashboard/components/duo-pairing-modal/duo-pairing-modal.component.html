@@ -190,4 +190,15 @@
       </div>
     </div>
   </div>
+
+  <!-- Modal de Confirmação para Desvincular Parceiro -->
+  <app-confirmation-modal
+    [isOpen]="isDisconnectConfirmOpen()"
+    title="Desvincular Parceiro(a)"
+    message="Tem certeza de que deseja desvincular seu parceiro(a) do Modo Casal? O grupo retornará ao status pendente e os gastos futuros não serão mais sincronizados."
+    confirmButtonText="Desvincular"
+    variant="danger"
+    (confirm)="confirmDisconnect()"
+    (cancel)="cancelDisconnect()"
+  ></app-confirmation-modal>
 }

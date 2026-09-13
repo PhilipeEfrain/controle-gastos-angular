@@ -486,3 +486,14 @@
   (movementSuccess)="onCaixinhaMovementSuccess()"
 />
 
+<!-- Modal de Confirmação de Exclusão de Despesa (Individual / Casal) -->
+<app-confirmation-modal
+  [isOpen]="isDeleteExpenseModalOpen()"
+  [title]="deleteModalTitle()"
+  [message]="deleteModalMessage()"
+  confirmButtonText="Excluir"
+  variant="danger"
+  (confirm)="confirmDeleteExpense()"
+  (cancel)="cancelDeleteExpense()"
+></app-confirmation-modal>
+

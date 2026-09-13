@@ -39,4 +39,14 @@ describe('ConfirmationModalComponent', () => {
 
     expect(canceled).toBe(true);
   });
+
+  it('deve emitir close ao clicar no botão de fechar ou cancelar', () => {
+    let closed = false;
+    component.close.subscribe(() => (closed = true));
+
+    const closeBtn = fixture.nativeElement.querySelector('.close-btn') as HTMLButtonElement;
+    closeBtn.click();
+
+    expect(closed).toBe(true);
+  });
 });

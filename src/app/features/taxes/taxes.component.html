@@ -241,3 +241,14 @@
   />
 }
 
+<!-- Modal de Confirmação de Exclusão de Tributo -->
+<app-confirmation-modal
+  [isOpen]="isDeleteModalOpen()"
+  title="Excluir Tributo"
+  [message]="deleteModalMessage()"
+  confirmButtonText="Excluir Tributo"
+  variant="danger"
+  (confirm)="confirmDeleteTax()"
+  (cancel)="cancelDeleteTax()"
+></app-confirmation-modal>
+
