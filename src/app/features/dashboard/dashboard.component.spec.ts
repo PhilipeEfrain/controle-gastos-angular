@@ -16,6 +16,7 @@ import { FirebaseService } from '../../core/services/firebase.service';
 import { ExportService } from '../../core/services/export.service';
 import { DuoService } from '../../core/services/duo.service';
 import { CaixinhaService } from '../../core/services/caixinha.service';
+import { NavigationModalService } from '../../core/services/navigation-modal.service';
 
 describe('DashboardComponent', () => {
   let component: DashboardComponent;
@@ -130,7 +131,8 @@ describe('DashboardComponent', () => {
       checkInstallmentLimit: vi.fn().mockReturnValue({ allowed: true }),
       checkTaxLimit: vi.fn().mockReturnValue({ allowed: true }),
       checkTripLimit: vi.fn().mockReturnValue({ allowed: true }),
-      isHistoryMonthAllowed: vi.fn().mockReturnValue(true)
+      isHistoryMonthAllowed: vi.fn().mockReturnValue(true),
+      canExportPdf: vi.fn().mockReturnValue(true)
     };
 
     const mockExportService = {
@@ -445,6 +447,28 @@ describe('DashboardComponent', () => {
 
       component.onCaixinhaMovementSuccess();
       expect(mockFinanceStore.setSelectedMonth).toHaveBeenCalledWith('2025-03', 'user-777');
+    });
+
+    it('Cenário BDD (CARD-069): deve sincronizar modais disparados via NavigationModalService', () => {
+      const navService = TestBed.inject(NavigationModalService);
+
+      expect(component.isCaixinhaModalOpen()).toBe(false);
+      navService.isCaixinhaOpen.set(true);
+      TestBed.flushEffects();
+      expect(component.isCaixinhaModalOpen()).toBe(true);
+
+      component.onCaixinhaModalClosed();
+      expect(component.isCaixinhaModalOpen()).toBe(false);
+      expect(navService.isCaixinhaOpen()).toBe(false);
+
+      expect(component.isExportModalOpen()).toBe(false);
+      navService.isExportOpen.set(true);
+      TestBed.flushEffects();
+      expect(component.isExportModalOpen()).toBe(true);
+
+      component.onExportModalClosed();
+      expect(component.isExportModalOpen()).toBe(false);
+      expect(navService.isExportOpen()).toBe(false);
     });
   });
 });

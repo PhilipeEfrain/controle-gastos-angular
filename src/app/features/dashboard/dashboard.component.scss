@@ -91,6 +91,23 @@
   }
 }
 
+.dashboard-quick-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+
+  @include respond-below('sm') {
+    width: 100%;
+
+    .taxes-nav-btn {
+      flex: 1 1 auto;
+      justify-content: center;
+      min-height: 40px;
+    }
+  }
+}
+
 .month-navigator {
   display: inline-flex;
   align-items: center;
