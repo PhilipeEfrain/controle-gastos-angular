@@ -17,6 +17,7 @@ interface FaqItem {
 }
 
 import { BrandLogoComponent } from '../../shared/components/brand-logo/brand-logo.component';
+import { EarlyAccessService } from '../../core/services/early-access.service';
 
 @Component({
   selector: 'app-landing',
@@ -29,11 +30,14 @@ import { BrandLogoComponent } from '../../shared/components/brand-logo/brand-log
 export class LandingComponent implements OnInit {
   private authStore = inject(AuthStore);
   private router = inject(Router);
+  private earlyAccessService = inject(EarlyAccessService);
 
   readonly isAuthenticated = this.authStore.isAuthenticated;
   readonly user = this.authStore.currentUser;
   readonly showCookieConsent = signal<boolean>(false);
   readonly isMobileMenuOpen = signal<boolean>(false);
+  readonly earlyAccessConfig = this.earlyAccessService.config;
+  readonly isRegistrationsOpen = this.earlyAccessService.isRegistrationsOpen;
 
   toggleMobileMenu(): void {
     this.isMobileMenuOpen.update(open => !open);

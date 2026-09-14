@@ -3,6 +3,7 @@ import { initializeApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
 import {
   initializeFirestore,
+  getFirestore,
   Firestore,
   persistentLocalCache,
   persistentMultipleTabManager,
@@ -37,8 +38,12 @@ export class FirebaseService {
     }
 
     // Inicializa o Firestore com persistência offline e streaming WebChannel nativo
-    this.firestore = initializeFirestore(this.app, {
-      localCache: localCacheConfig
-    });
+    try {
+      this.firestore = initializeFirestore(this.app, {
+        localCache: localCacheConfig
+      });
+    } catch {
+      this.firestore = getFirestore(this.app);
+    }
   }
 }

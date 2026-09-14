@@ -1,15 +1,18 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
+import { signal } from '@angular/core';
 import { AuthComponent } from './auth.component';
 import { AuthService } from '../../core/services/auth.service';
 import { AuthStore } from '../../core/state/auth.store';
+import { EarlyAccessService } from '../../core/services/early-access.service';
 
 describe('AuthComponent', () => {
   let component: AuthComponent;
   let fixture: ComponentFixture<AuthComponent>;
   let mockAuthService: any;
   let mockAuthStore: any;
+  let mockEarlyAccessService: any;
   let router: Router;
 
   beforeEach(async () => {
@@ -24,12 +27,24 @@ describe('AuthComponent', () => {
       setUser: vi.fn()
     };
 
+    mockEarlyAccessService = {
+      config: signal({
+        registrationsOpen: true,
+        maxBetaUsers: 100,
+        message: 'Acesso antecipado ativo'
+      }),
+      isRegistrationsOpen: signal(true),
+      joinWaitlist: vi.fn().mockResolvedValue(true),
+      fetchConfig: vi.fn().mockResolvedValue({})
+    };
+
     await TestBed.configureTestingModule({
       imports: [AuthComponent],
       providers: [
         provideRouter([]),
         { provide: AuthService, useValue: mockAuthService },
-        { provide: AuthStore, useValue: mockAuthStore }
+        { provide: AuthStore, useValue: mockAuthStore },
+        { provide: EarlyAccessService, useValue: mockEarlyAccessService }
       ]
     }).compileComponents();
 
@@ -106,5 +121,36 @@ describe('AuthComponent', () => {
     const links = Array.from(legalNotice?.querySelectorAll('a') || []).map(a => a.getAttribute('routerLink') || a.getAttribute('href'));
     expect(links).toContain('/termos');
     expect(links).toContain('/privacidade');
+  });
+
+  it('Cenário BDD CARD-081: deve renderizar o banner de acesso antecipado', () => {
+    const compiled = fixture.nativeElement as HTMLElement;
+    const banner = compiled.querySelector('.early-access-banner');
+    expect(banner).toBeTruthy();
+    expect(banner?.textContent).toContain('Acesso Antecipado');
+    expect(banner?.textContent).toContain('Acesso antecipado ativo');
+  });
+
+  it('Cenário BDD CARD-081: deve exibir card de lista de espera quando registros estiverem fechados', () => {
+    mockEarlyAccessService.isRegistrationsOpen.set(false);
+    component.setTab('register');
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const waitlist = compiled.querySelector('.waitlist-card');
+    expect(waitlist).toBeTruthy();
+    expect(waitlist?.textContent).toContain('Vagas da 1ª Turma Esgotadas');
+  });
+
+  it('Cenário BDD CARD-081: deve permitir entrar na lista de espera informando e-mail', async () => {
+    mockEarlyAccessService.isRegistrationsOpen.set(false);
+    component.setTab('register');
+    component.waitlistEmail.set('visitante@exemplo.com');
+    fixture.detectChanges();
+
+    await component.handleJoinWaitlist();
+
+    expect(mockEarlyAccessService.joinWaitlist).toHaveBeenCalledWith('visitante@exemplo.com', 'auth_page');
+    expect(component.waitlistSubmitted()).toBe(true);
   });
 });
