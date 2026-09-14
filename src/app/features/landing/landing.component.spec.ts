@@ -1,7 +1,9 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { LandingComponent } from './landing.component';
 import { provideRouter, Router } from '@angular/router';
 import { AuthStore } from '../../core/state/auth.store';
+import { EarlyAccessService } from '../../core/services/early-access.service';
 import { signal, WritableSignal } from '@angular/core';
 
 describe('LandingComponent', () => {
@@ -12,6 +14,7 @@ describe('LandingComponent', () => {
     isAuthenticated: WritableSignal<boolean>;
     currentUser: WritableSignal<any>;
   };
+  let mockEarlyAccessService: any;
 
   beforeEach(async () => {
     mockAuthStore = {
@@ -19,11 +22,23 @@ describe('LandingComponent', () => {
       currentUser: signal(null)
     };
 
+    mockEarlyAccessService = {
+      config: signal({
+        registrationsOpen: true,
+        maxBetaUsers: 100,
+        message: 'Acesso antecipado ativo'
+      }),
+      isRegistrationsOpen: signal(true),
+      joinWaitlist: vi.fn().mockResolvedValue(true),
+      fetchConfig: vi.fn().mockResolvedValue({})
+    };
+
     await TestBed.configureTestingModule({
       imports: [LandingComponent],
       providers: [
         provideRouter([]),
-        { provide: AuthStore, useValue: mockAuthStore }
+        { provide: AuthStore, useValue: mockAuthStore },
+        { provide: EarlyAccessService, useValue: mockEarlyAccessService }
       ]
     }).compileComponents();
 

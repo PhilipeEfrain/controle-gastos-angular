@@ -224,6 +224,14 @@ service cloud.firestore {
         && (!('status' in data) || data.status in ['novo', 'em_analise', 'resolvido', 'arquivado']);
     }
 
+    // Validador de Lead para Lista de Espera do Acesso Antecipado (CARD-081)
+    function isValidWaitlistLead(data) {
+      return data.keys().hasOnly(['email', 'source', 'createdAt'])
+        && data.email is string && data.email.size() >= 5 && data.email.size() <= 120
+        && (!('source' in data) || (data.source is string && data.source.size() <= 50))
+        && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 40));
+    }
+
     // Regras para Grupos do Plano Casal / Duo
     match /duo_groups/{groupId} {
       allow read: if isAuthenticated() && (
@@ -233,9 +241,8 @@ service cloud.firestore {
       );
       allow create: if isAuthenticated() && request.auth.uid == request.resource.data.ownerId && isValidDuoGroup(request.resource.data);
       allow update: if isAuthenticated() && (
-        request.auth.uid == resource.data.ownerId ||
-        (resource.data.status == 'pending' && request.auth.uid == request.resource.data.partnerId) ||
-        request.auth.uid == resource.data.partnerId
+        request.auth.uid in resource.data.members ||
+        (request.auth.uid == resource.data.partnerId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['partnerId', 'status', 'updatedAt']))
       ) && isValidDuoGroup(request.resource.data);
       allow delete: if isAuthenticated() && request.auth.uid == resource.data.ownerId;
 
@@ -248,9 +255,16 @@ service cloud.firestore {
       }
     }
 
-    // Configurações Globais do Sistema e Gateway Asaas (Acesso restrito a administradores e Cloud Functions)
+    // Configurações Globais do Sistema e Gateway Asaas (Acesso restrito a administradores, exceto early_access público)
     match /system_config/{configId} {
-      allow read, write: if isAdmin();
+      allow get: if configId == 'early_access' || isAdmin();
+      allow list, write: if isAdmin();
+    }
+
+    // Lista de Espera de Novos Usuários do Acesso Antecipado (CARD-081)
+    match /waitlist_leads/{leadId} {
+      allow read, list, update, delete: if isAdmin();
+      allow create: if isValidWaitlistLead(request.resource.data);
     }
 
     // Auditoria e Eventos de Sistema / Webhooks (Leitura restrita a administradores e escrita exclusiva de backend)

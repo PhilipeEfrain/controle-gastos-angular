@@ -4,6 +4,7 @@
     <div class="header-container">
       <div class="brand-group">
         <app-brand-logo [size]="'sm'" />
+        <span class="landing-beta-tag" title="Versão em Acesso Antecipado">Beta</span>
       </div>
 
       <nav class="header-nav">
@@ -29,7 +30,7 @@
           Entrar
         </button>
         <button type="button" class="btn-primary-action" (click)="navigateToAuth('register')" id="btn-header-register">
-          <span>Começar Grátis</span>
+          <span>{{ isRegistrationsOpen() ? 'Começar Grátis' : 'Lista de Espera' }}</span>
           <svg viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd"
               d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
@@ -83,6 +84,13 @@
         <span>Gestão Financeira Inteligente & PWA Offline</span>
       </div>
 
+      <!-- Badge de Acesso Antecipado (CARD-081) -->
+      <div class="hero-early-badge" id="hero-early-access-badge">
+        <span class="badge-ping"></span>
+        <span class="badge-icon">🚀</span>
+        <span class="badge-text">Acesso Antecipado · Vagas Limitadas</span>
+      </div>
+
       <h1 class="hero-title">
         Saiba quanto entra, quanto sai e <span class="gradient-text">quanto sobra em cada quinzena.</span>
       </h1>
@@ -103,7 +111,7 @@
         </button>
         } @else {
         <button type="button" class="btn-cta-main" (click)="navigateToAuth('register')" id="btn-hero-cta">
-          <span>Começar Grátis em 1 Minuto</span>
+          <span>{{ isRegistrationsOpen() ? 'Começar Grátis em 1 Minuto' : 'Entrar na Lista de Espera' }}</span>
           <svg viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd"
               d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"

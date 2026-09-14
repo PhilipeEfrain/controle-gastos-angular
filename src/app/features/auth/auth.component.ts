@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { AuthStore } from '../../core/state/auth.store';
+import { EarlyAccessService } from '../../core/services/early-access.service';
 import { AppCardComponent } from '../../shared/components/app-card/app-card.component';
 import { BrandLogoComponent } from '../../shared/components/brand-logo/brand-logo.component';
 
@@ -21,6 +22,7 @@ export class AuthComponent {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private authStore = inject(AuthStore);
+  private earlyAccessService = inject(EarlyAccessService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
@@ -29,6 +31,13 @@ export class AuthComponent {
   readonly errorMessage = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
   readonly showPassword = signal<boolean>(false);
+
+  // Early Access & Waitlist
+  readonly isRegistrationsOpen = this.earlyAccessService.isRegistrationsOpen;
+  readonly earlyAccessConfig = this.earlyAccessService.config;
+  readonly waitlistEmail = signal<string>('');
+  readonly isWaitlistLoading = signal<boolean>(false);
+  readonly waitlistSubmitted = signal<boolean>(false);
 
   // Formulários Reativos
   readonly loginForm: FormGroup = this.fb.group({
@@ -107,6 +116,11 @@ export class AuthComponent {
    * Submissão do Cadastro de novo usuário
    */
   async handleRegister(): Promise<void> {
+    if (!this.isRegistrationsOpen()) {
+      this.errorMessage.set('As vagas para novos cadastros estão temporariamente pausadas. Entre na lista de espera!');
+      return;
+    }
+
     if (this.registerForm.invalid) {
       this.registerForm.markAllAsTouched();
       return;
@@ -126,6 +140,34 @@ export class AuthComponent {
       this.errorMessage.set(this.getFriendlyErrorMessage(err?.code));
     } finally {
       this.isLoading.set(false);
+    }
+  }
+
+  /**
+   * Submissão na Lista de Espera do Acesso Antecipado
+   */
+  async handleJoinWaitlist(): Promise<void> {
+    const email = this.waitlistEmail().trim();
+    if (!email || !email.includes('@')) {
+      this.errorMessage.set('Por favor, informe um e-mail válido para a lista de espera.');
+      return;
+    }
+
+    this.isWaitlistLoading.set(true);
+    this.errorMessage.set(null);
+
+    try {
+      const success = await this.earlyAccessService.joinWaitlist(email, 'auth_page');
+      if (success) {
+        this.waitlistSubmitted.set(true);
+        this.successMessage.set('🎉 Inscrição confirmada na lista de espera!');
+      } else {
+        this.errorMessage.set('Não foi possível salvar seu e-mail. Tente novamente.');
+      }
+    } catch {
+      this.errorMessage.set('Ocorreu um erro ao entrar na lista de espera.');
+    } finally {
+      this.isWaitlistLoading.set(false);
     }
   }
 

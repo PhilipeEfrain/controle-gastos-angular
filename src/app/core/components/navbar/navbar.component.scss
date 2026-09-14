@@ -45,6 +45,21 @@
       transform: scale(1.02);
     }
   }
+
+  .beta-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    border-radius: 9999px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: rgba(16, 185, 129, 0.12);
+    color: var(--color-primary-light, #10b981);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    user-select: none;
+  }
 }
 
 /* ======================================================== */
