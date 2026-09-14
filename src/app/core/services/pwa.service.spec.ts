@@ -1,8 +1,9 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { PwaService } from './pwa.service';
 import { NotificationService } from './notification.service';
 
-describe('PwaService', () => {
+describe('PwaService (CARD-075)', () => {
   let service: PwaService;
   let mockNotificationService: {
     info: ReturnType<typeof vi.fn>;
@@ -53,4 +54,28 @@ describe('PwaService', () => {
     const installed = await service.installApp();
     expect(installed).toBe(false);
   });
+
+  it('Cenário BDD CARD-075: deve capturar beforeinstallprompt e permitir instalação nativa', async () => {
+    const fakePromptEvent = new Event('beforeinstallprompt');
+    (fakePromptEvent as any).prompt = vi.fn().mockResolvedValue(undefined);
+    (fakePromptEvent as any).userChoice = Promise.resolve({ outcome: 'accepted', platform: 'web' });
+
+    window.dispatchEvent(fakePromptEvent);
+
+    expect(service.canInstall()).toBe(true);
+
+    const installed = await service.installApp();
+    expect(installed).toBe(true);
+    expect(service.canInstall()).toBe(false);
+  });
+
+  it('Cenário BDD CARD-075: deve tratar evento appinstalled com sucesso', () => {
+    window.dispatchEvent(new Event('appinstalled'));
+    expect(service.isInstalled()).toBe(true);
+    expect(service.canInstall()).toBe(false);
+    expect(mockNotificationService.success).toHaveBeenCalledWith(
+      expect.stringContaining('instalado com sucesso')
+    );
+  });
 });
+
