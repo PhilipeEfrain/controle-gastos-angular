@@ -248,18 +248,29 @@
           } @else {
             <div class="pix-qr-container">
               <div class="qr-box">
-                <div class="qr-placeholder">
-                  <!-- QR Code SVG ilustrativo -->
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="qr-svg">
-                    <rect x="3" y="3" width="7" height="7" rx="1" />
-                    <rect x="14" y="3" width="7" height="7" rx="1" />
-                    <rect x="3" y="14" width="7" height="7" rx="1" />
-                    <rect x="14" y="14" width="3" height="3" />
-                    <rect x="18" y="14" width="3" height="3" />
-                    <rect x="14" y="18" width="3" height="3" />
-                    <rect x="18" y="18" width="3" height="3" />
-                  </svg>
-                </div>
+                @if (pixQrCodeImage()) {
+                  <div class="qr-image-wrapper">
+                    <img
+                      [src]="pixQrCodeImage()"
+                      class="qr-image"
+                      alt="QR Code PIX para pagamento"
+                      id="img-pix-qrcode"
+                    />
+                  </div>
+                } @else {
+                  <div class="qr-placeholder">
+                    <!-- QR Code SVG ilustrativo -->
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="qr-svg">
+                      <rect x="3" y="3" width="7" height="7" rx="1" />
+                      <rect x="14" y="3" width="7" height="7" rx="1" />
+                      <rect x="3" y="14" width="7" height="7" rx="1" />
+                      <rect x="14" y="14" width="3" height="3" />
+                      <rect x="18" y="14" width="3" height="3" />
+                      <rect x="14" y="18" width="3" height="3" />
+                      <rect x="18" y="18" width="3" height="3" />
+                    </svg>
+                  </div>
+                }
                 <span class="qr-timer">⏱️ Expira em 24 horas</span>
               </div>
 

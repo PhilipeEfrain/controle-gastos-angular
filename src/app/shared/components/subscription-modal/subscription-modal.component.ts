@@ -56,6 +56,7 @@ export class SubscriptionModalComponent implements OnInit {
   readonly customerCpf = signal<string>('');
   readonly pixGenerated = signal<boolean>(false);
   readonly pixPayload = signal<string>('');
+  readonly pixQrCodeImage = signal<string>('');
   readonly isCopied = signal<boolean>(false);
   readonly isProcessing = signal<boolean>(false);
   readonly lastSubscriptionId = signal<string | null>(null);
@@ -195,42 +196,23 @@ export class SubscriptionModalComponent implements OnInit {
 
     this.isProcessing.set(true);
     try {
-      const user = this.authStore.currentUser();
-      const asaasConfig = await this.adminService.getAsaasConfig();
-      const apiKey = asaasConfig?.apiKey || undefined;
-      const environment = asaasConfig?.environment || 'sandbox';
+      const response = await this.asaasService.createPixSubscriptionOrder({
+        plan: this.selectedPlan(),
+        cycle: this.cycle(),
+        cpf: this.customerCpf(),
+        customValue: this.currentPrice()
+      });
 
-      const customer = await this.asaasService.createCustomer(
-        {
-          name: user?.displayName || 'Usuário Quinzena',
-          email: user?.email || 'contato@quinzena.app',
-          cpfCnpj: this.customerCpf()
-        },
-        apiKey,
-        environment
-      );
+      this.lastSubscriptionId.set(response.subscriptionId || null);
+      this.lastCustomerId.set(response.customerId || null);
+      this.pixPayload.set(response.payload);
 
-      const subscription = await this.asaasService.createSubscription(
-        {
-          plan: this.selectedPlan(),
-          cycle: this.cycle(),
-          billingType: 'PIX',
-          customerId: customer.id || 'cus_demo',
-          customValue: this.currentPrice()
-        },
-        apiKey,
-        environment
-      );
+      const rawImg = response.encodedImage || '';
+      const formattedImg = rawImg && !rawImg.startsWith('data:') && !rawImg.startsWith('http')
+        ? `data:image/png;base64,${rawImg}`
+        : rawImg;
+      this.pixQrCodeImage.set(formattedImg);
 
-      this.lastSubscriptionId.set(subscription.id || null);
-      this.lastCustomerId.set(customer.id || null);
-
-      const pixResponse = await this.asaasService.getPixQrCodeForPayment(
-        subscription.id,
-        apiKey,
-        environment
-      );
-      this.pixPayload.set(pixResponse.payload);
       this.pixGenerated.set(true);
       this.notificationService.info('QR Code PIX gerado! Realize o pagamento para ativação.');
     } catch (err: any) {

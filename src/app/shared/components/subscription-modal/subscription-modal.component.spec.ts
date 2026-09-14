@@ -30,6 +30,14 @@ describe('SubscriptionModalComponent (Checkout de Assinaturas)', () => {
         encodedImage: 'data:image/png;base64,...',
         payload: '00020126580014br.gov.bcb.pix...',
         expirationDate: '2026-09-08T00:00:00.000Z'
+      }),
+      createPixSubscriptionOrder: vi.fn().mockResolvedValue({
+        success: true,
+        encodedImage: 'data:image/png;base64,iVBORw0KGgoAAA...',
+        payload: '00020126580014br.gov.bcb.pix...',
+        subscriptionId: 'sub_123',
+        paymentId: 'pay_123',
+        customerId: 'cus_123'
       })
     };
 
@@ -109,11 +117,15 @@ describe('SubscriptionModalComponent (Checkout de Assinaturas)', () => {
 
     await component.generatePixPayment();
 
-    expect(mockAsaasService.createCustomer).toHaveBeenCalled();
-    expect(mockAsaasService.createSubscription).toHaveBeenCalled();
-    expect(mockAsaasService.getPixQrCodeForPayment).toHaveBeenCalled();
+    expect(mockAsaasService.createPixSubscriptionOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        plan: 'pro',
+        cpf: '529.982.247-25'
+      })
+    );
     expect(component.pixGenerated()).toBe(true);
     expect(component.pixPayload()).toContain('br.gov.bcb.pix');
+    expect(component.pixQrCodeImage()).toContain('data:image/png;base64');
   });
 
   it('Cenário BDD 4: deve persistir assinatura via upgradeSubscription e exibir celebração ao confirmar pagamento', async () => {
@@ -277,13 +289,11 @@ describe('SubscriptionModalComponent (Checkout de Assinaturas)', () => {
 
       await component.generatePixPayment();
 
-      expect(mockAsaasService.createSubscription).toHaveBeenCalledWith(
+      expect(mockAsaasService.createPixSubscriptionOrder).toHaveBeenCalledWith(
         expect.objectContaining({
           plan: 'duo',
           customValue: 10.00
-        }),
-        expect.anything(),
-        expect.anything()
+        })
       );
     });
 
