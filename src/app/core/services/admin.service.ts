@@ -13,6 +13,7 @@ import {
   startAfter,
   DocumentSnapshot
 } from 'firebase/firestore';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { FirebaseService } from './firebase.service';
 import { LoggerService } from './logger.service';
 import { UserProfile, PlanType, PlanStatus, UserRole } from '../models/user.model';
@@ -216,6 +217,39 @@ export class AdminService {
     } catch (error) {
       this.logger.error(`Erro ao atualizar papel do usuário ${userId}:`, error);
       throw error;
+    }
+  }
+
+  /**
+   * Mock/override da callable function para facilidade de testes unitários (CARD-082)
+   */
+  deleteUserCallableFn: ((data: { targetUid: string; reason?: string }) => Promise<{ data: any }>) | null = null;
+
+  /**
+   * Solicita a exclusão definitiva e em cascata de um usuário via Cloud Function (CARD-082).
+   * Garante conformidade com o Direito ao Esquecimento da LGPD.
+   */
+  async deleteUser(
+    targetUid: string,
+    reason?: string
+  ): Promise<{ success: boolean; targetUid: string; message: string }> {
+    try {
+      const callable = this.deleteUserCallableFn || httpsCallable<
+        { targetUid: string; reason?: string },
+        { success: boolean; targetUid: string; message: string }
+      >(
+        getFunctions(this.firebaseService.app),
+        'adminDeleteUserAccount'
+      );
+
+      const result = await callable({ targetUid, reason });
+      this.logger.info(`Usuário ${targetUid} excluído com sucesso pelo backend:`, result.data);
+      return result.data;
+    } catch (err: any) {
+      this.logger.error(`Erro ao deletar usuário ${targetUid} via Cloud Function:`, err);
+      const errorMsg =
+        err?.message || err?.details || 'Não foi possível excluir a conta do usuário. Verifique suas permissões.';
+      throw new Error(errorMsg);
     }
   }
 

@@ -354,6 +354,21 @@
                         </svg>
                         <span>Gerenciar</span>
                       </button>
+
+                      <button
+                        type="button"
+                        class="btn-action-delete"
+                        [class.btn-action-delete--disabled]="isCurrentUser(user)"
+                        [disabled]="isCurrentUser(user)"
+                        (click)="openDeleteModal(user)"
+                        [title]="isCurrentUser(user) ? 'Você não pode excluir sua própria conta de administrador' : 'Excluir conta definitivamente (LGPD)'"
+                        [id]="'btn-delete-user-' + user.uid"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                        </svg>
+                        <span>Excluir</span>
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -1002,6 +1017,89 @@
         <footer class="modal-footer">
           <button type="button" class="btn-secondary" (click)="closeAuditModal()">
             Fechar
+          </button>
+        </footer>
+      </div>
+    </div>
+  }
+
+  <!-- Modal de Exclusão Definitiva de Usuário (CARD-082 / LGPD) -->
+  @if (selectedUserForDeletion(); as deleteUser) {
+    <div class="modal-backdrop" id="modal-delete-user-backdrop" (click)="closeDeleteModal()">
+      <div class="modal-dialog modal-dialog--danger" (click)="$event.stopPropagation()">
+        <header class="modal-header modal-header--danger">
+          <div class="modal-header-icon-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="modal-title text-danger">Excluir Conta Definitivamente</h3>
+            <p class="modal-subtitle">Ação irreversível de conformidade LGPD (Art. 18)</p>
+          </div>
+          <button type="button" class="btn-close" (click)="closeDeleteModal()" aria-label="Fechar">
+            &times;
+          </button>
+        </header>
+
+        <div class="modal-body">
+          <div class="delete-warning-box">
+            <p class="warning-title">⚠️ ATENÇÃO: Esta ação é permanente e não poderá ser desfeita!</p>
+            <ul class="warning-list">
+              <li>Todas as despesas, rendas, ciclos e registros no Firestore serão apagados em cascata.</li>
+              <li>A conta será removida permanentemente do Firebase Authentication.</li>
+              <li>Eventuais cobranças recorrentes no gateway Asaas serão canceladas.</li>
+              <li>Se o usuário possuir parceria Duo, a vinculação será dissolvida com segurança.</li>
+            </ul>
+          </div>
+
+          <div class="target-user-summary">
+            <span class="summary-label">Usuário a ser excluído:</span>
+            <div class="summary-details">
+              <strong>{{ deleteUser.displayName || 'Sem nome' }}</strong>
+              <span class="text-email">({{ deleteUser.email || deleteUser.uid }})</span>
+            </div>
+          </div>
+
+          <div class="confirmation-challenge">
+            <label for="input-confirm-deletion-email" class="form-label">
+              Para confirmar, digite exatamente o e-mail abaixo:
+              <span class="challenge-match-target">{{ deleteUser.email || deleteUser.uid }}</span>
+            </label>
+            <input
+              id="input-confirm-deletion-email"
+              type="text"
+              class="form-input"
+              [value]="confirmEmailInput()"
+              (input)="confirmEmailInput.set($any($event.target).value)"
+              placeholder="Digite o e-mail para desbloquear a confirmação"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+
+        <footer class="modal-footer">
+          <button
+            type="button"
+            class="btn-secondary"
+            (click)="closeDeleteModal()"
+            [disabled]="isDeletingUser()"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            id="btn-confirm-permanent-delete"
+            class="btn-danger"
+            [disabled]="!isDeletionConfirmed() || isDeletingUser()"
+            (click)="confirmDeleteUser()"
+          >
+            @if (isDeletingUser()) {
+              <div class="spinner-inline"></div>
+              <span>Excluindo em cascata...</span>
+            } @else {
+              <span>Confirmar Exclusão Definitiva</span>
+            }
           </button>
         </footer>
       </div>

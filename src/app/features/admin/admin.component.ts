@@ -77,6 +77,17 @@ export class AdminComponent implements OnInit {
   readonly liveSubscriptionDetails = signal<any | null>(null);
   readonly auditError = signal<string | null>(null);
 
+  // Estados do Modal de Exclusão de Usuário (CARD-082)
+  readonly selectedUserForDeletion = signal<UserProfile | null>(null);
+  readonly confirmEmailInput = signal<string>('');
+  readonly isDeletingUser = signal<boolean>(false);
+  readonly isDeletionConfirmed = computed(() => {
+    const user = this.selectedUserForDeletion();
+    if (!user) return false;
+    const expected = (user.email || user.uid).trim().toLowerCase();
+    return this.confirmEmailInput().trim().toLowerCase() === expected;
+  });
+
 
   // Métricas Globais Computadas do SaaS (MRR, Total, Conversão)
   readonly metrics = computed<SaaSMetrics>(() => {
@@ -472,6 +483,47 @@ export class AdminComponent implements OnInit {
       this.auditError.set(err.message || 'Erro ao consultar detalhes da assinatura no gateway.');
     } finally {
       this.isAuditLoading.set(false);
+    }
+  }
+
+  // --- MÉTODOS DE EXCLUSÃO DE USUÁRIO (CARD-082 / LGPD) ---
+
+  isCurrentUser(user: UserProfile): boolean {
+    return this.authStore.currentUser()?.uid === user.uid;
+  }
+
+  openDeleteModal(user: UserProfile): void {
+    if (this.isCurrentUser(user)) {
+      this.notificationService.warning('Você não pode excluir sua própria conta de administrador pelo painel.');
+      return;
+    }
+    this.selectedUserForDeletion.set(user);
+    this.confirmEmailInput.set('');
+  }
+
+  closeDeleteModal(): void {
+    this.selectedUserForDeletion.set(null);
+    this.confirmEmailInput.set('');
+  }
+
+  async confirmDeleteUser(): Promise<void> {
+    if (!this.isDeletionConfirmed() || this.isDeletingUser()) {
+      return;
+    }
+
+    const user = this.selectedUserForDeletion();
+    if (!user) return;
+
+    this.isDeletingUser.set(true);
+    try {
+      await this.adminService.deleteUser(user.uid, 'Exclusão solicitada pelo painel administrativo (LGPD Art. 18)');
+      this.users.update(list => list.filter(u => u.uid !== user.uid));
+      this.notificationService.success(`Conta e dados de ${user.email || user.displayName || user.uid} excluídos com sucesso.`);
+      this.closeDeleteModal();
+    } catch (err: any) {
+      this.notificationService.error(err.message || 'Erro ao excluir conta de usuário.');
+    } finally {
+      this.isDeletingUser.set(false);
     }
   }
 
