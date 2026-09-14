@@ -507,12 +507,19 @@
 
   .analytics-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+    grid-template-columns: 1fr;
     gap: 1.5rem;
     align-items: stretch;
+    width: 100%;
+    min-width: 0;
 
     @include respond-to('lg') {
       grid-template-columns: 1fr 1fr;
+    }
+
+    > * {
+      min-width: 0;
+      width: 100%;
     }
   }
 }

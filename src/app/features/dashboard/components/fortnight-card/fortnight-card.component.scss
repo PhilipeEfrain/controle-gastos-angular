@@ -4,6 +4,8 @@
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  width: 100%;
+  min-width: 0;
 }
 
 .fortnight-header {
@@ -11,18 +13,22 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .title-group {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .title-with-hint {
   display: flex;
   flex-direction: column;
   gap: 0.125rem;
+  min-width: 0;
 }
 
 .fortnight-title {
@@ -92,12 +98,29 @@
   border-radius: $radius-md;
   background-color: rgba(0, 0, 0, 0.15);
   border: 1px solid var(--color-border);
+  min-width: 0;
+
+  @media (max-width: 520px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.625rem;
+    padding: 0.75rem;
+
+    .metric-item.balance-item {
+      grid-column: 1 / -1;
+      border-top: 1px dashed var(--color-border);
+      padding-top: 0.5rem;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
 }
 
 .metric-item {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  min-width: 0;
 
   &.balance-item {
     align-items: flex-start;
@@ -151,6 +174,11 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
+  flex-wrap: wrap;
+
+  @media (max-width: 520px) {
+    gap: 0.5rem;
+  }
 }
 
 .section-title-group {
@@ -212,6 +240,13 @@
   cursor: pointer;
   box-shadow: var(--btn-primary-shadow, 0 2px 8px rgba(0, 0, 0, 0.2));
   transition: all $transition-fast;
+
+  @media (max-width: 480px) {
+    width: 100%;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    font-size: 0.8125rem;
+  }
 
   svg {
     width: 0.875rem;

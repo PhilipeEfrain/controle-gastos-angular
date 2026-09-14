@@ -19,10 +19,17 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 1.5rem;
+  width: 100%;
+  min-width: 0;
 
   @include respond-to('lg') {
     grid-template-columns: repeat(2, 1fr);
     gap: 2rem;
+  }
+
+  > * {
+    min-width: 0;
+    width: 100%;
   }
 }
 
@@ -31,6 +38,8 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 1rem;
+  width: 100%;
+  min-width: 0;
 
   @include respond-to('sm') {
     grid-template-columns: repeat(2, 1fr);
@@ -38,5 +47,10 @@
 
   @include respond-to('lg') {
     grid-template-columns: repeat(4, 1fr);
+  }
+
+  > * {
+    min-width: 0;
+    width: 100%;
   }
 }

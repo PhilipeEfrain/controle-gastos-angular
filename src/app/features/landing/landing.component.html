@@ -63,6 +63,7 @@
 
     <!-- Mobile Drawer Menu -->
     @if (isMobileMenuOpen()) {
+      <div class="landing-mobile-backdrop" (click)="closeMobileMenu()" aria-hidden="true"></div>
       <div class="landing-mobile-menu" role="menu">
         <nav class="landing-mobile-nav">
           <a href="#como-funciona" (click)="closeMobileMenu()" class="mobile-nav-link">Como Funciona</a>
@@ -71,6 +72,50 @@
           <a href="#offline" (click)="closeMobileMenu()" class="mobile-nav-link">PWA Offline</a>
           <a href="#faq" (click)="closeMobileMenu()" class="mobile-nav-link">FAQ</a>
         </nav>
+
+        <div class="mobile-drawer-actions">
+          @if (isAuthenticated()) {
+            <button
+              type="button"
+              class="btn-drawer-primary"
+              (click)="navigateToDashboard(); closeMobileMenu()"
+              id="btn-drawer-dashboard"
+            >
+              <span>Acessar Dashboard</span>
+              <svg viewBox="0 0 20 20" fill="currentColor">
+                <path
+                  fill-rule="evenodd"
+                  d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </button>
+          } @else {
+            <button
+              type="button"
+              class="btn-drawer-secondary"
+              (click)="navigateToAuth('login'); closeMobileMenu()"
+              id="btn-drawer-login"
+            >
+              Entrar na Conta
+            </button>
+            <button
+              type="button"
+              class="btn-drawer-primary"
+              (click)="navigateToAuth('register'); closeMobileMenu()"
+              id="btn-drawer-register"
+            >
+              <span>{{ isRegistrationsOpen() ? 'Começar Grátis' : 'Lista de Espera' }}</span>
+              <svg viewBox="0 0 20 20" fill="currentColor">
+                <path
+                  fill-rule="evenodd"
+                  d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </button>
+          }
+        </div>
       </div>
     }
   </header>
