@@ -39,12 +39,17 @@ self.addEventListener('fetch', (event) => {
   const request = event.request;
   const url = new URL(request.url);
 
-  // Ignore non-GET requests or Firebase Firestore/Auth API endpoints
+  // Ignore non-GET requests or Firebase/Analytics/Ads external API endpoints
   if (
     request.method !== 'GET' ||
     url.hostname.includes('firestore.googleapis.com') ||
     url.hostname.includes('identitytoolkit.googleapis.com') ||
     url.hostname.includes('securetoken.googleapis.com') ||
+    url.hostname.includes('googletagmanager.com') ||
+    url.hostname.includes('google-analytics.com') ||
+    url.hostname.includes('doubleclick.net') ||
+    url.hostname.includes('googlesyndication.com') ||
+    url.hostname.includes('adtrafficquality.google') ||
     url.protocol === 'chrome-extension:'
   ) {
     return;
