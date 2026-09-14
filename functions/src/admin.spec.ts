@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { deleteUserCascade } from './admin.js';
+import { deleteUserCascade, testAsaasConnectionBackend } from './admin.js';
 
 describe('Admin Delete User Functions Unit Tests (CARD-082)', () => {
   let mockDb: any;
@@ -165,5 +165,129 @@ describe('Admin Delete User Functions Unit Tests (CARD-082)', () => {
 
     expect(result.success).toBe(true);
     expect(mockDb.recursiveDelete).toHaveBeenCalled();
+  });
+});
+
+describe('Admin Test Asaas Connection Backend Unit Tests', () => {
+  let mockDb: any;
+  let callerUserDoc: any;
+  let systemConfigDocMock: any;
+
+  beforeEach(() => {
+    callerUserDoc = {
+      exists: true,
+      data: () => ({
+        role: 'admin',
+        email: 'admin@quinzena.com.br'
+      })
+    };
+
+    systemConfigDocMock = {
+      set: vi.fn().mockResolvedValue({})
+    };
+
+    mockDb = {
+      collection: vi.fn((colName: string) => {
+        if (colName === 'system_config') {
+          return {
+            doc: vi.fn().mockReturnValue(systemConfigDocMock)
+          };
+        }
+        if (colName === 'users') {
+          return {
+            doc: vi.fn().mockReturnValue({
+              get: vi.fn().mockImplementation(() => Promise.resolve(callerUserDoc))
+            })
+          };
+        }
+        return {
+          doc: vi.fn().mockReturnValue({ get: vi.fn().mockResolvedValue({ exists: false }) })
+        };
+      })
+    };
+  });
+
+  it('deve rejeitar se apiKey for vazia ou curta', async () => {
+    await expect(
+      testAsaasConnectionBackend({ apiKey: '' }, 'admin-uid', { db: mockDb })
+    ).rejects.toThrow('A chave de API (Access Token) não pode ser vazia.');
+
+    await expect(
+      testAsaasConnectionBackend({ apiKey: 'curta' }, 'admin-uid', { db: mockDb })
+    ).rejects.toThrow('A chave de API informada é muito curta ou inválida.');
+  });
+
+  it('deve rejeitar se chamador não for admin', async () => {
+    callerUserDoc = {
+      exists: true,
+      data: () => ({ role: 'user', email: 'user@exemplo.com' })
+    };
+
+    await expect(
+      testAsaasConnectionBackend({ apiKey: '$aact_valido_com_mais_de_dez_chars' }, 'user-uid', { db: mockDb })
+    ).rejects.toThrow('Acesso negado: Requer privilégios de administrador.');
+  });
+
+  it('deve retornar sucesso com saldo quando Asaas responder 200 OK', async () => {
+    const fakeFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: vi.fn().mockResolvedValue({ balance: 4500.50 })
+    });
+
+    const result = await testAsaasConnectionBackend(
+      { apiKey: '$aact_prod_123456789012345', environment: 'production' },
+      'admin-uid',
+      { db: mockDb, fetchFn: fakeFetch as any }
+    );
+
+    expect(result.success).toBe(true);
+    expect(result.balance).toBe(4500.50);
+    expect(result.message).toContain('Conexão bem-sucedida');
+    expect(result.message).toContain('4500.50');
+    expect(systemConfigDocMock.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        lastTestStatus: 'success'
+      }),
+      { merge: true }
+    );
+  });
+
+  it('deve retornar falha amigável quando Asaas responder 401 Unauthorized', async () => {
+    const fakeFetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 401,
+      json: vi.fn().mockResolvedValue({
+        errors: [{ description: 'Chave de API inválida' }]
+      })
+    });
+
+    const result = await testAsaasConnectionBackend(
+      { apiKey: '$aact_invalido_12345678', environment: 'sandbox' },
+      'admin-uid',
+      { db: mockDb, fetchFn: fakeFetch as any }
+    );
+
+    expect(result.success).toBe(false);
+    expect(result.message).toContain('Falha de Autenticação (401)');
+    expect(systemConfigDocMock.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        lastTestStatus: 'error'
+      }),
+      { merge: true }
+    );
+  });
+
+  it('deve capturar falhas de rede sem crashar a execução', async () => {
+    const fakeFetch = vi.fn().mockRejectedValue(new Error('Network connection timeout'));
+
+    const result = await testAsaasConnectionBackend(
+      { apiKey: '$aact_qualquer_chave_longa', environment: 'sandbox' },
+      'admin-uid',
+      { db: mockDb, fetchFn: fakeFetch as any }
+    );
+
+    expect(result.success).toBe(false);
+    expect(result.message).toContain('Network connection timeout');
   });
 });

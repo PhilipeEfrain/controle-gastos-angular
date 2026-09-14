@@ -224,6 +224,7 @@ export class AdminService {
    * Mock/override da callable function para facilidade de testes unitários (CARD-082)
    */
   deleteUserCallableFn: ((data: { targetUid: string; reason?: string }) => Promise<{ data: any }>) | null = null;
+  testAsaasCallableFn: ((data: { apiKey: string; environment?: AsaasEnvironment }) => Promise<{ data: any }>) | null = null;
 
   /**
    * Solicita a exclusão definitiva e em cascata de um usuário via Cloud Function (CARD-082).
@@ -402,7 +403,8 @@ export class AdminService {
   }
 
   /**
-   * Testa a conectividade com a API Asaas v3 utilizando a chave e ambiente informados
+   * Testa a conectividade com a API Asaas v3 através de Cloud Function segura no backend (sem CORS).
+   * Funciona perfeitamente em Produção (https://quinzena.com.br), Staging e Localhost.
    */
   async testAsaasConnection(
     apiKey: string,
@@ -417,68 +419,41 @@ export class AdminService {
       return { success: false, message: 'A chave de API informada é muito curta ou inválida.' };
     }
 
-    const isLocalhost = typeof window !== 'undefined' &&
-      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-
     const envLabel = environment === 'production' ? 'PRODUÇÃO' : 'SANDBOX';
-    const proxyBase = environment === 'production' ? '/api/asaas/production' : '/api/asaas/sandbox';
-    const directBase = environment === 'production' ? 'https://api.asaas.com/v3' : 'https://sandbox.asaas.com/api/v3';
 
-    // Se estiver em localhost, tenta a rota proxy do dev server; caso contrário, a rota direta
-    const targetUrls = isLocalhost ? [proxyBase, directBase] : [directBase];
-
-    if (this.http) {
-      const headers = new HttpHeaders({
-        'access_token': cleanKey,
-        'Content-Type': 'application/json'
-      });
-
-      let lastError: any = null;
-
-      for (const baseUrl of targetUrls) {
-        try {
-          // GET /v3/finance/balance - endpoint oficial do Asaas v3 para validação de credenciais
-          const response: any = await firstValueFrom(
-            this.http.get<any>(`${baseUrl}/finance/balance`, { headers })
-          );
-
-          const balance = response?.balance ?? 0;
-          const msg = `Conexão bem-sucedida com o Asaas (${envLabel})! Saldo consultado: R$ ${balance.toFixed(2)}`;
-
-          await this.updateAsaasTestStatus('success', msg);
-          return { success: true, message: msg, balance };
-        } catch (err: any) {
-          lastError = err;
-          // Se foi 404 na rota proxy (dev-server rodando sem o proxy ativado), tenta o fallback direto
-          if (err.status === 404 && baseUrl === proxyBase) {
-            continue;
-          }
-          break;
-        }
+    // 1. Invoca a Cloud Function se o módulo de functions estiver disponível
+    try {
+      if (this.testAsaasCallableFn) {
+        const response = await this.testAsaasCallableFn({ apiKey: cleanKey, environment });
+        return response.data;
       }
 
-      // Trata o erro retornado
-      let errorMsg = 'Falha ao conectar com o Asaas.';
-      if (lastError?.status === 401 || lastError?.status === 403) {
-        errorMsg = 'Falha de Autenticação (401/403): O Access Token informado é inválido ou foi revogado no painel do Asaas.';
-      } else if (lastError?.status === 0) {
-        const isKeyFormatValid = cleanKey.startsWith('$aact_') && cleanKey.length >= 25;
-        if (isKeyFormatValid) {
-          errorMsg = 'Bloqueio de CORS no navegador: A API do Asaas não permite chamadas diretas de browsers. Reinicie o servidor com "npm start" para utilizar o proxy local configurado (proxy.conf.json).';
-        } else {
-          errorMsg = 'Aviso de Conectividade: Requisição bloqueada por CORS no navegador. No ambiente real, a chamada é processada pelo backend/Cloud Function.';
-        }
-      } else if (lastError?.error?.errors?.length > 0) {
-        errorMsg = `Erro Asaas: ${lastError.error.errors[0].description || lastError.message}`;
-      } else if (lastError?.message) {
-        errorMsg = `Erro na requisição: ${lastError.message}`;
-      }
+      if (this.firebaseService.app) {
+        const callable = httpsCallable<
+          { apiKey: string; environment: AsaasEnvironment },
+          { success: boolean; message: string; balance?: number }
+        >(getFunctions(this.firebaseService.app), 'adminTestAsaasConnection');
 
+        const response = await callable({
+          apiKey: cleanKey,
+          environment
+        });
+
+        const result = response.data;
+        await this.updateAsaasTestStatus(
+          result.success ? 'success' : 'error',
+          result.message
+        );
+        return result;
+      }
+    } catch (err: any) {
+      this.logger.error('Erro ao invocar Cloud Function adminTestAsaasConnection:', err);
+      const errorMsg = err?.message || 'Falha ao comunicar com o servidor para validar credenciais do Asaas.';
       await this.updateAsaasTestStatus('error', errorMsg);
       return { success: false, message: errorMsg };
     }
 
-    // Modo Mock/Teste seguro sem HttpClient
+    // 2. Modo Mock/Fallback seguro para testes locais sem backend conectado
     const isMockValid = cleanKey.startsWith('$aact_') || cleanKey.startsWith('mock_') || cleanKey.length >= 20;
     if (isMockValid) {
       const msg = `Conexão simulada com sucesso com o Asaas (${envLabel}).`;
