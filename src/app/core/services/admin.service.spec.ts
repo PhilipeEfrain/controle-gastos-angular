@@ -113,5 +113,35 @@ describe('AdminService', () => {
       expect(result.message).toContain('Falha de Autenticação (401/403)');
     });
   });
+
+  describe('Exclusão Segura e em Cascata de Usuários (CARD-082)', () => {
+    it('deve chamar a Cloud Function adminDeleteUserAccount com targetUid e reason', async () => {
+      service.deleteUserCallableFn = vi.fn().mockResolvedValue({
+        data: {
+          success: true,
+          targetUid: 'user-to-delete',
+          message: 'Usuário excluído com sucesso.'
+        }
+      });
+
+      const response = await service.deleteUser('user-to-delete', 'Solicitação LGPD');
+
+      expect(service.deleteUserCallableFn).toHaveBeenCalledWith({
+        targetUid: 'user-to-delete',
+        reason: 'Solicitação LGPD'
+      });
+      expect(response.success).toBe(true);
+      expect(response.targetUid).toBe('user-to-delete');
+    });
+
+    it('deve repassar exceção formatada quando a Cloud Function falhar', async () => {
+      service.deleteUserCallableFn = vi.fn().mockRejectedValue(new Error('Acesso negado: Requer privilégios de administrador.'));
+
+      await expect(service.deleteUser('user-to-delete')).rejects.toThrow(
+        'Acesso negado: Requer privilégios de administrador.'
+      );
+      expect(mockLoggerService.error).toHaveBeenCalled();
+    });
+  });
 });
 

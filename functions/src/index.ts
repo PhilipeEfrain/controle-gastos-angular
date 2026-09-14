@@ -2,9 +2,12 @@ import { onRequest, onCall, HttpsError } from 'firebase-functions/v2/https';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { initializeApp, getApps } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
+import { getAuth } from 'firebase-admin/auth';
 import { handleAsaasWebhook } from './webhook-handler.js';
 import { cleanupAllExpiredCycles } from './cleanup.js';
 import { sendTelegramFeedback } from './feedback.js';
+import { deleteUserCascade } from './admin.js';
+import type { AdminDeleteUserRequest } from './admin.js';
 import type { TelegramFeedbackData } from './feedback.js';
 import type { AsaasWebhookPayload } from './types.js';
 
@@ -13,6 +16,7 @@ if (!getApps().length) {
 }
 
 const db = getFirestore();
+const auth = getAuth();
 
 /**
  * Endpoint de Webhook do Asaas v3 para Automação de Recorrência e Sincronização de Assinaturas
@@ -103,4 +107,43 @@ export const sendFeedbackTelegram = onCall(
     return result;
   }
 );
+
+/**
+ * Função Callable para exclusão segura e em cascata de usuários pelo painel administrativo (CARD-082).
+ * Exige perfil de administrador e realiza expurgo de dados em conformidade com a LGPD (Art. 18).
+ */
+export const adminDeleteUserAccount = onCall(
+  {
+    cors: true,
+    maxInstances: 10
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError(
+        'unauthenticated',
+        'O usuário deve estar autenticado para realizar operações administrativas.'
+      );
+    }
+
+    const data = request.data as AdminDeleteUserRequest;
+    try {
+      const result = await deleteUserCascade(data, request.auth.uid, { db, auth });
+      return result;
+    } catch (err: any) {
+      console.error('[adminDeleteUserAccount] Erro ao excluir conta de usuário:', err?.message || err);
+      const msg = err?.message || '';
+      if (msg.includes('Acesso negado')) {
+        throw new HttpsError('permission-denied', msg);
+      }
+      if (msg.includes('não pode excluir sua própria conta')) {
+        throw new HttpsError('failed-precondition', msg);
+      }
+      if (msg.includes('obrigatório')) {
+        throw new HttpsError('invalid-argument', msg);
+      }
+      throw new HttpsError('internal', msg || 'Falha interna ao processar exclusão de usuário.');
+    }
+  }
+);
+
 

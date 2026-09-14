@@ -95,6 +95,11 @@ describe('AdminComponent (Painel Administrativo)', () => {
       testAsaasConnection: vi.fn().mockResolvedValue({
         success: true,
         message: 'Conexão autorizada com sucesso!'
+      }),
+      deleteUser: vi.fn().mockResolvedValue({
+        success: true,
+        targetUid: 'uid-user-2',
+        message: 'Conta excluída com sucesso.'
       })
     };
 
@@ -398,6 +403,42 @@ describe('AdminComponent (Painel Administrativo)', () => {
       expect(component.users().length).toBe(2);
       expect(component.hasMoreUsers()).toBe(false);
       expect(mockAdminService.getUsersPage).toHaveBeenCalledWith(50, fakeCursor);
+    });
+  });
+
+  describe('Exclusão Segura de Contas de Usuários (CARD-082 / LGPD)', () => {
+    it('Cenário BDD 1: não deve permitir que o administrador abra o modal de exclusão para si mesmo', () => {
+      component.openDeleteModal(mockUsers[0]);
+      expect(mockNotificationService.warning).toHaveBeenCalledWith(
+        'Você não pode excluir sua própria conta de administrador pelo painel.'
+      );
+      expect(component.selectedUserForDeletion()).toBeNull();
+    });
+
+    it('Cenário BDD 2: deve abrir modal de exclusão e validar confirmação por e-mail', () => {
+      component.openDeleteModal(mockUsers[1]);
+      expect(component.selectedUserForDeletion()).toEqual(mockUsers[1]);
+      expect(component.isDeletionConfirmed()).toBe(false);
+
+      // E-mail divergente
+      component.confirmEmailInput.set('email-errado@example.com');
+      expect(component.isDeletionConfirmed()).toBe(false);
+
+      // E-mail correto
+      component.confirmEmailInput.set('carlos@example.com');
+      expect(component.isDeletionConfirmed()).toBe(true);
+    });
+
+    it('Cenário BDD 3: deve confirmar exclusão, chamar service, remover da lista reativa e exibir notificação', async () => {
+      component.openDeleteModal(mockUsers[1]);
+      component.confirmEmailInput.set('carlos@example.com');
+
+      await component.confirmDeleteUser();
+
+      expect(mockAdminService.deleteUser).toHaveBeenCalledWith('uid-user-2', expect.any(String));
+      expect(component.users().some(u => u.uid === 'uid-user-2')).toBe(false);
+      expect(mockNotificationService.success).toHaveBeenCalled();
+      expect(component.selectedUserForDeletion()).toBeNull();
     });
   });
 });
