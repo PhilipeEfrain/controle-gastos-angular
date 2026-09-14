@@ -7,6 +7,7 @@ import { AuthService } from './core/services/auth.service';
 import { NotificationService } from './core/services/notification.service';
 import { PwaService } from './core/services/pwa.service';
 import { AnalyticsService } from './core/services/analytics.service';
+import { NavigationModalService } from './core/services/navigation-modal.service';
 import { signal, WritableSignal } from '@angular/core';
 
 describe('App', () => {
@@ -77,7 +78,14 @@ describe('App', () => {
         { provide: AuthService, useValue: mockAuthService },
         { provide: NotificationService, useValue: mockNotificationService },
         { provide: PwaService, useValue: mockPwaService },
-        { provide: AnalyticsService, useValue: mockAnalyticsService }
+        { provide: AnalyticsService, useValue: mockAnalyticsService },
+        { provide: NavigationModalService, useValue: {
+          openFeedback: vi.fn(),
+          closeFeedback: vi.fn(),
+          isFeedbackOpen: signal(false),
+          feedbackContext: signal(null),
+          activeModal: signal(null)
+        }}
       ]
     }).compileComponents();
 
