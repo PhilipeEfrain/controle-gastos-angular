@@ -2060,22 +2060,69 @@
 
 .confirmation-challenge {
   margin-bottom: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  .form-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    line-height: 1.4;
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
 
   .challenge-match-target {
     display: block;
     font-family: 'JetBrains Mono', 'Fira Code', monospace;
     font-weight: 700;
+    font-size: 0.875rem;
     color: #fca5a5;
-    background: rgba(239, 68, 68, 0.1);
-    padding: 0.25rem 0.5rem;
-    border-radius: $radius-sm;
-    margin-top: 0.25rem;
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    padding: 0.375rem 0.625rem;
+    border-radius: $radius-md;
     user-select: all;
+    word-break: break-all;
   }
 
   .form-input {
-    margin-top: 0.5rem;
     width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: $radius-md;
+    background: var(--color-surface-hover, #1e293b);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    color: var(--color-text-primary, #f8fafc);
+    font-size: 0.875rem;
+    font-family: inherit;
+    color-scheme: dark;
+    transition: border-color $transition-fast, box-shadow $transition-fast, background-color $transition-fast;
+
+    :host-context([data-theme='light']) & {
+      color-scheme: light;
+      background: #f8fafc;
+      border-color: #fca5a5;
+      color: #0f172a;
+    }
+
+    &::placeholder {
+      color: var(--color-text-muted, #94a3b8);
+      opacity: 0.7;
+    }
+
+    &:hover:not(:focus) {
+      border-color: rgba(239, 68, 68, 0.6);
+      background: var(--color-surface-hover, rgba(255, 255, 255, 0.08));
+    }
+
+    &:focus {
+      outline: none;
+      border-color: #ef4444;
+      background: var(--color-surface, #0f172a);
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25);
+    }
   }
 }
 
