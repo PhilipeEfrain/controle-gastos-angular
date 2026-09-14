@@ -6,8 +6,8 @@ import { getAuth } from 'firebase-admin/auth';
 import { handleAsaasWebhook } from './webhook-handler.js';
 import { cleanupAllExpiredCycles } from './cleanup.js';
 import { sendTelegramFeedback } from './feedback.js';
-import { deleteUserCascade } from './admin.js';
-import type { AdminDeleteUserRequest } from './admin.js';
+import { deleteUserCascade, testAsaasConnectionBackend } from './admin.js';
+import type { AdminDeleteUserRequest, AdminTestAsaasRequest } from './admin.js';
 import type { TelegramFeedbackData } from './feedback.js';
 import type { AsaasWebhookPayload } from './types.js';
 
@@ -142,6 +142,41 @@ export const adminDeleteUserAccount = onCall(
         throw new HttpsError('invalid-argument', msg);
       }
       throw new HttpsError('internal', msg || 'Falha interna ao processar exclusão de usuário.');
+    }
+  }
+);
+
+/**
+ * Função Callable para teste seguro de conectividade com a API Asaas v3 via backend (sem CORS).
+ * Exige perfil de administrador e valida a chave no endpoint oficial /v3/finance/balance.
+ */
+export const adminTestAsaasConnection = onCall(
+  {
+    cors: true,
+    maxInstances: 10
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError(
+        'unauthenticated',
+        'O usuário deve estar autenticado para testar credenciais administrativas.'
+      );
+    }
+
+    const data = request.data as AdminTestAsaasRequest;
+    try {
+      const result = await testAsaasConnectionBackend(data, request.auth.uid, { db });
+      return result;
+    } catch (err: any) {
+      console.error('[adminTestAsaasConnection] Erro ao testar conexão Asaas:', err?.message || err);
+      const msg = err?.message || '';
+      if (msg.includes('Acesso negado')) {
+        throw new HttpsError('permission-denied', msg);
+      }
+      if (msg.includes('obrigatória') || msg.includes('curta') || msg.includes('vazia')) {
+        throw new HttpsError('invalid-argument', msg);
+      }
+      throw new HttpsError('internal', msg || 'Falha interna ao testar conexão com o Asaas.');
     }
   }
 );

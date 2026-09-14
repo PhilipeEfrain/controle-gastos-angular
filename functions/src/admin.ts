@@ -106,3 +106,123 @@ export async function deleteUserCascade(
     message: `Conta do usuário ${targetEmail} (${targetUid}) e todos os dados associados foram excluídos com sucesso.`
   };
 }
+
+export interface AdminTestAsaasRequest {
+  apiKey: string;
+  environment?: 'sandbox' | 'production';
+}
+
+export interface AdminTestAsaasResponse {
+  success: boolean;
+  message: string;
+  balance?: number;
+}
+
+/**
+ * Executa o teste de conectividade e validação da API Asaas v3 diretamente pelo backend (sem CORS).
+ * Garante segurança, autenticação e atualização do status no Firestore (/system_config/asaas).
+ */
+export async function testAsaasConnectionBackend(
+  payload: AdminTestAsaasRequest,
+  callerUid: string,
+  services: { db: FirebaseFirestore.Firestore; fetchFn?: typeof fetch }
+): Promise<AdminTestAsaasResponse> {
+  const { apiKey, environment = 'sandbox' } = payload;
+  const cleanKey = (apiKey || '').trim();
+
+  if (!cleanKey) {
+    throw new Error('A chave de API (Access Token) não pode ser vazia.');
+  }
+
+  if (cleanKey.length < 10) {
+    throw new Error('A chave de API informada é muito curta ou inválida.');
+  }
+
+  if (!callerUid || typeof callerUid !== 'string') {
+    throw new Error('Acesso não autenticado.');
+  }
+
+  // 1. Validação estrita de privilégios de administrador
+  const callerDoc = await services.db.collection('users').doc(callerUid).get();
+  if (!callerDoc.exists || callerDoc.data()?.role !== 'admin') {
+    throw new Error('Acesso negado: Requer privilégios de administrador.');
+  }
+
+  const envLabel = environment === 'production' ? 'PRODUÇÃO' : 'SANDBOX';
+  const baseUrl = environment === 'production'
+    ? 'https://api.asaas.com/v3'
+    : 'https://sandbox.asaas.com/api/v3';
+
+  const fetchImpl = services.fetchFn || fetch;
+
+  try {
+    const res = await fetchImpl(`${baseUrl}/finance/balance`, {
+      method: 'GET',
+      headers: {
+        'access_token': cleanKey,
+        'Content-Type': 'application/json',
+        'User-Agent': 'QuinzenaApp/1.0'
+      }
+    });
+
+    const json = await res.json().catch(() => null);
+
+    if (!res.ok) {
+      let errorMsg = `Erro ${res.status} ao conectar com o Asaas (${envLabel}).`;
+      if (res.status === 401 || res.status === 403) {
+        errorMsg = `Falha de Autenticação (${res.status}): A chave de API informada é inválida ou foi revogada no painel do Asaas (${envLabel}).`;
+      } else if (json?.errors?.length > 0) {
+        errorMsg = `Erro Asaas: ${json.errors[0].description || json.errors[0].code || json.errors[0].message}`;
+      }
+
+      try {
+        await services.db.collection('system_config').doc('asaas').set(
+          {
+            lastTestedAt: new Date().toISOString(),
+            lastTestStatus: 'error',
+            lastTestMessage: errorMsg
+          },
+          { merge: true }
+        );
+      } catch {
+        // Ignora falha de gravação secundária
+      }
+
+      return { success: false, message: errorMsg };
+    }
+
+    const balance = typeof json?.balance === 'number' ? json.balance : 0;
+    const successMsg = `Conexão bem-sucedida com o Asaas (${envLabel})! Saldo consultado: R$ ${balance.toFixed(2)}`;
+
+    try {
+      await services.db.collection('system_config').doc('asaas').set(
+        {
+          lastTestedAt: new Date().toISOString(),
+          lastTestStatus: 'success',
+          lastTestMessage: successMsg
+        },
+        { merge: true }
+      );
+    } catch {
+      // Ignora falha de gravação secundária
+    }
+
+    return { success: true, message: successMsg, balance };
+  } catch (err: any) {
+    const errorMsg = `Falha de rede ao conectar com Asaas: ${err?.message || 'Erro desconhecido'}`;
+    try {
+      await services.db.collection('system_config').doc('asaas').set(
+        {
+          lastTestedAt: new Date().toISOString(),
+          lastTestStatus: 'error',
+          lastTestMessage: errorMsg
+        },
+        { merge: true }
+      );
+    } catch {
+      // Ignora
+    }
+
+    return { success: false, message: errorMsg };
+  }
+}

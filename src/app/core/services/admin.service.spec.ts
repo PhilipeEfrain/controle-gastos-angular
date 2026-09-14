@@ -91,7 +91,9 @@ describe('AdminService', () => {
     });
 
     it('deve validar conexão com sucesso no ambiente sandbox', async () => {
-      mockHttpClient.get.mockReturnValue(of({ balance: 1250.00 }));
+      service.testAsaasCallableFn = vi.fn().mockResolvedValue({
+        data: { success: true, message: 'Conexão bem-sucedida (SANDBOX)!', balance: 1250.00 }
+      });
       const result = await service.testAsaasConnection('$aact_YTU5YTE0M2M6N2...', 'sandbox');
       expect(result.success).toBe(true);
       expect(result.message).toContain('SANDBOX');
@@ -99,18 +101,22 @@ describe('AdminService', () => {
     });
 
     it('deve validar conexão com sucesso para ambiente de produção', async () => {
-      mockHttpClient.get.mockReturnValue(of({ balance: 5000.00 }));
+      service.testAsaasCallableFn = vi.fn().mockResolvedValue({
+        data: { success: true, message: 'Conexão bem-sucedida (PRODUÇÃO)!', balance: 5000.00 }
+      });
       const result = await service.testAsaasConnection('$aact_prod_token_1234567890', 'production');
       expect(result.success).toBe(true);
       expect(result.message).toContain('PRODUÇÃO');
       expect(result.balance).toBe(5000.00);
     });
 
-    it('deve retornar falha de autenticação quando a API Asaas responder 401', async () => {
-      mockHttpClient.get.mockReturnValue(throwError(() => ({ status: 401 })));
+    it('deve retornar falha de autenticação quando a API Asaas responder erro', async () => {
+      service.testAsaasCallableFn = vi.fn().mockResolvedValue({
+        data: { success: false, message: 'Falha de Autenticação (401/403): Token inválido' }
+      });
       const result = await service.testAsaasConnection('invalid_token_xyz', 'sandbox');
       expect(result.success).toBe(false);
-      expect(result.message).toContain('Falha de Autenticação (401/403)');
+      expect(result.message).toContain('Falha de Autenticação');
     });
   });
 
@@ -140,6 +146,47 @@ describe('AdminService', () => {
       await expect(service.deleteUser('user-to-delete')).rejects.toThrow(
         'Acesso negado: Requer privilégios de administrador.'
       );
+      expect(mockLoggerService.error).toHaveBeenCalled();
+    });
+  });
+
+  describe('Teste de Conectividade Asaas via Backend (sem CORS)', () => {
+    it('deve rejeitar se a chave for vazia ou curta', async () => {
+      const resVazia = await service.testAsaasConnection('');
+      expect(resVazia.success).toBe(false);
+      expect(resVazia.message).toContain('não pode ser vazia');
+
+      const resCurta = await service.testAsaasConnection('123');
+      expect(resCurta.success).toBe(false);
+      expect(resCurta.message).toContain('muito curta');
+    });
+
+    it('deve invocar a Cloud Function adminTestAsaasConnection e retornar sucesso', async () => {
+      service.testAsaasCallableFn = vi.fn().mockResolvedValue({
+        data: {
+          success: true,
+          message: 'Conexão bem-sucedida com o Asaas (PRODUÇÃO)!',
+          balance: 1500.00
+        }
+      });
+
+      const response = await service.testAsaasConnection('$aact_prod_123456789012345', 'production');
+
+      expect(service.testAsaasCallableFn).toHaveBeenCalledWith({
+        apiKey: '$aact_prod_123456789012345',
+        environment: 'production'
+      });
+      expect(response.success).toBe(true);
+      expect(response.balance).toBe(1500.00);
+    });
+
+    it('deve retornar mensagem de erro amigável quando a Cloud Function falhar', async () => {
+      service.testAsaasCallableFn = vi.fn().mockRejectedValue(new Error('Chave de API inválida'));
+
+      const response = await service.testAsaasConnection('$aact_prod_invalida_12345');
+
+      expect(response.success).toBe(false);
+      expect(response.message).toContain('Chave de API inválida');
       expect(mockLoggerService.error).toHaveBeenCalled();
     });
   });
