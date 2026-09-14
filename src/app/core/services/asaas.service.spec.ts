@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { AsaasService } from './asaas.service';
 import { LoggerService } from './logger.service';
+import { FirebaseService } from './firebase.service';
 import { AsaasWebhookPayload } from '../models/payment.model';
 
 describe('AsaasService (Gateway de Pagamentos & Assinaturas)', () => {
@@ -18,7 +19,8 @@ describe('AsaasService (Gateway de Pagamentos & Assinaturas)', () => {
     TestBed.configureTestingModule({
       providers: [
         AsaasService,
-        { provide: LoggerService, useValue: mockLoggerService }
+        { provide: LoggerService, useValue: mockLoggerService },
+        { provide: FirebaseService, useValue: { app: null } }
       ]
     });
 
@@ -261,5 +263,36 @@ describe('AsaasService (Gateway de Pagamentos & Assinaturas)', () => {
       expect(updated.status).toBe('ACTIVE');
     });
   });
+
+  describe('Criação de Pedidos PIX (sem CORS)', () => {
+    it('deve rejeitar CPF inválido na criação do pedido PIX', async () => {
+      await expect(
+        service.createPixSubscriptionOrder({ plan: 'pro', cpf: '00000000000' })
+      ).rejects.toThrow('CPF inválido');
+    });
+
+    it('deve chamar createPixOrderCallableFn e retornar payload e QR code', async () => {
+      service.createPixOrderCallableFn = vi.fn().mockResolvedValue({
+        data: {
+          success: true,
+          encodedImage: 'data:image/png;base64,iVBORw0KGgo...',
+          payload: '00020126580014br.gov.bcb.pix...',
+          subscriptionId: 'sub_live_999'
+        }
+      });
+
+      const res = await service.createPixSubscriptionOrder({
+        plan: 'pro',
+        cpf: '529.982.247-25',
+        cycle: 'MONTHLY'
+      });
+
+      expect(res.success).toBe(true);
+      expect(res.subscriptionId).toBe('sub_live_999');
+      expect(res.encodedImage).toContain('data:image/png;base64');
+      expect(res.payload).toContain('br.gov.bcb.pix');
+    });
+  });
 });
+
 
