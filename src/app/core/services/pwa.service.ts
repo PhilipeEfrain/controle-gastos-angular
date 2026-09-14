@@ -94,6 +94,13 @@ export class PwaService {
         .then((reg) => {
           this.swRegistration = reg;
 
+          // Força verificação imediata de atualização de service worker no servidor
+          reg.update().catch(() => {});
+
+          if (reg.waiting) {
+            reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+          }
+
           // Escuta por novas versões
           reg.addEventListener('updatefound', () => {
             const newWorker = reg.installing;
