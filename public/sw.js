@@ -1,4 +1,4 @@
-const CACHE_NAME = 'controle-gastos-v1';
+const CACHE_NAME = 'controle-gastos-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -39,18 +39,13 @@ self.addEventListener('fetch', (event) => {
   const request = event.request;
   const url = new URL(request.url);
 
-  // Ignore non-GET requests or Firebase/Analytics/Ads external API endpoints
+  // Ignore non-GET requests, Chrome extensions, or any third-party external origins (except Google Fonts)
   if (
     request.method !== 'GET' ||
-    url.hostname.includes('firestore.googleapis.com') ||
-    url.hostname.includes('identitytoolkit.googleapis.com') ||
-    url.hostname.includes('securetoken.googleapis.com') ||
-    url.hostname.includes('googletagmanager.com') ||
-    url.hostname.includes('google-analytics.com') ||
-    url.hostname.includes('doubleclick.net') ||
-    url.hostname.includes('googlesyndication.com') ||
-    url.hostname.includes('adtrafficquality.google') ||
-    url.protocol === 'chrome-extension:'
+    url.protocol === 'chrome-extension:' ||
+    (url.origin !== self.location.origin &&
+     !url.hostname.includes('fonts.googleapis.com') &&
+     !url.hostname.includes('fonts.gstatic.com'))
   ) {
     return;
   }
