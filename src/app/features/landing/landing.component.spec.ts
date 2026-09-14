@@ -131,4 +131,38 @@ describe('LandingComponent', () => {
       expect(links).toContain('Privacidade & LGPD');
     });
   });
+
+  describe('Cenário BDD (CARD-083: Menu Mobile e Drawer Responsivo)', () => {
+    it('deve alternar a visibilidade do menu drawer e renderizar backdrop e ações mobile', () => {
+      expect(component.isMobileMenuOpen()).toBe(false);
+
+      component.toggleMobileMenu();
+      fixture.detectChanges();
+      expect(component.isMobileMenuOpen()).toBe(true);
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.querySelector('.landing-mobile-backdrop')).toBeTruthy();
+      expect(compiled.querySelector('.landing-mobile-menu')).toBeTruthy();
+      expect(compiled.querySelector('.mobile-drawer-actions')).toBeTruthy();
+      expect(compiled.querySelector('#btn-drawer-login')).toBeTruthy();
+      expect(compiled.querySelector('#btn-drawer-register')).toBeTruthy();
+
+      component.closeMobileMenu();
+      fixture.detectChanges();
+      expect(component.isMobileMenuOpen()).toBe(false);
+      expect(compiled.querySelector('.landing-mobile-menu')).toBeFalsy();
+    });
+
+    it('deve fechar o menu mobile ao navegar via botões do drawer', () => {
+      component.isMobileMenuOpen.set(true);
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      const loginBtn = compiled.querySelector('#btn-drawer-login') as HTMLButtonElement;
+      loginBtn.click();
+
+      expect(router.navigate).toHaveBeenCalledWith(['/auth'], { queryParams: { tab: 'login' } });
+      expect(component.isMobileMenuOpen()).toBe(false);
+    });
+  });
 });

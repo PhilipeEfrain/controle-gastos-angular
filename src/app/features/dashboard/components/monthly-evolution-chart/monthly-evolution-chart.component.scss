@@ -7,6 +7,9 @@
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .evolution-header {
@@ -52,6 +55,13 @@
     display: flex;
     align-items: center;
     gap: 1rem;
+    flex-wrap: wrap;
+
+    @media (max-width: 520px) {
+      width: 100%;
+      justify-content: flex-start;
+      margin-top: 0.25rem;
+    }
 
     .legend-dot {
       display: flex;
@@ -131,6 +141,14 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
     animation: fadeIn 0.2s ease;
     flex-wrap: wrap;
+    max-width: 100%;
+
+    @media (max-width: 520px) {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.25rem;
+      width: 100%;
+    }
 
     .tooltip-month {
       font-size: 0.82rem;
@@ -142,6 +160,7 @@
       display: flex;
       gap: 0.75rem;
       font-size: 0.78rem;
+      flex-wrap: wrap;
 
       .tooltip-income {
         color: #34d399;
@@ -167,12 +186,16 @@
 
 .bars-container {
   position: relative;
-  height: 180px;
+  height: 185px;
   width: 100%;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   padding-top: 1rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
 }
 
 .grid-lines {
@@ -185,6 +208,7 @@
   flex-direction: column;
   justify-content: space-between;
   pointer-events: none;
+  min-width: 280px;
 
   .grid-line {
     border-bottom: 1px dashed rgba(255, 255, 255, 0.06);
@@ -195,6 +219,8 @@
 .bars-wrapper {
   position: relative;
   height: 100%;
+  min-width: 280px;
+  width: 100%;
   display: flex;
   align-items: flex-end;
   justify-content: space-around;
@@ -208,6 +234,7 @@
   align-items: center;
   height: 100%;
   flex: 1;
+  min-width: 38px;
   max-width: 60px;
   cursor: pointer;
   transition: transform 0.2s ease;
