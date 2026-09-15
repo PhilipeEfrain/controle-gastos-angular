@@ -22,6 +22,7 @@ import { InstallmentService } from '../../../../core/services/installment.servic
 import { PlanLimitsService } from '../../../../core/services/plan-limits.service';
 import { DuoService } from '../../../../core/services/duo.service';
 import { AuthStore } from '../../../../core/state/auth.store';
+import { FinanceStore } from '../../../../core/state/finance.store';
 import { formatBRL } from '../../../../core/utils/formatters';
 import { addMonthsToYearMonth, roundBRL } from '../../../../core/utils/calculations';
 import { LimitReachedModalComponent } from '../../../../shared/components/limit-reached-modal/limit-reached-modal.component';
@@ -43,6 +44,7 @@ export class ExpenseFormModalComponent {
   private planLimitsService = inject(PlanLimitsService);
   private duoService = inject(DuoService, { optional: true });
   private authStore = inject(AuthStore);
+  private financeStore = inject(FinanceStore, { optional: true });
 
   readonly isOpen = input<boolean>(false);
   readonly quinzena = input<FortnightNumber>(1);
@@ -223,19 +225,69 @@ export class ExpenseFormModalComponent {
     try {
       if (toEdit && toEdit.id) {
         // Atualização de despesa existente
+        const isRecorrente = formVal.tipo !== 'renda_extra' && !!formVal.recorrente;
+        let recorrenteId = toEdit.recorrente_id;
+
+        if (isRecorrente) {
+          if (!recorrenteId) {
+            // Caso 1: Despesa não era recorrente (ou não possuía mestre) e foi marcada como recorrente na edição
+            try {
+              const recurringList = await firstValueFrom(this.expenseService.getRecurringExpensesStream(user.uid));
+              const activeRecurring = recurringList.filter(r => r.ativo !== false).length;
+              const limitCheck = this.planLimitsService.checkRecurringExpenseLimit(activeRecurring);
+              if (!limitCheck.allowed) {
+                this.isLoading.set(false);
+                this.limitModalData.set({
+                  title: 'Limite de Contas Fixas Atingido',
+                  message: limitCheck.limitMessage,
+                  resourceName: 'Contas Fixas Recorrentes'
+                });
+                return;
+              }
+            } catch {
+              // Prossegue se stream der timeout
+            }
+
+            recorrenteId = await this.expenseService.addRecurringExpense(user.uid, {
+              descricao: formVal.descricao.trim(),
+              valor: parseFloat(formVal.valor),
+              quinzena: Number(formVal.quinzena) as FortnightNumber,
+              categoria: formVal.categoria,
+              data_vencimento: formVal.data_vencimento?.trim() || '',
+              ativo: true
+            });
+          } else {
+            // Caso 2: Já era recorrente e foi editada -> atualiza o registro mestre para refletir nos meses futuros
+            await this.expenseService.updateRecurringExpense(user.uid, recorrenteId, {
+              descricao: formVal.descricao.trim(),
+              valor: parseFloat(formVal.valor),
+              quinzena: Number(formVal.quinzena) as FortnightNumber,
+              categoria: formVal.categoria,
+              data_vencimento: formVal.data_vencimento?.trim() || '',
+              ativo: true
+            });
+          }
+        } else if (recorrenteId) {
+          // Caso 3: Era recorrente e o usuário desmarcou a caixinha -> remove o mestre para parar nos meses seguintes
+          await this.expenseService.deleteRecurringExpense(user.uid, recorrenteId);
+          recorrenteId = undefined;
+        }
+
         const updatePayload: Partial<Expense> = {
           tipo: formVal.tipo || 'despesa',
           descricao: formVal.descricao.trim(),
           valor: parseFloat(formVal.valor),
           quinzena: Number(formVal.quinzena) as FortnightNumber,
           categoria: formVal.categoria,
-          recorrente: !!formVal.recorrente
+          recorrente: isRecorrente,
+          recorrente_id: recorrenteId || ''
         };
         if (formVal.data_vencimento?.trim()) {
           updatePayload.data_vencimento = formVal.data_vencimento.trim();
         }
 
         await this.expenseService.updateExpense(user.uid, this.mesAno(), toEdit.id, updatePayload);
+        this.financeStore?.invalidateRecurrenceCache();
       } else if (formVal.isShared) {
         // Validação defensiva de pareamento ativo no Modo Casal
         const group = this.duoGroup();
@@ -390,6 +442,9 @@ export class ExpenseFormModalComponent {
         }
 
         await this.expenseService.addExpense(user.uid, this.mesAno(), newExpense);
+        if (isRecorrente) {
+          this.financeStore?.invalidateRecurrenceCache();
+        }
       }
 
       this.saved.emit();

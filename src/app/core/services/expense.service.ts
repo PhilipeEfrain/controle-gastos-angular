@@ -168,7 +168,52 @@ export class ExpenseService {
   }
 
   /**
-   * Sincroniza despesas recorrentes ativas para um mês específico se ainda não existirem
+   * Atualiza dados de uma despesa recorrente mestre
+   */
+  async updateRecurringExpense(
+    userId: string,
+    recurringId: string,
+    data: Partial<RecurringExpense>
+  ): Promise<void> {
+    if (userId.startsWith('e2e-')) {
+      return;
+    }
+
+    const recurringDocRef = doc(
+      this.firestore,
+      `users/${userId}/despesas_recorrentes/${recurringId}`
+    );
+    const updatePayload = this.sanitizeData({
+      ...data,
+      updatedAt: new Date().toISOString()
+    });
+    if (updatePayload.valor !== undefined) {
+      updatePayload.valor = roundBRL(updatePayload.valor);
+    }
+    await updateDoc(recurringDocRef, updatePayload);
+  }
+
+  /**
+   * Exclui uma despesa recorrente mestre
+   */
+  async deleteRecurringExpense(
+    userId: string,
+    recurringId: string
+  ): Promise<void> {
+    if (userId.startsWith('e2e-')) {
+      return;
+    }
+
+    const recurringDocRef = doc(
+      this.firestore,
+      `users/${userId}/despesas_recorrentes/${recurringId}`
+    );
+    await deleteDoc(recurringDocRef);
+  }
+
+  /**
+   * Sincroniza despesas recorrentes ativas para um mês específico se ainda não existirem.
+   * Inclui auto-cura para despesas marcadas como recorrentes que não possuam registro mestre.
    */
   async syncRecurringExpensesForMonth(
     userId: string,
@@ -179,7 +224,47 @@ export class ExpenseService {
       return;
     }
 
-    const recurringList = await this.getRecurringExpenses(userId);
+    let recurringList = await this.getRecurringExpenses(userId);
+
+    // Auto-cura: identificar despesas existentes neste ciclo que foram marcadas como recorrentes,
+    // mas que não possuem documento mestre em `despesas_recorrentes` (ex: marcação retroativa na edição)
+    for (const exp of existingExpenses) {
+      if (exp.recorrente && exp.id && exp.descricao?.trim()) {
+        const hasMaster = recurringList.some(r =>
+          (exp.recorrente_id && r.id === exp.recorrente_id) ||
+          (r.descricao?.trim().toLowerCase() === exp.descricao?.trim().toLowerCase() && r.quinzena === exp.quinzena)
+        );
+
+        if (!hasMaster) {
+          const newRecId = await this.addRecurringExpense(userId, {
+            descricao: exp.descricao.trim(),
+            valor: roundBRL(exp.valor),
+            quinzena: exp.quinzena,
+            categoria: exp.categoria || 'Outros',
+            data_vencimento: exp.data_vencimento || '',
+            ativo: true
+          });
+
+          if (exp.recorrente_id !== newRecId) {
+            await this.updateExpense(userId, mesAno, exp.id, {
+              recorrente_id: newRecId
+            });
+            exp.recorrente_id = newRecId;
+          }
+
+          recurringList.push({
+            id: newRecId,
+            descricao: exp.descricao.trim(),
+            valor: roundBRL(exp.valor),
+            quinzena: exp.quinzena,
+            categoria: exp.categoria || 'Outros',
+            data_vencimento: exp.data_vencimento || '',
+            ativo: true
+          });
+        }
+      }
+    }
+
     const activeRecurring = recurringList.filter(r => r.ativo !== false);
 
     if (activeRecurring.length === 0) {
@@ -189,7 +274,7 @@ export class ExpenseService {
     const missingRecurring = activeRecurring.filter(rec => {
       return !existingExpenses.some(exp =>
         (exp.recorrente_id && exp.recorrente_id === rec.id) ||
-        (exp.recorrente && exp.descricao.trim().toLowerCase() === rec.descricao.trim().toLowerCase() && exp.quinzena === rec.quinzena)
+        (exp.recorrente && exp.descricao?.trim().toLowerCase() === rec.descricao?.trim().toLowerCase() && exp.quinzena === rec.quinzena)
       );
     });
 
