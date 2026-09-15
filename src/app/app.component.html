@@ -9,6 +9,12 @@
     <router-outlet />
   </main>
 
+  <!-- Anúncios Laterais - Apenas telas xl (≥1280px) e usuários Free -->
+  @if (showNavbar()) {
+    <app-ad-sidebar position="left" />
+    <app-ad-sidebar position="right" />
+  }
+
   <app-toast-container />
 
   @if (showNavbar()) {

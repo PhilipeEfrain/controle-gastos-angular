@@ -6,13 +6,14 @@ import { NavbarComponent } from './core/components/navbar/navbar.component';
 import { ToastContainerComponent } from './shared/components/toast-container/toast-container.component';
 import { OfflineBannerComponent } from './shared/components/offline-banner/offline-banner.component';
 import { FeedbackFabComponent } from './shared/components/feedback-fab/feedback-fab.component';
+import { AdSidebarComponent } from './shared/components/ad-sidebar/ad-sidebar.component';
 import { AuthStore } from './core/state/auth.store';
 import { AnalyticsService } from './core/services/analytics.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, NavbarComponent, ToastContainerComponent, OfflineBannerComponent, FeedbackFabComponent],
+  imports: [CommonModule, RouterOutlet, NavbarComponent, ToastContainerComponent, OfflineBannerComponent, FeedbackFabComponent, AdSidebarComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
