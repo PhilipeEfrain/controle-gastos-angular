@@ -28,6 +28,7 @@ export class AdBannerComponent implements AfterViewInit {
   readonly slotId = input<string>(environment.adsense?.topDashboardSlot || '6818458661');
   readonly adClient = input<string>(environment.adsense?.client || 'ca-pub-8227454086945331');
   readonly showUpgradePrompt = input<boolean>(true);
+  readonly cssClass = input<string>('');
 
   readonly upgradeClick = output<void>();
 

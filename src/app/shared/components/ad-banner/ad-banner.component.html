@@ -1,5 +1,5 @@
 @if (isFreeUser()) {
-  <aside class="ad-banner-wrapper" role="complementary" aria-label="Espaço publicitário">
+  <aside class="ad-banner-wrapper" [class]="cssClass()" role="complementary" aria-label="Espaço publicitário">
     <div class="ad-banner-card">
       <div class="ad-banner-meta">
         <span class="ad-tag">Publicidade</span>

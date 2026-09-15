@@ -342,6 +342,13 @@
 
     <!-- Grid Quinzenal (Meus Gastos Pessoais) -->
     @if (!isDuoActive() || activeDuoTab() === 'meus') {
+      <!-- Ad horizontal (substitui sidebars laterais em telas < xl) -->
+      <app-ad-banner
+        cssClass="ad-hide-on-xl"
+        [showUpgradePrompt]="false"
+        (upgradeClick)="openSubscriptionModal()"
+      />
+
       <section class="fortnights-grid">
         <!-- Quinzena 1: Renda do Dia 31 -->
         <app-fortnight-card

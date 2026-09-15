@@ -208,3 +208,10 @@
   }
 }
 
+// Utilitários de visibilidade responsiva para ads
+// Esconde em telas xl+ (onde os sidebars laterais estão ativos)
+.ad-hide-on-xl {
+  @include respond-to('xl') {
+    display: none !important;
+  }
+}
