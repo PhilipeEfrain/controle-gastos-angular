@@ -225,3 +225,198 @@ export async function createPixOrderBackend(
     customerId: asaasCustomerId
   };
 }
+
+export interface CreateCreditCardOrderRequest {
+  plan: 'pro' | 'duo';
+  cycle?: 'MONTHLY' | 'YEARLY';
+  cpf: string;
+  cardHolderName: string;
+  cardNumber: string;
+  cardExpiry: string;
+  cardCvv: string;
+  customValue?: number;
+}
+
+export interface CreateCreditCardOrderResponse {
+  success: boolean;
+  message: string;
+  plan?: 'pro' | 'duo';
+  subscriptionId?: string;
+  customerId?: string;
+}
+
+/**
+ * Processa a assinatura via cartão de crédito diretamente no backend via API v3 do Asaas (sem CORS).
+ * Se aprovado pela adquirente, atualiza com segurança o perfil do usuário para o plano contratado.
+ */
+export async function createCreditCardOrderBackend(
+  payload: CreateCreditCardOrderRequest,
+  callerUid: string,
+  deps: PaymentDependencies
+): Promise<CreateCreditCardOrderResponse> {
+  if (!callerUid || typeof callerUid !== 'string') {
+    throw new Error('Acesso não autenticado. Faça login para continuar.');
+  }
+
+  const cleanCpf = sanitizeCpf(payload.cpf);
+  if (!isValidCpf(cleanCpf)) {
+    throw new Error('CPF inválido. Por favor, informe um CPF válido.');
+  }
+
+  if (payload.plan !== 'pro' && payload.plan !== 'duo') {
+    throw new Error('Plano inválido selecionado.');
+  }
+
+  const cleanCardNumber = (payload.cardNumber || '').replace(/\s/g, '');
+  if (cleanCardNumber.length < 13 || cleanCardNumber.length > 19) {
+    throw new Error('Número de cartão de crédito inválido.');
+  }
+
+  const holderName = (payload.cardHolderName || '').trim();
+  if (holderName.length < 3) {
+    throw new Error('Nome do titular do cartão é obrigatório.');
+  }
+
+  const ccv = (payload.cardCvv || '').trim();
+  if (ccv.length < 3 || ccv.length > 4) {
+    throw new Error('Código de segurança (CVV) inválido.');
+  }
+
+  const expiryParts = (payload.cardExpiry || '').split('/');
+  const expiryMonth = (expiryParts[0] || '').trim().padStart(2, '0');
+  let expiryYear = (expiryParts[1] || '').trim();
+  if (expiryYear.length === 2) {
+    expiryYear = '20' + expiryYear;
+  }
+  if (expiryMonth.length !== 2 || expiryYear.length !== 4) {
+    throw new Error('Data de validade do cartão inválida (use MM/AA).');
+  }
+
+  const cycle = payload.cycle || 'MONTHLY';
+  const price = payload.customValue !== undefined && payload.customValue > 0
+    ? payload.customValue
+    : getPlanDefaultPrice(payload.plan, cycle);
+
+  const { db } = deps;
+  const fetchImpl = deps.fetchFn || fetch;
+
+  // 1. Obter credenciais do Asaas
+  const asaasConfigSnap = await db.collection('system_config').doc('asaas').get();
+  if (!asaasConfigSnap.exists) {
+    throw new Error('Configuração do gateway de pagamentos não encontrada.');
+  }
+
+  const asaasConfig = asaasConfigSnap.data();
+  const apiKey = (asaasConfig?.apiKey || '').trim();
+  const environment = asaasConfig?.environment || 'sandbox';
+
+  if (!apiKey) {
+    throw new Error('Chave de API do Asaas não configurada no painel de administração.');
+  }
+
+  const baseUrl = environment === 'production'
+    ? 'https://api.asaas.com/v3'
+    : 'https://sandbox.asaas.com/api/v3';
+
+  // 2. Obter dados do usuário no Firestore
+  const userDocRef = db.collection('users').doc(callerUid);
+  const userSnap = await userDocRef.get();
+  const userData = userSnap.data() || {};
+  const customerName = userData.displayName || holderName;
+  const customerEmail = userData.email || 'contato@quinzena.com.br';
+  let asaasCustomerId = userData.asaasCustomerId;
+
+  const headers = {
+    'Content-Type': 'application/json',
+    'access_token': apiKey
+  };
+
+  // 3. Criar ou validar cliente no Asaas se não existir
+  if (!asaasCustomerId) {
+    const customerRes = await fetchImpl(`${baseUrl}/customers`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        name: customerName,
+        email: customerEmail,
+        cpfCnpj: cleanCpf,
+        externalReference: callerUid
+      })
+    });
+
+    const customerData = await customerRes.json();
+    if (!customerRes.ok) {
+      const errMsg = customerData?.errors?.[0]?.description || customerData?.message || 'Falha ao cadastrar cliente no Asaas.';
+      throw new Error(`Erro Asaas (Cliente): ${errMsg}`);
+    }
+
+    asaasCustomerId = customerData.id;
+    await userDocRef.set({ asaasCustomerId }, { merge: true });
+  }
+
+  // 4. Criar Assinatura no Asaas com Cartão de Crédito
+  const todayStr = new Date().toISOString().split('T')[0];
+  const subscriptionPayload = {
+    customer: asaasCustomerId,
+    billingType: 'CREDIT_CARD',
+    value: price,
+    nextDueDate: todayStr,
+    cycle,
+    description: `Assinatura Quinzena - Plano ${payload.plan.toUpperCase()}`,
+    externalReference: callerUid,
+    creditCard: {
+      holderName,
+      number: cleanCardNumber,
+      expiryMonth,
+      expiryYear,
+      ccv
+    },
+    creditCardHolderInfo: {
+      name: holderName,
+      email: customerEmail,
+      cpfCnpj: cleanCpf,
+      postalCode: '01310100',
+      addressNumber: '100',
+      phone: '11999999999',
+      mobilePhone: '11999999999'
+    }
+  };
+
+  const subRes = await fetchImpl(`${baseUrl}/subscriptions`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(subscriptionPayload)
+  });
+
+  const subData = await subRes.json();
+  if (!subRes.ok) {
+    const errMsg = subData?.errors?.[0]?.description || subData?.message || 'Falha ao processar pagamento com cartão no Asaas.';
+    throw new Error(`Erro Asaas (Cartão): ${errMsg}`);
+  }
+
+  const subscriptionId = subData.id;
+
+  // 5. Atualizar perfil do usuário no Firestore diretamente pelo backend com privilégios Admin
+  const days = cycle === 'YEARLY' ? 365 : 30;
+  const expDate = new Date();
+  expDate.setDate(expDate.getDate() + days);
+  const planExpiresAt = expDate.toISOString();
+
+  await userDocRef.set({
+    plan: payload.plan,
+    planStatus: 'active',
+    asaasCustomerId,
+    asaasSubscriptionId: subscriptionId,
+    planExpiresAt,
+    updatedAt: new Date().toISOString()
+  }, { merge: true });
+
+  return {
+    success: true,
+    message: `Assinatura ativada com sucesso no plano ${payload.plan.toUpperCase()}!`,
+    plan: payload.plan,
+    subscriptionId,
+    customerId: asaasCustomerId
+  };
+}
+

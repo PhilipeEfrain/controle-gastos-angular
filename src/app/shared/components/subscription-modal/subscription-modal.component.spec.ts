@@ -38,6 +38,12 @@ describe('SubscriptionModalComponent (Checkout de Assinaturas)', () => {
         subscriptionId: 'sub_123',
         paymentId: 'pay_123',
         customerId: 'cus_123'
+      }),
+      createCreditCardSubscriptionOrder: vi.fn().mockResolvedValue({
+        success: true,
+        message: 'Assinatura ativada com sucesso!',
+        plan: 'pro',
+        subscriptionId: 'sub_card_123'
       })
     };
 
@@ -186,35 +192,21 @@ describe('SubscriptionModalComponent (Checkout de Assinaturas)', () => {
 
     await component.processCreditCardPayment();
 
-    expect(mockAdminService.getAsaasConfig).toHaveBeenCalled();
-    expect(mockAsaasService.createCustomer).toHaveBeenCalledWith(
+    expect(mockAsaasService.createCreditCardSubscriptionOrder).toHaveBeenCalledWith(
       expect.objectContaining({
-        cpfCnpj: '529.982.247-25'
-      }),
-      '$aact_test_token_12345',
-      'sandbox'
+        plan: 'pro',
+        cpf: '529.982.247-25',
+        cardHolderName: 'CLIENTE TESTE',
+        cardNumber: '5555 5555 5555 5555',
+        cardExpiry: '12/28',
+        cardCvv: '123'
+      })
     );
-    expect(mockAsaasService.createSubscription).toHaveBeenCalledWith(
-      expect.objectContaining({
-        billingType: 'CREDIT_CARD',
-        cardData: expect.objectContaining({
-          holderName: 'CLIENTE TESTE',
-          number: '5555555555555555',
-          expiryMonth: '12',
-          expiryYear: '2028',
-          ccv: '123'
-        })
-      }),
-      '$aact_test_token_12345',
-      'sandbox'
-    );
-    expect(mockAuthStore.upgradeSubscription).toHaveBeenCalledWith(
+    expect(mockAuthStore.updateCurrentUser).toHaveBeenCalledWith(
       expect.objectContaining({
         plan: 'pro',
         planStatus: 'active',
-        asaasCustomerId: 'cus_123',
-        asaasSubscriptionId: 'sub_123',
-        planExpiresAt: expect.any(String)
+        asaasSubscriptionId: 'sub_card_123'
       })
     );
     expect(component.step()).toBe('success');
@@ -231,13 +223,12 @@ describe('SubscriptionModalComponent (Checkout de Assinaturas)', () => {
     component.cardCvv.set('123');
     component.customerCpf.set('529.982.247-25');
 
-    mockAsaasService.createSubscription.mockRejectedValueOnce(
+    mockAsaasService.createCreditCardSubscriptionOrder.mockRejectedValueOnce(
       new Error('Cartão recusado pela operadora: saldo insuficiente.')
     );
 
     await component.processCreditCardPayment();
 
-    expect(mockAuthStore.upgradeSubscription).not.toHaveBeenCalled();
     expect(component.step()).toBe('checkout');
     expect(mockNotificationService.error).toHaveBeenCalledWith(
       'Cartão recusado pela operadora: saldo insuficiente.'

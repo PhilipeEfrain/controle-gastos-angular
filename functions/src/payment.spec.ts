@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createPixOrderBackend } from './payment.js';
+import { createPixOrderBackend, createCreditCardOrderBackend } from './payment.js';
 
 describe('createPixOrderBackend', () => {
   let mockDb: any;
@@ -126,3 +126,103 @@ describe('createPixOrderBackend', () => {
     ).rejects.toThrow('chave PIX');
   });
 });
+
+describe('createCreditCardOrderBackend', () => {
+  let mockDb: any;
+  let mockUserDoc: any;
+  let mockSystemConfigDoc: any;
+
+  beforeEach(() => {
+    mockUserDoc = {
+      exists: true,
+      data: vi.fn().mockReturnValue({
+        displayName: 'Philipe Efrain',
+        email: 'philipe@example.com',
+        asaasCustomerId: 'cus_existing_123'
+      })
+    };
+
+    mockSystemConfigDoc = {
+      exists: true,
+      data: vi.fn().mockReturnValue({
+        apiKey: '$aact_valid_key_1234567890',
+        environment: 'production'
+      })
+    };
+
+    mockDb = {
+      collection: vi.fn((colName: string) => {
+        if (colName === 'users') {
+          return {
+            doc: vi.fn(() => ({
+              get: vi.fn().mockResolvedValue(mockUserDoc),
+              set: vi.fn().mockResolvedValue(true)
+            }))
+          };
+        }
+        if (colName === 'system_config') {
+          return {
+            doc: vi.fn(() => ({
+              get: vi.fn().mockResolvedValue(mockSystemConfigDoc)
+            }))
+          };
+        }
+        return { doc: vi.fn() };
+      })
+    };
+  });
+
+  it('deve rejeitar se o usuário não estiver autenticado', async () => {
+    await expect(
+      createCreditCardOrderBackend({
+        plan: 'pro',
+        cpf: '52998224725',
+        cardHolderName: 'PHILIPE EFRAIN',
+        cardNumber: '4532111122223333',
+        cardExpiry: '12/28',
+        cardCvv: '123'
+      }, '', { db: mockDb })
+    ).rejects.toThrow('Acesso não autenticado');
+  });
+
+  it('deve criar assinatura com cartão de crédito e atualizar perfil do usuário', async () => {
+    const mockFetch = vi.fn().mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ id: 'sub_card_123', customer: 'cus_existing_123', status: 'ACTIVE' })
+    });
+
+    const res = await createCreditCardOrderBackend({
+      plan: 'pro',
+      cpf: '52998224725',
+      cardHolderName: 'PHILIPE EFRAIN',
+      cardNumber: '4532111122223333',
+      cardExpiry: '12/28',
+      cardCvv: '123'
+    }, 'user_123', { db: mockDb, fetchFn: mockFetch as any });
+
+    expect(res.success).toBe(true);
+    expect(res.subscriptionId).toBe('sub_card_123');
+    expect(res.message).toContain('PRO');
+  });
+
+  it('deve lançar erro descritivo quando o Asaas recusar o cartão', async () => {
+    const mockFetch = vi.fn().mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({
+        errors: [{ description: 'Cartão recusado pela operadora (Saldo insuficiente).' }]
+      })
+    });
+
+    await expect(
+      createCreditCardOrderBackend({
+        plan: 'pro',
+        cpf: '52998224725',
+        cardHolderName: 'PHILIPE EFRAIN',
+        cardNumber: '4532111122223333',
+        cardExpiry: '12/28',
+        cardCvv: '123'
+      }, 'user_123', { db: mockDb, fetchFn: mockFetch as any })
+    ).rejects.toThrow('Saldo insuficiente');
+  });
+});
+

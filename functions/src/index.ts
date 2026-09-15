@@ -7,8 +7,8 @@ import { handleAsaasWebhook } from './webhook-handler.js';
 import { cleanupAllExpiredCycles } from './cleanup.js';
 import { sendTelegramFeedback } from './feedback.js';
 import { deleteUserCascade, testAsaasConnectionBackend } from './admin.js';
-import { createPixOrderBackend } from './payment.js';
-import type { CreatePixOrderRequest } from './payment.js';
+import { createPixOrderBackend, createCreditCardOrderBackend } from './payment.js';
+import type { CreatePixOrderRequest, CreateCreditCardOrderRequest } from './payment.js';
 import type { AdminDeleteUserRequest, AdminTestAsaasRequest } from './admin.js';
 import type { TelegramFeedbackData } from './feedback.js';
 import type { AsaasWebhookPayload } from './types.js';
@@ -214,6 +214,39 @@ export const createPixSubscriptionOrder = onCall(
     }
   }
 );
+
+/**
+ * Função Callable para criação segura de assinatura com Cartão de Crédito via backend (sem CORS).
+ * Autenticado para qualquer usuário logado que queira assinar um plano Pro ou Duo.
+ */
+export const createCreditCardSubscriptionOrder = onCall(
+  {
+    cors: true,
+    maxInstances: 20
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError(
+        'unauthenticated',
+        'O usuário deve estar autenticado para realizar pagamento com cartão.'
+      );
+    }
+
+    try {
+      const data = request.data as CreateCreditCardOrderRequest;
+      const result = await createCreditCardOrderBackend(data, request.auth.uid, { db });
+      return result;
+    } catch (err: any) {
+      console.error('[createCreditCardSubscriptionOrder] Erro ao processar cartão:', err?.message || err);
+      const msg = err?.message || 'Falha ao processar pagamento com cartão no gateway Asaas.';
+      if (msg.includes('inválido') || msg.includes('obrigatório')) {
+        throw new HttpsError('invalid-argument', msg);
+      }
+      throw new HttpsError('internal', msg);
+    }
+  }
+);
+
 
 
 

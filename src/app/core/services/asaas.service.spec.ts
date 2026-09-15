@@ -293,6 +293,45 @@ describe('AsaasService (Gateway de Pagamentos & Assinaturas)', () => {
       expect(res.payload).toContain('br.gov.bcb.pix');
     });
   });
+
+  describe('Criação de Pedidos com Cartão de Crédito (sem CORS)', () => {
+    it('deve rejeitar CPF inválido na criação do pedido com cartão', async () => {
+      await expect(
+        service.createCreditCardSubscriptionOrder({
+          plan: 'pro',
+          cpf: '00000000000',
+          cardHolderName: 'TESTE',
+          cardNumber: '4532111122223333',
+          cardExpiry: '12/28',
+          cardCvv: '123'
+        })
+      ).rejects.toThrow('CPF inválido');
+    });
+
+    it('deve chamar createCreditCardOrderCallableFn e retornar sucesso', async () => {
+      service.createCreditCardOrderCallableFn = vi.fn().mockResolvedValue({
+        data: {
+          success: true,
+          message: 'Assinatura ativada!',
+          plan: 'pro',
+          subscriptionId: 'sub_card_777'
+        }
+      });
+
+      const res = await service.createCreditCardSubscriptionOrder({
+        plan: 'pro',
+        cpf: '529.982.247-25',
+        cardHolderName: 'PHILIPE EFRAIN',
+        cardNumber: '4532111122223333',
+        cardExpiry: '12/28',
+        cardCvv: '123'
+      });
+
+      expect(res.success).toBe(true);
+      expect(res.subscriptionId).toBe('sub_card_777');
+      expect(res.plan).toBe('pro');
+    });
+  });
 });
 
 
