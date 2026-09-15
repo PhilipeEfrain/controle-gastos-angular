@@ -32,6 +32,7 @@ export class AsaasService {
    * Mock/override da callable function para facilidade de testes unitários
    */
   createPixOrderCallableFn: ((data: any) => Promise<{ data: any }>) | null = null;
+  createCreditCardOrderCallableFn: ((data: any) => Promise<{ data: any }>) | null = null;
 
   /**
    * Configuração de ambiente e endpoints da API Asaas v3
@@ -430,6 +431,54 @@ export class AsaasService {
       customerId: 'cus_mock'
     };
   }
+
+  /**
+   * Cria assinatura com Cartão de Crédito via Cloud Function no backend (sem CORS e sem expor chaves).
+   * Atualiza com segurança o plano do usuário diretamente no Firestore via Admin SDK.
+   */
+  async createCreditCardSubscriptionOrder(params: {
+    plan: 'pro' | 'duo';
+    cycle?: BillingCycle;
+    cpf: string;
+    cardHolderName: string;
+    cardNumber: string;
+    cardExpiry: string;
+    cardCvv: string;
+    customValue?: number;
+  }): Promise<{
+    success: boolean;
+    message: string;
+    plan?: 'pro' | 'duo';
+    subscriptionId?: string;
+  }> {
+    const cleanCpf = this.sanitizeCpfCnpj(params.cpf);
+    if (!this.isValidCpf(cleanCpf)) {
+      throw new Error('CPF inválido para pagamento com cartão.');
+    }
+
+    if (this.createCreditCardOrderCallableFn) {
+      const res = await this.createCreditCardOrderCallableFn({ ...params, cpf: cleanCpf });
+      return res.data;
+    }
+
+    if (this.firebaseService.app) {
+      const callable = httpsCallable<any, any>(
+        getFunctions(this.firebaseService.app),
+        'createCreditCardSubscriptionOrder'
+      );
+      const res = await callable({ ...params, cpf: cleanCpf });
+      return res.data;
+    }
+
+    // Fallback Mock seguro para testes locais desconectados
+    return {
+      success: true,
+      message: `Assinatura simulada ativada com sucesso no plano ${params.plan.toUpperCase()}!`,
+      plan: params.plan,
+      subscriptionId: 'sub_mock_card'
+    };
+  }
+
 
 
 

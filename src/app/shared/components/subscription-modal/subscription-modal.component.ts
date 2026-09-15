@@ -273,7 +273,7 @@ export class SubscriptionModalComponent implements OnInit {
   }
 
   /**
-   * Processa pagamento via Cartão de Crédito com consulta real ao Asaas e persistência definitiva
+   * Processa pagamento via Cartão de Crédito com consulta real ao Asaas via Cloud Function (sem CORS e sem expor credenciais)
    */
   async processCreditCardPayment(): Promise<void> {
     if (!this.isCardFormValid()) {
@@ -283,73 +283,33 @@ export class SubscriptionModalComponent implements OnInit {
 
     this.isProcessing.set(true);
     try {
-      const user = this.authStore.currentUser();
-      const asaasConfig = await this.adminService.getAsaasConfig();
-      const apiKey = asaasConfig?.apiKey || undefined;
-      const environment = asaasConfig?.environment || 'sandbox';
-
-      const customer = await this.asaasService.createCustomer(
-        {
-          name: user?.displayName || this.cardHolderName(),
-          email: user?.email || 'contato@quinzena.app',
-          cpfCnpj: this.customerCpf()
-        },
-        apiKey,
-        environment
-      );
-
-      const cleanCpf = this.customerCpf().replace(/\D/g, '');
-      const holderName = this.cardHolderName().trim() || user?.displayName || 'Titular';
-      const holderEmail = user?.email || 'contato@quinzena.app';
-      const expiryParts = this.cardExpiry().split('/');
-      const expiryMonth = (expiryParts[0] || '12').padStart(2, '0');
-      const expiryYear = expiryParts[1] ? (expiryParts[1].length === 2 ? '20' + expiryParts[1] : expiryParts[1]) : '2028';
-
-      const subscription = await this.asaasService.createSubscription(
-        {
-          plan: this.selectedPlan(),
-          cycle: this.cycle(),
-          billingType: 'CREDIT_CARD',
-          customerId: customer.id || 'cus_demo',
-          customValue: this.currentPrice(),
-          cardData: {
-            holderName: holderName,
-            number: this.cardNumber().replace(/\s/g, ''),
-            expiryMonth: expiryMonth,
-            expiryYear: expiryYear,
-            ccv: this.cardCvv().trim()
-          },
-          holderInfo: {
-            name: holderName,
-            email: holderEmail,
-            cpfCnpj: cleanCpf,
-            postalCode: '01310100',
-            addressNumber: '100',
-            phone: '11999999999',
-            mobilePhone: '11999999999'
-          }
-        },
-        apiKey,
-        environment
-      );
+      const plan = this.selectedPlan();
+      const res = await this.asaasService.createCreditCardSubscriptionOrder({
+        plan,
+        cycle: this.cycle(),
+        cpf: this.customerCpf(),
+        cardHolderName: this.cardHolderName(),
+        cardNumber: this.cardNumber(),
+        cardExpiry: this.cardExpiry(),
+        cardCvv: this.cardCvv(),
+        customValue: this.currentPrice()
+      });
 
       const days = this.cycle() === 'YEARLY' ? 365 : 30;
       const expDate = new Date();
       expDate.setDate(expDate.getDate() + days);
       const planExpiresAt = expDate.toISOString();
 
-      const plan = this.selectedPlan();
-      // Persiste no Firestore e atualiza o AuthStore em memória
-      await this.authStore.upgradeSubscription({
+      // Atualiza o estado da sessão em memória (o Firestore já foi atualizado com segurança pelo backend)
+      this.authStore.updateCurrentUser({
         plan,
         planStatus: 'active',
-        asaasCustomerId: customer.id,
-        asaasSubscriptionId: subscription.id,
+        asaasSubscriptionId: res.subscriptionId,
         planExpiresAt
       });
 
       this.step.set('success');
-      this.notificationService.success(`Assinatura ativada com sucesso no plano ${plan.toUpperCase()}!`);
+      this.notificationService.success(res.message || `Assinatura ativada com sucesso no plano ${plan.toUpperCase()}!`);
     } catch (err: any) {
       this.notificationService.error(err?.message || 'Erro ao processar pagamento com cartão.');
     } finally {
