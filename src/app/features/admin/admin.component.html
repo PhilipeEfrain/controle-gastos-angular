@@ -272,9 +272,9 @@
                   <!-- Plano -->
                   <td class="col-plan">
                     @if (user.plan === 'pro') {
-                      <span class="badge badge-pro">Pro (R$ 9,90)</span>
+                      <span class="badge badge-pro">Pro</span>
                     } @else if (user.plan === 'duo') {
-                      <span class="badge badge-duo">Duo (R$ 19,90)</span>
+                      <span class="badge badge-duo">Duo</span>
                     } @else {
                       <span class="badge badge-free">Free</span>
                     }
@@ -598,7 +598,7 @@
           <div class="form-section">
             <div class="field-header">
               <label for="input-asaas-webhook" class="field-label">Segredo de Validação de Webhook (asaas-access-token)</label>
-              <span class="field-badge optional">Opcional</span>
+              <span class="field-badge required">Obrigatório para Webhook</span>
             </div>
             <p class="section-hint">
               Token customizado definido no cadastro do Webhook no Asaas para validação de integridade nos disparos recebidos.
@@ -621,6 +621,19 @@
               </div>
 
               <div class="field-action-buttons">
+                <button
+                  type="button"
+                  class="btn-generate-secret"
+                  (click)="generateWebhookSecret()"
+                  title="Gerar novo token seguro aleatório"
+                  id="btn-generate-webhook-secret"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                  </svg>
+                  <span>Gerar</span>
+                </button>
+
                 <button
                   type="button"
                   class="btn-toggle-visibility"
@@ -651,6 +664,19 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" />
                   </svg>
                 </button>
+              </div>
+            </div>
+
+            <!-- Alerta preventivo contra Fila Pausada (CARD-085) -->
+            <div class="webhook-alert-box" id="webhook-sync-alert">
+              <div class="webhook-alert-icon">⚠️</div>
+              <div class="webhook-alert-content">
+                <strong>Atenção: Evite a Fila Pausada no Asaas</strong>
+                <p>
+                  O Asaas valida este token no cabeçalho <code>asaas-access-token</code> em cada notificação recebida.
+                  Cole <strong>exatamente o mesmo token</strong> no campo <em>Token de Autenticação</em> do seu Webhook no painel do Asaas.
+                  Se os tokens forem divergentes ou estiverem vazios, o Asaas receberá erro <strong>401 Unauthorized</strong> e pausará a sincronização da fila.
+                </p>
               </div>
             </div>
           </div>

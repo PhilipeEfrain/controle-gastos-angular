@@ -441,6 +441,60 @@ describe('AdminComponent (Painel Administrativo)', () => {
       expect(component.selectedUserForDeletion()).toBeNull();
     });
   });
+
+  describe('CARD-084: Exibição Limpa de Planos na Tabela de Clientes', () => {
+    it('Cenário BDD: deve renderizar apenas os nomes dos planos (Pro, Duo, Free) sem exibir valores monetários', async () => {
+      await component.loadUsers();
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      const planBadges = compiled.querySelectorAll('.col-plan .badge');
+      expect(planBadges.length).toBe(3);
+
+      const texts = Array.from(planBadges).map(b => b.textContent?.trim());
+      expect(texts).toContain('Pro');
+      expect(texts).toContain('Duo');
+      expect(texts).toContain('Free');
+
+      // Não deve conter valores monetários fixos
+      expect(texts.some(t => t?.includes('R$ 9,90'))).toBe(false);
+      expect(texts.some(t => t?.includes('R$ 19,90'))).toBe(false);
+    });
+  });
+
+  describe('CARD-085: UX de Configuração do Webhook Asaas e Prevenção de Fila Pausada', () => {
+    it('Cenário BDD 1: deve gerar token criptograficamente seguro com prefixo whsec_ ao chamar generateWebhookSecret()', () => {
+      component.generateWebhookSecret();
+      const generated = component.asaasWebhookSecret();
+
+      expect(generated).toMatch(/^whsec_[0-9a-f]{32}$/);
+      expect(mockNotificationService.info).toHaveBeenCalledWith(
+        expect.stringContaining('Novo segredo gerado')
+      );
+    });
+
+    it('Cenário BDD 2: deve renderizar o alerta preventivo contra fila pausada na aba Asaas', async () => {
+      component.setTab('asaas');
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      const alertBox = compiled.querySelector('#webhook-sync-alert');
+      expect(alertBox).toBeTruthy();
+      expect(alertBox?.textContent).toContain('Evite a Fila Pausada no Asaas');
+      expect(alertBox?.textContent).toContain('401 Unauthorized');
+    });
+
+    it('Cenário BDD 3: deve indicar obrigatoriedade no badge do segredo do webhook', async () => {
+      component.setTab('asaas');
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      const badge = compiled.querySelector('.form-section:nth-of-type(3) .field-badge.required');
+      expect(badge).toBeTruthy();
+      expect(badge?.textContent).toContain('Obrigatório para Webhook');
+    });
+  });
 });
+
 
 
