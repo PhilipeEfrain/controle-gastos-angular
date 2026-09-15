@@ -6,6 +6,7 @@ import { ExpenseService } from '../../../../core/services/expense.service';
 import { InstallmentService } from '../../../../core/services/installment.service';
 import { PlanLimitsService } from '../../../../core/services/plan-limits.service';
 import { AuthStore } from '../../../../core/state/auth.store';
+import { FinanceStore } from '../../../../core/state/finance.store';
 import { UserProfile } from '../../../../core/models/user.model';
 
 describe('ExpenseFormModalComponent', () => {
@@ -16,6 +17,7 @@ describe('ExpenseFormModalComponent', () => {
   let mockInstallmentService: any;
   let mockPlanLimitsService: any;
   let mockAuthStore: any;
+  let mockFinanceStore: any;
   let mockDuoService: any;
 
   const mockUser: UserProfile = {
@@ -31,12 +33,18 @@ describe('ExpenseFormModalComponent', () => {
       addExpense: vi.fn().mockResolvedValue('exp-id-1'),
       addRecurringExpense: vi.fn().mockResolvedValue('rec-id-1'),
       updateExpense: vi.fn().mockResolvedValue(undefined),
+      updateRecurringExpense: vi.fn().mockResolvedValue(undefined),
+      deleteRecurringExpense: vi.fn().mockResolvedValue(undefined),
       createInstallments: vi.fn().mockResolvedValue('group-id-1'),
       getRecurringExpensesStream: vi.fn().mockReturnValue(of([]))
     };
 
     mockInstallmentService = {
       getInstallmentsOverview: vi.fn().mockReturnValue(of([]))
+    };
+
+    mockFinanceStore = {
+      invalidateRecurrenceCache: vi.fn()
     };
 
     mockPlanLimitsService = {
@@ -74,6 +82,7 @@ describe('ExpenseFormModalComponent', () => {
         { provide: InstallmentService, useValue: mockInstallmentService },
         { provide: PlanLimitsService, useValue: mockPlanLimitsService },
         { provide: AuthStore, useValue: mockAuthStore },
+        { provide: FinanceStore, useValue: mockFinanceStore },
         { provide: (await import('../../../../core/services/duo.service')).DuoService, useValue: mockDuoService }
       ]
     }).compileComponents();
@@ -232,6 +241,136 @@ describe('ExpenseFormModalComponent', () => {
         recorrente_id: 'rec-id-1'
       })
     );
+    expect(mockFinanceStore.invalidateRecurrenceCache).toHaveBeenCalled();
+  });
+
+  it('deve cadastrar despesa recorrente na edição de uma despesa simples e vincular recorrente_id', async () => {
+    fixture.componentRef.setInput('expenseToEdit', {
+      id: 'exp-simples-1',
+      descricao: 'Conta de Água',
+      valor: 80,
+      quinzena: 1,
+      categoria: 'Moradia',
+      status_pagamento: false,
+      recorrente: false
+    });
+    fixture.detectChanges();
+
+    component.form.patchValue({
+      descricao: 'Conta de Água',
+      valor: 80,
+      quinzena: 1,
+      categoria: 'Moradia',
+      recorrente: true
+    });
+
+    await component.onSubmit();
+
+    expect(mockExpenseService.addRecurringExpense).toHaveBeenCalledWith(
+      'user-123',
+      expect.objectContaining({
+        descricao: 'Conta de Água',
+        valor: 80,
+        quinzena: 1,
+        categoria: 'Moradia',
+        ativo: true
+      })
+    );
+
+    expect(mockExpenseService.updateExpense).toHaveBeenCalledWith(
+      'user-123',
+      '2025-03',
+      'exp-simples-1',
+      expect.objectContaining({
+        recorrente: true,
+        recorrente_id: 'rec-id-1'
+      })
+    );
+    expect(mockFinanceStore.invalidateRecurrenceCache).toHaveBeenCalled();
+  });
+
+  it('deve atualizar despesa recorrente mestre na edição de uma despesa já recorrente', async () => {
+    fixture.componentRef.setInput('expenseToEdit', {
+      id: 'exp-rec-1',
+      recorrente_id: 'rec-master-1',
+      descricao: 'Internet 100MB',
+      valor: 99,
+      quinzena: 2,
+      categoria: 'Serviços & Assinaturas',
+      status_pagamento: false,
+      recorrente: true
+    });
+    fixture.detectChanges();
+
+    component.form.patchValue({
+      descricao: 'Internet 300MB',
+      valor: 120,
+      quinzena: 2,
+      categoria: 'Serviços & Assinaturas',
+      recorrente: true
+    });
+
+    await component.onSubmit();
+
+    expect(mockExpenseService.updateRecurringExpense).toHaveBeenCalledWith(
+      'user-123',
+      'rec-master-1',
+      expect.objectContaining({
+        descricao: 'Internet 300MB',
+        valor: 120,
+        quinzena: 2,
+        ativo: true
+      })
+    );
+
+    expect(mockExpenseService.updateExpense).toHaveBeenCalledWith(
+      'user-123',
+      '2025-03',
+      'exp-rec-1',
+      expect.objectContaining({
+        descricao: 'Internet 300MB',
+        valor: 120,
+        recorrente: true,
+        recorrente_id: 'rec-master-1'
+      })
+    );
+    expect(mockFinanceStore.invalidateRecurrenceCache).toHaveBeenCalled();
+  });
+
+  it('deve excluir despesa recorrente mestre ao desmarcar caixinha de recorrência na edição', async () => {
+    fixture.componentRef.setInput('expenseToEdit', {
+      id: 'exp-rec-1',
+      recorrente_id: 'rec-master-1',
+      descricao: 'Streaming Antigo',
+      valor: 39.9,
+      quinzena: 1,
+      categoria: 'Serviços & Assinaturas',
+      status_pagamento: false,
+      recorrente: true
+    });
+    fixture.detectChanges();
+
+    component.form.patchValue({
+      recorrente: false
+    });
+
+    await component.onSubmit();
+
+    expect(mockExpenseService.deleteRecurringExpense).toHaveBeenCalledWith(
+      'user-123',
+      'rec-master-1'
+    );
+
+    expect(mockExpenseService.updateExpense).toHaveBeenCalledWith(
+      'user-123',
+      '2025-03',
+      'exp-rec-1',
+      expect.objectContaining({
+        recorrente: false,
+        recorrente_id: ''
+      })
+    );
+    expect(mockFinanceStore.invalidateRecurrenceCache).toHaveBeenCalled();
   });
 
   it('Cenário BDD (Feature Gate): DEVE exibir modal de limite ao tentar cadastrar parcelamento além do limite Free', async () => {

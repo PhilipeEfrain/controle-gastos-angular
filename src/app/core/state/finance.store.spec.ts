@@ -166,6 +166,21 @@ describe('FinanceStore (Signals Reactive State)', () => {
     expect(mockExpenseService.syncRecurringExpensesForMonth).toHaveBeenCalledTimes(3);
   });
 
+  it('deve sincronizar novamente um mês quando invalidateRecurrenceCache() for acionado', () => {
+    const expensesSubject = new Subject<Expense[]>();
+    mockExpenseService.getExpensesStream = vi.fn(() => expensesSubject.asObservable());
+
+    store.connectMonthStream('user-1', '2026-10');
+    expensesSubject.next([]);
+    expect(mockExpenseService.syncRecurringExpensesForMonth).toHaveBeenCalledTimes(1);
+
+    // Invalida cache de 2026-10 e reconecta
+    store.invalidateRecurrenceCache('2026-10');
+    store.connectMonthStream('user-1', '2026-10');
+    expensesSubject.next([]);
+    expect(mockExpenseService.syncRecurringExpensesForMonth).toHaveBeenCalledTimes(2);
+  });
+
   it('Cenário BDD CARD-070: deve unificar reativamente a cota-parte de despesas compartilhadas em expenses e q1Expenses para o titular', () => {
     store.setCurrentUserId('owner-1');
     store.setExpenses([

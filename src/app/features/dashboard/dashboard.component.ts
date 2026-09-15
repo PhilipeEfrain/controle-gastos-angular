@@ -548,6 +548,7 @@ export class DashboardComponent implements OnInit {
 
   onExpenseSaved(): void {
     this.notificationService.success('Despesa registrada com sucesso!');
+    this.financeStore.invalidateRecurrenceCache();
   }
 
   onIncomeSaved(): void {
@@ -664,6 +665,7 @@ export class DashboardComponent implements OnInit {
         this.financeStore.selectedMonth(),
         expense.id
       );
+      this.financeStore.invalidateRecurrenceCache();
       this.notificationService.success(`Despesa "${expense.descricao}" excluída com sucesso.`);
     } catch (err: any) {
       this.notificationService.error('Erro ao excluir despesa: ' + err.message);

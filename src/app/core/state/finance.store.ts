@@ -259,6 +259,10 @@ export class FinanceStore {
       this.syncedMonths.delete(mesAno);
     } else {
       this.syncedMonths.clear();
+      const current = this._selectedMonth();
+      if (current) {
+        this.syncedMonths.add(current);
+      }
     }
   }
 
