@@ -198,6 +198,24 @@ export class AdminComponent implements OnInit {
   }
 
   /**
+   * Gera um segredo criptograficamente seguro para o Webhook do Asaas (CARD-085)
+   */
+  generateWebhookSecret(): void {
+    const array = new Uint8Array(16);
+    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+      crypto.getRandomValues(array);
+    } else {
+      for (let i = 0; i < 16; i++) {
+        array[i] = Math.floor(Math.random() * 256);
+      }
+    }
+    const hex = Array.from(array, b => b.toString(16).padStart(2, '0')).join('');
+    const newSecret = `whsec_${hex}`;
+    this.asaasWebhookSecret.set(newSecret);
+    this.notificationService.info('Novo segredo gerado! Lembre-se de salvar e cadastrar exatamente o mesmo valor no Asaas.');
+  }
+
+  /**
    * Executa o teste de conectividade com a API Asaas
    */
   async testAsaasConnection(): Promise<void> {

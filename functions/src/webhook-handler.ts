@@ -114,13 +114,34 @@ export async function handleAsaasWebhook(
 ): Promise<ProcessWebhookResult> {
   const { db } = deps;
 
-  // 1. Autenticação Obrigatória Fail-Closed (CWE-306)
-  const receivedToken = (headers['asaas-access-token'] || headers['Asaas-Access-Token']) as string | undefined;
-  const expectedSecret = deps.getWebhookSecret
+  // 1. Autenticação Obrigatória Fail-Closed (CWE-306 / CARD-085)
+  const rawReceivedToken = (headers['asaas-access-token'] || headers['Asaas-Access-Token']) as string | undefined;
+  const receivedToken = rawReceivedToken ? String(rawReceivedToken).trim() : undefined;
+  const rawExpectedSecret = deps.getWebhookSecret
     ? await deps.getWebhookSecret()
     : await resolveWebhookSecret(db);
+  const expectedSecret = rawExpectedSecret ? String(rawExpectedSecret).trim() : undefined;
 
-  if (!expectedSecret || !receivedToken || receivedToken !== expectedSecret) {
+  if (!expectedSecret) {
+    console.warn('[Asaas Webhook] 401 Unauthorized: Nenhum segredo configurado no sistema (system_config/asaas.webhookSecret). Configure o token no Admin e no Asaas para ativar o webhook.');
+    return {
+      success: false,
+      statusCode: 401,
+      message: 'Token de autenticação do webhook inválido ou ausente.'
+    };
+  }
+
+  if (!receivedToken) {
+    console.warn('[Asaas Webhook] 401 Unauthorized: Cabeçalho asaas-access-token não enviado na requisição do Asaas.');
+    return {
+      success: false,
+      statusCode: 401,
+      message: 'Token de autenticação do webhook inválido ou ausente.'
+    };
+  }
+
+  if (receivedToken !== expectedSecret) {
+    console.warn('[Asaas Webhook] 401 Unauthorized: Token recebido no cabeçalho não confere com o segredo esperado.');
     return {
       success: false,
       statusCode: 401,
