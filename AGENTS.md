@@ -200,3 +200,19 @@ O time de agentes opera sob a diretriz mandatória de **NUNCA PERDER O CONTROLE 
 3. **Desalocação Obrigatória**: Nunca deixar subscrições de streams ativas sem `takeUntilDestroyed(this.destroyRef)` ou `unsubscribe()` explícito no `onDestroy`.
 4. **Proteção no Firestore Rules**: Nenhuma subcoleção global pode ter `allow list` irrestrito para usuários comuns. Apenas `isAdmin()` pode listar diretórios globais, prevenindo Denial of Wallet.
 5. **Auditoria no PR**: Nenhum Pull Request pode ser aprovado sem a seção `### 💰 Impacto no Consumo do Firebase` e o parecer formal `### 💰 [Cost/Quota Sign-off]`.
+
+---
+
+## Diretiva de Memória Viva & Sincronização Contínua (Regra Pétrea de Memórias)
+
+> [!IMPORTANT]
+> **Repositório de Memórias Externo:** `/home/philipe/Projetos/memorias-quinzena`
+
+Todos os agentes (PM, PO, SEC, UX, DEV, QA, ANALYTICS, WRITER, SEO) DEVEM seguir o protocolo de Memória Viva:
+
+1. **Leitura Obrigatória antes de Iniciar:**
+   - Ao receber qualquer instrução ou dúvida do usuário, o agente deve consultar a pasta `/home/philipe/Projetos/memorias-quinzena` para obter contexto imediato e consistente sobre regras de negócio, histórico de cards, decisões de arquitetura e integrações (ex: Asaas, Webhooks, PIX, Cartão).
+2. **Atualização Imediata ao Concluir:**
+   - Ao finalizar qualquer card, refatoração, resolução de bug crítico em produção ou alteração de modelo de negócio, o agente DEVE atualizar o arquivo correspondente em `/home/philipe/Projetos/memorias-quinzena`.
+   - Isso garante que qualquer sessão futura de IA continue o trabalho com 100% de precisão e sem necessidade de reexplicar o histórico.
+

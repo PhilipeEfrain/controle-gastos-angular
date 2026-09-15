@@ -64,3 +64,24 @@ Todo PR e relatório de implementação deve conter o parecer formal:
 - [x] Cloud Functions com limite de instâncias e idempotência
 - [x] Zero risco de custos descontrolados no plano Blaze do Firebase
 ```
+
+---
+
+## 🧠 DIRETIVA DE MEMÓRIA VIVA: CONSULTA E ATUALIZAÇÃO CONTÍNUA DAS MEMÓRIAS DO SAAS
+
+> [!IMPORTANT]
+> **LOCALIZAÇÃO DAS MEMÓRIAS:** `/home/philipe/Projetos/memorias-quinzena`
+> O assistente e todos os agentes operando neste repositório DEVEM adotar o fluxo de memória viva:
+
+### 1. Leitura Prévia de Contexto (Antes de Qualquer Ação)
+Sempre que iniciar uma tarefa, responder dúvidas ou criar novos cards, o agente DEVE consultar previamente os arquivos relevantes em `/home/philipe/Projetos/memorias-quinzena`:
+- **Dúvidas de arquitetura ou segurança:** ler `arquitetura-e-seguranca.md`
+- **Dúvidas de gateway de pagamento, PIX ou cartões:** ler `integracao-asaas-pagamentos.md`
+- **Dúvidas sobre regras de negócio, limites e histórico de features:** ler `historico-cards-e-features.md` ou `contexto-e-produto.md`
+- **Comandos de teste, build e deploy:** ler `memorias-operacionais.md`
+
+### 2. Criação e Atualização de Memórias (Ao Concluir Marcos Importantes)
+Sempre que uma decisão técnica relevante for tomada, um bug crítico de produção for corrigido, um novo card for entregue ou regras de negócio forem alteradas:
+- O agente DEVE registrar o fato atualizando os arquivos correspondentes em `/home/philipe/Projetos/memorias-quinzena`.
+- Manter o histórico estruturado e legível, permitindo que futuras conversas tenham contexto imediato e completo sem retrabalho.
+
