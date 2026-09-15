@@ -2,56 +2,77 @@ import {
   Component,
   ChangeDetectionStrategy,
   input,
-  output,
   inject,
   computed,
   signal,
   AfterViewInit,
-  PLATFORM_ID
+  PLATFORM_ID,
+  OnDestroy,
+  ElementRef,
+  viewChildren
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { AuthStore } from '../../../core/state/auth.store';
 import { environment } from '../../../../environments/environment';
 
+/**
+ * Componente de anúncio lateral (sidebar) para Google AdSense.
+ * Renderiza um anúncio vertical fixo (sticky) na lateral esquerda ou direita.
+ * Visível apenas para usuários do Plano Free e em telas ≥ 1280px (xl).
+ */
 @Component({
-  selector: 'app-ad-banner',
+  selector: 'app-ad-sidebar',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './ad-banner.component.html',
-  styleUrl: './ad-banner.component.scss',
+  templateUrl: './ad-sidebar.component.html',
+  styleUrl: './ad-sidebar.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AdBannerComponent implements AfterViewInit {
+export class AdSidebarComponent implements AfterViewInit, OnDestroy {
   private readonly authStore = inject(AuthStore);
   private readonly platformId = inject(PLATFORM_ID);
 
+  readonly position = input<'left' | 'right'>('left');
   readonly slotId = input<string>(environment.adsense?.topDashboardSlot || '6818458661');
   readonly adClient = input<string>(environment.adsense?.client || 'ca-pub-8227454086945331');
-  readonly showUpgradePrompt = input<boolean>(true);
 
-  readonly upgradeClick = output<void>();
-
-  // Apenas renderiza para usuários sem plano PRO ou DUO ativo
   readonly isFreeUser = computed(() => !this.authStore.isProOrDuo());
 
   readonly isAdBlocked = signal<boolean>(false);
   readonly isScriptLoaded = signal<boolean>(false);
+  readonly isVisible = signal<boolean>(false);
+
+  private mediaQuery: MediaQueryList | null = null;
+  private mediaListener: ((e: MediaQueryListEvent) => void) | null = null;
 
   ngAfterViewInit(): void {
     if (!isPlatformBrowser(this.platformId) || !this.isFreeUser()) {
       return;
     }
 
-    this.initAdSense();
+    // Só inicializa ads quando a tela é larga o suficiente
+    this.mediaQuery = window.matchMedia('(min-width: 1280px)');
+    this.isVisible.set(this.mediaQuery.matches);
+
+    this.mediaListener = (e: MediaQueryListEvent) => {
+      this.isVisible.set(e.matches);
+      if (e.matches && !this.isScriptLoaded()) {
+        this.initAdSense();
+      }
+    };
+    this.mediaQuery.addEventListener('change', this.mediaListener);
+
+    if (this.mediaQuery.matches) {
+      this.initAdSense();
+    }
   }
 
-  onUpgrade(): void {
-    this.upgradeClick.emit();
+  ngOnDestroy(): void {
+    if (this.mediaQuery && this.mediaListener) {
+      this.mediaQuery.removeEventListener('change', this.mediaListener);
+    }
   }
 
-  /**
-   * Injeta o script oficial do Google AdSense assincronamente e aciona o anúncio (CARD-054)
-   */
   initAdSense(): void {
     const client = this.adClient();
     if (!client) return;
@@ -66,9 +87,6 @@ export class AdBannerComponent implements AfterViewInit {
       });
   }
 
-  /**
-   * Garante que o script oficial do AdSense seja incluído apenas uma vez no DOM
-   */
   ensureAdSenseScript(client: string): Promise<void> {
     return new Promise((resolve, reject) => {
       if (typeof document === 'undefined') {
@@ -88,15 +106,12 @@ export class AdBannerComponent implements AfterViewInit {
       script.crossOrigin = 'anonymous';
 
       script.onload = () => resolve();
-      script.onerror = () => reject(new Error('Falha ao carregar script do Google AdSense (possível bloqueador)'));
+      script.onerror = () => reject(new Error('Falha ao carregar script do Google AdSense'));
 
       document.head.appendChild(script);
     });
   }
 
-  /**
-   * Executa push para a fila global do AdSense com tratamento de exceções
-   */
   pushAd(): void {
     try {
       if (typeof window !== 'undefined') {

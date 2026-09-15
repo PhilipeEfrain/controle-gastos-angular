@@ -1,0 +1,88 @@
+@use '../../../../styles/abstracts' as *;
+
+// Sidebar de Anúncios - visível apenas em telas xl (≥ 1280px)
+.ad-sidebar {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 50;
+  width: 160px;
+  max-height: calc(100vh - 120px);
+  display: none; // hidden by default
+
+  @include respond-to('xl') {
+    display: block;
+  }
+
+  &--left {
+    left: 8px;
+  }
+
+  &--right {
+    right: 8px;
+  }
+}
+
+.ad-sidebar-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: var(--glass-bg, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius-lg, 12px);
+  backdrop-filter: blur(12px);
+  transition: border-color var(--transition-base, 0.2s ease);
+
+  &:hover {
+    border-color: var(--color-primary-border, rgba(52, 211, 153, 0.25));
+  }
+}
+
+.ad-sidebar-tag {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: var(--color-text-muted, rgba(255, 255, 255, 0.4));
+  font-size: 0.6rem;
+}
+
+.ad-sidebar-slot {
+  position: relative;
+  width: 100%;
+  min-height: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  ins.adsbygoogle {
+    width: 160px;
+    min-height: 600px;
+  }
+}
+
+.ad-sidebar-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 0.5rem;
+  background: var(--color-surface-elevated, #17211c);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: var(--radius-md, 8px);
+  z-index: 2;
+
+  .ad-fallback-icon {
+    font-size: 1.5rem;
+  }
+
+  small {
+    font-size: 0.65rem;
+    color: var(--color-text-muted, #94a3b8);
+    text-align: center;
+  }
+}

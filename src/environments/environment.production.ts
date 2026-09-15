@@ -9,8 +9,8 @@ export const environment = {
     messagingSenderId: '562686483207'
   },
   adsense: {
-    client: 'ca-pub-0000000000000000',
-    topDashboardSlot: '1234567890',
+    client: 'ca-pub-8227454086945331',
+    topDashboardSlot: '6818458661',
     enabled: true
   }
 };
