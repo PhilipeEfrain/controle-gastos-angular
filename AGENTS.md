@@ -52,6 +52,7 @@ As transições no GitHub Projects seguem 5 colunas estritas:
    - **SEO** valida tags meta, canonical, Schema.org e semântica (`[SEO Sign-off]`).
 6. **Done**:
    - Com todos os pareceres aprovados, o PR é mergeado com squash (`gh pr merge --squash --delete-branch`), a Issue é fechada e o card é movido para **`Done`**.
+   - 🛑 **Trava Mandatória de Deploy em Produção:** Nenhum comando de deploy (`firebase deploy`, seja de Hosting, Functions ou Rules) pode ser executado de forma autônoma. O agente deve **obrigatoriamente aguardar a autorização prévia e explícita do usuário** antes de disparar qualquer publicação em produção.
 
 ## Detalhamento Completo dos 9 Papéis
 
