@@ -7,8 +7,10 @@ import { handleAsaasWebhook } from './webhook-handler.js';
 import { cleanupAllExpiredCycles } from './cleanup.js';
 import { sendTelegramFeedback } from './feedback.js';
 import { deleteUserCascade, testAsaasConnectionBackend } from './admin.js';
-import { createPixOrderBackend, createCreditCardOrderBackend } from './payment.js';
-import type { CreatePixOrderRequest, CreateCreditCardOrderRequest } from './payment.js';
+import { createPixOrderBackend, createCreditCardOrderBackend, cancelSubscriptionBackend, updateCreditCardBackend } from './payment.js';
+import { acceptDuoInviteBackend } from './duo.js';
+import type { CreatePixOrderRequest, CreateCreditCardOrderRequest, CancelSubscriptionRequest, UpdateCreditCardRequest } from './payment.js';
+import type { AcceptDuoInviteRequest } from './duo.js';
 import type { AdminDeleteUserRequest, AdminTestAsaasRequest } from './admin.js';
 import type { TelegramFeedbackData } from './feedback.js';
 import type { AsaasWebhookPayload } from './types.js';
@@ -247,6 +249,104 @@ export const createCreditCardSubscriptionOrder = onCall(
   }
 );
 
+/**
+ * Função Callable para cancelamento seguro de assinaturas via backend (CARD-086).
+ * Valida a posse da assinatura e despacha a exclusão no Asaas sem expor a API Key.
+ */
+export const cancelSubscription = onCall(
+  {
+    cors: true,
+    maxInstances: 10
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError(
+        'unauthenticated',
+        'O usuário deve estar autenticado para cancelar a assinatura.'
+      );
+    }
 
+    try {
+      const data = (request.data || {}) as CancelSubscriptionRequest;
+      const result = await cancelSubscriptionBackend(data, request.auth.uid, { db });
+      return result;
+    } catch (err: any) {
+      console.error('[cancelSubscription] Erro ao cancelar assinatura:', err?.message || err);
+      const msg = err?.message || 'Falha ao cancelar assinatura no gateway Asaas.';
+      if (msg.includes('permissão') || msg.includes('não possui') || msg.includes('não localizado')) {
+        throw new HttpsError('permission-denied', msg);
+      }
+      throw new HttpsError('internal', msg);
+    }
+  }
+);
 
+/**
+ * Função Callable para atualização segura de cartão de crédito de assinatura via backend (CARD-086).
+ * Atualiza o método de pagamento no Asaas sem expor credenciais de API no frontend.
+ */
+export const updateCreditCard = onCall(
+  {
+    cors: true,
+    maxInstances: 10
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError(
+        'unauthenticated',
+        'O usuário deve estar autenticado para atualizar o cartão de crédito.'
+      );
+    }
 
+    try {
+      const data = request.data as UpdateCreditCardRequest;
+      const result = await updateCreditCardBackend(data, request.auth.uid, { db });
+      return result;
+    } catch (err: any) {
+      console.error('[updateCreditCard] Erro ao atualizar cartão:', err?.message || err);
+      const msg = err?.message || 'Falha ao atualizar cartão de crédito no gateway Asaas.';
+      if (msg.includes('inválido') || msg.includes('obrigatório')) {
+        throw new HttpsError('invalid-argument', msg);
+      }
+      if (msg.includes('permissão')) {
+        throw new HttpsError('permission-denied', msg);
+      }
+      throw new HttpsError('internal', msg);
+    }
+  }
+);
+
+/**
+ * Função Callable para aceite e pareamento de convite Duo com permissões de Admin (CARD-087).
+ * Ativa o grupo Duo e atualiza o perfil do parceiro para plano Duo com segurança.
+ */
+export const acceptDuoInvite = onCall(
+  {
+    cors: true,
+    maxInstances: 10
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError(
+        'unauthenticated',
+        'O usuário deve estar autenticado para aceitar o convite Duo.'
+      );
+    }
+
+    try {
+      const data = request.data as AcceptDuoInviteRequest;
+      const result = await acceptDuoInviteBackend(data, request.auth.uid, { db });
+      return result;
+    } catch (err: any) {
+      console.error('[acceptDuoInvite] Erro ao aceitar convite Duo:', err?.message || err);
+      const msg = err?.message || 'Falha ao processar pareamento Duo.';
+      if (msg.includes('não encontrado') || msg.includes('próprio convite') || msg.includes('outro parceiro')) {
+        throw new HttpsError('failed-precondition', msg);
+      }
+      if (msg.includes('inválido')) {
+        throw new HttpsError('invalid-argument', msg);
+      }
+      throw new HttpsError('internal', msg);
+    }
+  }
+);

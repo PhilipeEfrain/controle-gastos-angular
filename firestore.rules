@@ -232,12 +232,11 @@ service cloud.firestore {
         && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 40));
     }
 
-    // Regras para Grupos do Plano Casal / Duo
+    // Regras para Grupos do Plano Casal / Duo (CARD-087: Apenas membros podem ler; pareamento via Backend)
     match /duo_groups/{groupId} {
       allow read: if isAuthenticated() && (
         request.auth.uid == resource.data.ownerId ||
-        request.auth.uid == resource.data.partnerId ||
-        resource.data.status == 'pending'
+        request.auth.uid == resource.data.partnerId
       );
       allow create: if isAuthenticated() && request.auth.uid == request.resource.data.ownerId && isValidDuoGroup(request.resource.data);
       allow update: if isAuthenticated() && (
