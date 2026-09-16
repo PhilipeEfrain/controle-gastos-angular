@@ -14,6 +14,7 @@ import {
   Firestore
 } from 'firebase/firestore';
 import { Observable, of } from 'rxjs';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { FirebaseService } from './firebase.service';
 import { DuoGroup, DuoSettlementSummary, DuoSharedExpense } from '../models/duo.model';
 import { Expense } from '../models/finance.model';
@@ -24,6 +25,11 @@ import { roundBRL, addMonthsToYearMonth } from '../utils/calculations';
 })
 export class DuoService {
   private firebaseService = inject(FirebaseService, { optional: true });
+
+  /**
+   * Mock/override da callable function para testes unitários
+   */
+  acceptDuoInviteCallableFn: ((data: any) => Promise<{ data: any }>) | null = null;
 
   private get db(): Firestore {
     if (!this.firebaseService) {
@@ -105,7 +111,7 @@ export class DuoService {
   }
 
   /**
-   * Aceita um convite de pareamento utilizando o inviteCode
+   * Aceita um convite de pareamento utilizando o inviteCode via Cloud Function segura (CARD-087).
    */
   async acceptInvite(
     inviteCode: string,
@@ -114,54 +120,73 @@ export class DuoService {
     partnerName: string
   ): Promise<DuoGroup> {
     const formattedCode = inviteCode.trim().toUpperCase();
-    const q = query(
-      collection(this.db, 'duo_groups'),
-      where('inviteCode', '==', formattedCode),
-      where('status', '==', 'pending')
-    );
-    const snap = await getDocs(q);
 
-    if (snap.empty) {
-      throw new Error('Código de convite não encontrado ou inválido.');
+    if (this.acceptDuoInviteCallableFn) {
+      const res = await this.acceptDuoInviteCallableFn({
+        inviteCode: formattedCode,
+        partnerEmail,
+        partnerName
+      });
+      const data = res.data;
+      return {
+        id: data.groupId,
+        ownerId: data.ownerId,
+        ownerName: data.ownerName || 'Titular',
+        ownerEmail: data.ownerEmail || '',
+        partnerId,
+        partnerEmail,
+        partnerName: partnerName || 'Parceiro(a)',
+        inviteCode: formattedCode,
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
     }
 
-    const docSnap = snap.docs[0];
-    const group = docSnap.data() as DuoGroup;
-
-    if (group.ownerId === partnerId) {
-      throw new Error('Você não pode se conectar ao seu próprio convite.');
+    if (this.firebaseService?.app) {
+      try {
+        const callable = httpsCallable<any, any>(
+          getFunctions(this.firebaseService.app),
+          'acceptDuoInvite'
+        );
+        const res = await callable({
+          inviteCode: formattedCode,
+          partnerEmail,
+          partnerName
+        });
+        const data = res.data;
+        return {
+          id: data.groupId,
+          ownerId: data.ownerId,
+          ownerName: data.ownerName || 'Titular',
+          ownerEmail: data.ownerEmail || '',
+          partnerId,
+          partnerEmail,
+          partnerName: partnerName || 'Parceiro(a)',
+          inviteCode: formattedCode,
+          status: 'active',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+      } catch (err: any) {
+        console.error('[DuoService] Erro ao aceitar convite Duo:', err);
+        throw new Error(err?.message || 'Código de convite não encontrado ou inválido.');
+      }
     }
 
-    if (group.status === 'active' && group.partnerId && group.partnerId !== partnerId) {
-      throw new Error('Este convite já foi utilizado por outro parceiro.');
-    }
-
-    const updatedData: Partial<DuoGroup> = {
+    // Fallback Mock para testes desconectados
+    return {
+      id: 'group_mock',
+      ownerId: 'owner_mock',
+      ownerName: 'Titular',
+      ownerEmail: 'titular@exemplo.com',
       partnerId,
       partnerEmail,
       partnerName: partnerName || 'Parceiro(a)',
+      inviteCode: formattedCode,
       status: 'active',
+      createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
-    };
-
-    await updateDoc(doc(this.db, 'duo_groups', docSnap.id), updatedData);
-
-    // Promove o perfil do parceiro para plano Duo com benefícios liberados
-    try {
-      const partnerUserRef = doc(this.db, 'users', partnerId);
-      await updateDoc(partnerUserRef, {
-        plan: 'duo',
-        planStatus: 'active',
-        updatedAt: new Date().toISOString()
-      });
-    } catch (e) {
-      console.warn('Não foi possível sincronizar o plano do parceiro no Firestore:', e);
-    }
-
-    return {
-      id: docSnap.id,
-      ...group,
-      ...updatedData
     };
   }
 

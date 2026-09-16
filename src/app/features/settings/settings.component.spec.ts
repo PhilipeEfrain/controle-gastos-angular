@@ -282,10 +282,7 @@ describe('SettingsComponent', () => {
           expiryMonth: '12',
           expiryYear: '2028',
           ccv: '123'
-        }),
-        undefined,
-        'fake_key',
-        'sandbox'
+        })
       );
       expect(mockNotificationService.success).toHaveBeenCalledWith(
         'Cartão de crédito atualizado com sucesso no gateway Asaas!'
@@ -299,7 +296,7 @@ describe('SettingsComponent', () => {
 
       await component.onConfirmCancelSubscription();
 
-      expect(mockAsaasService.cancelSubscription).toHaveBeenCalledWith('sub_test_123', 'fake_key', 'sandbox');
+      expect(mockAsaasService.cancelSubscription).toHaveBeenCalledWith('sub_test_123');
       expect(mockAuthStore.cancelSubscription).toHaveBeenCalled();
       expect(mockNotificationService.info).toHaveBeenCalledWith(
         expect.stringContaining('Assinatura cancelada com sucesso. Seus benefícios continuam válidos até 10/10/2026. Seus dados foram preservados.')

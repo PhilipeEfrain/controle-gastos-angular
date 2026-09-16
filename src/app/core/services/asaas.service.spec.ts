@@ -250,6 +250,16 @@ describe('AsaasService (Gateway de Pagamentos & Assinaturas)', () => {
       expect(result.id).toBe('sub_123456');
     });
 
+    it('Cenário BDD: deve chamar cancelSubscriptionCallableFn quando configurada', async () => {
+      service.cancelSubscriptionCallableFn = vi.fn().mockResolvedValue({
+        data: { success: true, deleted: true, id: 'sub_callable_123' }
+      });
+      const result = await service.cancelSubscription('sub_callable_123');
+      expect(service.cancelSubscriptionCallableFn).toHaveBeenCalledWith({ subscriptionId: 'sub_callable_123' });
+      expect(result.deleted).toBe(true);
+      expect(result.id).toBe('sub_callable_123');
+    });
+
     it('Cenário BDD: deve atualizar cartão de crédito de assinatura', async () => {
       const updated = await service.updateSubscriptionCreditCard('sub_123456', {
         holderName: 'CARLOS SILVA',
@@ -260,7 +270,25 @@ describe('AsaasService (Gateway de Pagamentos & Assinaturas)', () => {
       });
       expect(updated).toBeDefined();
       expect(updated.id).toBe('sub_123456');
-      expect(updated.status).toBe('ACTIVE');
+      expect(updated.success).toBe(true);
+    });
+
+    it('Cenário BDD: deve chamar updateCreditCardCallableFn quando configurada', async () => {
+      service.updateCreditCardCallableFn = vi.fn().mockResolvedValue({
+        data: { success: true, id: 'sub_callable_456', message: 'OK' }
+      });
+      const updated = await service.updateSubscriptionCreditCard('sub_callable_456', {
+        holderName: 'CARLOS SILVA',
+        number: '4532111122223333',
+        expiryMonth: '12',
+        expiryYear: '2028',
+        ccv: '123'
+      });
+      expect(service.updateCreditCardCallableFn).toHaveBeenCalledWith(expect.objectContaining({
+        subscriptionId: 'sub_callable_456',
+        holderName: 'CARLOS SILVA'
+      }));
+      expect(updated.success).toBe(true);
     });
   });
 

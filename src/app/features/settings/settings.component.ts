@@ -14,7 +14,6 @@ import { AuthService } from '../../core/services/auth.service';
 import { ThemeService, AppTheme } from '../../core/services/theme.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { AsaasService } from '../../core/services/asaas.service';
-import { AdminService } from '../../core/services/admin.service';
 import { AppCardComponent } from '../../shared/components/app-card/app-card.component';
 import { ConfirmationModalComponent } from '../../shared/components/confirmation-modal/confirmation-modal.component';
 import { SubscriptionModalComponent } from '../../shared/components/subscription-modal/subscription-modal.component';
@@ -54,7 +53,6 @@ export class SettingsComponent implements OnInit {
   readonly themeService = inject(ThemeService);
   private readonly notificationService = inject(NotificationService);
   readonly asaasService = inject(AsaasService);
-  private readonly adminService = inject(AdminService);
   readonly duoService = inject(DuoService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
@@ -341,10 +339,6 @@ export class SettingsComponent implements OnInit {
 
     this.isUpdatingCard.set(true);
     try {
-      const asaasConfig = await this.adminService.getAsaasConfig();
-      const apiKey = asaasConfig?.apiKey || undefined;
-      const environment = asaasConfig?.environment || 'sandbox';
-
       const expiryParts = this.cardExpiry().split('/');
       const expiryMonth = expiryParts[0].padStart(2, '0');
       const expiryYear = expiryParts[1].length === 2 ? '20' + expiryParts[1] : expiryParts[1];
@@ -357,10 +351,7 @@ export class SettingsComponent implements OnInit {
           expiryMonth,
           expiryYear,
           ccv: this.cardCvv().trim()
-        },
-        undefined,
-        apiKey,
-        environment
+        }
       );
 
       this.notificationService.success('Cartão de crédito atualizado com sucesso no gateway Asaas!');
@@ -387,14 +378,7 @@ export class SettingsComponent implements OnInit {
     try {
       const user = this.authStore.currentUser();
       if (user?.asaasSubscriptionId) {
-        const asaasConfig = await this.adminService.getAsaasConfig();
-        const apiKey = asaasConfig?.apiKey || undefined;
-        const environment = asaasConfig?.environment || 'sandbox';
-        try {
-          await this.asaasService.cancelSubscription(user.asaasSubscriptionId, apiKey, environment);
-        } catch (gatewayErr) {
-          console.warn('Aviso: Erro ao cancelar no gateway Asaas (prosseguindo com cancelamento local):', gatewayErr);
-        }
+        await this.asaasService.cancelSubscription(user.asaasSubscriptionId);
       }
 
       await this.authStore.cancelSubscription();

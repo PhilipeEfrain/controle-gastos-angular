@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { vi } from 'vitest';
 import { DuoService } from './duo.service';
 import { FirebaseService } from './firebase.service';
 import { Expense } from '../models/finance.model';
@@ -216,6 +217,40 @@ describe('DuoService', () => {
       expect(settlement.debtor).toBe('even');
       expect(settlement.settlementAmount).toBe(0);
       expect(settlement.message).toContain('Tudo equilibrado!');
+    });
+  });
+
+  describe('acceptInvite', () => {
+    it('deve chamar acceptDuoInviteCallableFn e retornar DuoGroup atualizado', async () => {
+      service.acceptDuoInviteCallableFn = vi.fn().mockResolvedValue({
+        data: {
+          success: true,
+          groupId: 'grp_test_999',
+          ownerId: 'owner_111',
+          ownerName: 'Maria Silva',
+          ownerEmail: 'maria@exemplo.com'
+        }
+      });
+
+      const group = await service.acceptInvite('DUO-1234', 'partner_222', 'joao@exemplo.com', 'João Silva');
+
+      expect(service.acceptDuoInviteCallableFn).toHaveBeenCalledWith({
+        inviteCode: 'DUO-1234',
+        partnerEmail: 'joao@exemplo.com',
+        partnerName: 'João Silva'
+      });
+      expect(group.id).toBe('grp_test_999');
+      expect(group.ownerId).toBe('owner_111');
+      expect(group.partnerId).toBe('partner_222');
+      expect(group.status).toBe('active');
+    });
+
+    it('deve usar fallback mock quando acceptDuoInviteCallableFn não estiver configurada', async () => {
+      const group = await service.acceptInvite('DUO-5678', 'partner_333', 'ana@exemplo.com', 'Ana Paula');
+
+      expect(group.id).toBe('group_mock');
+      expect(group.partnerId).toBe('partner_333');
+      expect(group.status).toBe('active');
     });
   });
 });

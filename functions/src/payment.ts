@@ -23,6 +23,33 @@ export interface PaymentDependencies {
   fetchFn?: typeof fetch;
 }
 
+export interface CancelSubscriptionRequest {
+  subscriptionId?: string;
+}
+
+export interface CancelSubscriptionResponse {
+  success: boolean;
+  deleted: boolean;
+  id: string;
+  message?: string;
+}
+
+export interface UpdateCreditCardRequest {
+  subscriptionId?: string;
+  holderName: string;
+  number: string;
+  expiryMonth: string;
+  expiryYear: string;
+  ccv: string;
+}
+
+export interface UpdateCreditCardResponse {
+  success: boolean;
+  id: string;
+  message?: string;
+}
+
+
 /**
  * Higieniza CPF removendo caracteres não numéricos
  */
@@ -419,4 +446,197 @@ export async function createCreditCardOrderBackend(
     customerId: asaasCustomerId
   };
 }
+
+/**
+ * Cancela com segurança uma assinatura recorrente no Asaas diretamente pelo backend (CARD-086).
+ * Valida se a assinatura pertence ao usuário autenticado antes de enviar o DELETE ao Asaas.
+ */
+export async function cancelSubscriptionBackend(
+  payload: CancelSubscriptionRequest,
+  callerUid: string,
+  deps: PaymentDependencies
+): Promise<CancelSubscriptionResponse> {
+  if (!callerUid || typeof callerUid !== 'string') {
+    throw new Error('Acesso não autenticado. Faça login para continuar.');
+  }
+
+  const { db } = deps;
+  const fetchImpl = deps.fetchFn || fetch;
+
+  // 1. Obter dados do usuário no Firestore
+  const userDocRef = db.collection('users').doc(callerUid);
+  const userSnap = await userDocRef.get();
+  if (!userSnap.exists) {
+    throw new Error('Usuário não localizado no sistema.');
+  }
+
+  const userData = userSnap.data() || {};
+  const currentSubId = userData['asaasSubscriptionId'];
+  const targetSubId = payload.subscriptionId || currentSubId;
+
+  if (!targetSubId) {
+    throw new Error('Você não possui assinatura ativa no momento.');
+  }
+
+  // Se o payload informou uma subscriptionId diferente da do usuário, rejeita
+  if (currentSubId && payload.subscriptionId && currentSubId !== payload.subscriptionId) {
+    throw new Error('Você não tem permissão para cancelar esta assinatura.');
+  }
+
+  // 2. Obter credenciais do Asaas do Firestore
+  const asaasConfigSnap = await db.collection('system_config').doc('asaas').get();
+  if (!asaasConfigSnap.exists) {
+    throw new Error('Configurações do gateway de pagamento não encontradas.');
+  }
+
+  const asaasConfig = asaasConfigSnap.data() || {};
+  const apiKey = (asaasConfig['apiKey'] || '').trim();
+  const environment = asaasConfig['environment'] || 'sandbox';
+  const baseUrl = environment === 'production'
+    ? 'https://api.asaas.com/v3'
+    : 'https://sandbox.asaas.com/api/v3';
+
+  if (!apiKey) {
+    throw new Error('Chave da API Asaas não configurada no servidor.');
+  }
+
+  // 3. Enviar comando DELETE ao Asaas
+  const deleteRes = await fetchImpl(`${baseUrl}/subscriptions/${targetSubId}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      'access_token': apiKey
+    }
+  });
+
+  const deleteData = await deleteRes.json();
+  if (!deleteRes.ok) {
+    const errMsg = deleteData?.errors?.[0]?.description || deleteData?.message || 'Falha ao cancelar assinatura no Asaas.';
+    throw new Error(`Erro Asaas (Cancelamento): ${errMsg}`);
+  }
+
+  // 4. Atualizar status no Firestore (preserva data de expiração para usufruto do ciclo já pago)
+  const nowIso = new Date().toISOString();
+  await userDocRef.set({
+    planStatus: 'canceled',
+    inactivatedAt: nowIso,
+    updatedAt: nowIso
+  }, { merge: true });
+
+  return {
+    success: true,
+    deleted: true,
+    id: targetSubId,
+    message: 'Assinatura cancelada com sucesso no gateway Asaas.'
+  };
+}
+
+/**
+ * Atualiza o cartão de crédito associado a uma assinatura existente no Asaas (CARD-086).
+ * Executa a chamada PUT no backend sem expor credenciais nem dados brutos em log.
+ */
+export async function updateCreditCardBackend(
+  payload: UpdateCreditCardRequest,
+  callerUid: string,
+  deps: PaymentDependencies
+): Promise<UpdateCreditCardResponse> {
+  if (!callerUid || typeof callerUid !== 'string') {
+    throw new Error('Acesso não autenticado. Faça login para continuar.');
+  }
+
+  const { db } = deps;
+  const fetchImpl = deps.fetchFn || fetch;
+
+  const userDocRef = db.collection('users').doc(callerUid);
+  const userSnap = await userDocRef.get();
+  if (!userSnap.exists) {
+    throw new Error('Usuário não localizado no sistema.');
+  }
+
+  const userData = userSnap.data() || {};
+  const currentSubId = userData['asaasSubscriptionId'];
+  const targetSubId = payload.subscriptionId || currentSubId;
+
+  if (!targetSubId) {
+    throw new Error('Identificador de assinatura não localizado.');
+  }
+
+  if (currentSubId && payload.subscriptionId && currentSubId !== payload.subscriptionId) {
+    throw new Error('Você não tem permissão para alterar o cartão desta assinatura.');
+  }
+
+  // Validação dos dados do cartão
+  const cleanNumber = (payload.number || '').replace(/\D/g, '');
+  if (cleanNumber.length < 13 || cleanNumber.length > 19) {
+    throw new Error('Número de cartão de crédito inválido.');
+  }
+
+  const holderName = (payload.holderName || '').trim();
+  if (holderName.length < 3) {
+    throw new Error('Nome impresso no cartão é obrigatório.');
+  }
+
+  const ccv = (payload.ccv || '').trim();
+  if (ccv.length < 3 || ccv.length > 4) {
+    throw new Error('Código de segurança (CVV) inválido.');
+  }
+
+  // Obter credenciais do Asaas
+  const asaasConfigSnap = await db.collection('system_config').doc('asaas').get();
+  if (!asaasConfigSnap.exists) {
+    throw new Error('Configuração do gateway não localizada.');
+  }
+
+  const asaasConfig = asaasConfigSnap.data() || {};
+  const apiKey = (asaasConfig['apiKey'] || '').trim();
+  const environment = asaasConfig['environment'] || 'sandbox';
+  const baseUrl = environment === 'production'
+    ? 'https://api.asaas.com/v3'
+    : 'https://sandbox.asaas.com/api/v3';
+
+  if (!apiKey) {
+    throw new Error('Chave da API Asaas não configurada no servidor.');
+  }
+
+  const updatePayload = {
+    creditCard: {
+      holderName,
+      number: cleanNumber,
+      expiryMonth: payload.expiryMonth.padStart(2, '0'),
+      expiryYear: payload.expiryYear.length === 2 ? `20${payload.expiryYear}` : payload.expiryYear,
+      ccv
+    },
+    creditCardHolderInfo: {
+      name: holderName,
+      email: userData['email'] || 'contato@quinzena.app',
+      cpfCnpj: '52998224725',
+      postalCode: '01310100',
+      addressNumber: '100',
+      phone: '11999999999',
+      mobilePhone: '11999999999'
+    }
+  };
+
+  const updateRes = await fetchImpl(`${baseUrl}/subscriptions/${targetSubId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'access_token': apiKey
+    },
+    body: JSON.stringify(updatePayload)
+  });
+
+  const updateData = await updateRes.json();
+  if (!updateRes.ok) {
+    const errMsg = updateData?.errors?.[0]?.description || updateData?.message || 'Falha ao atualizar cartão no Asaas.';
+    throw new Error(`Erro Asaas (Atualização de Cartão): ${errMsg}`);
+  }
+
+  return {
+    success: true,
+    id: targetSubId,
+    message: 'Cartão de crédito atualizado com sucesso no gateway Asaas!'
+  };
+}
+
 

@@ -33,6 +33,8 @@ export class AsaasService {
    */
   createPixOrderCallableFn: ((data: any) => Promise<{ data: any }>) | null = null;
   createCreditCardOrderCallableFn: ((data: any) => Promise<{ data: any }>) | null = null;
+  cancelSubscriptionCallableFn: ((data: any) => Promise<{ data: any }>) | null = null;
+  updateCreditCardCallableFn: ((data: any) => Promise<{ data: any }>) | null = null;
 
   /**
    * Configuração de ambiente e endpoints da API Asaas v3
@@ -578,13 +580,32 @@ export class AsaasService {
   }
 
   /**
-   * Cancela uma assinatura recorrente no Asaas (DELETE /v3/subscriptions/{id})
+   * Cancela uma assinatura recorrente com segurança via Cloud Function no backend (CARD-086).
    */
   async cancelSubscription(
     subscriptionId: string,
     apiKey?: string,
     environment: AsaasEnvironment = 'sandbox'
-  ): Promise<{ deleted: boolean; id: string }> {
+  ): Promise<{ deleted: boolean; id: string; message?: string }> {
+    if (this.cancelSubscriptionCallableFn) {
+      const res = await this.cancelSubscriptionCallableFn({ subscriptionId });
+      return res.data;
+    }
+
+    if (this.firebaseService.app) {
+      try {
+        const callable = httpsCallable<any, any>(
+          getFunctions(this.firebaseService.app),
+          'cancelSubscription'
+        );
+        const res = await callable({ subscriptionId });
+        return res.data;
+      } catch (err: any) {
+        this.logger.error('Erro na Cloud Function cancelSubscription:', err);
+        throw new Error(err?.message || 'Erro ao cancelar assinatura no gateway.');
+      }
+    }
+
     if (this.http && apiKey) {
       try {
         const headers = new HttpHeaders({ 'access_token': apiKey });
@@ -598,12 +619,13 @@ export class AsaasService {
 
     return {
       deleted: true,
-      id: subscriptionId
+      id: subscriptionId,
+      message: 'Assinatura cancelada com sucesso.'
     };
   }
 
   /**
-   * Atualiza o cartão de crédito associado a uma assinatura existente (PUT /v3/subscriptions/{id})
+   * Atualiza o cartão de crédito associado a uma assinatura existente via Cloud Function no backend (CARD-086).
    */
   async updateSubscriptionCreditCard(
     subscriptionId: string,
@@ -611,14 +633,34 @@ export class AsaasService {
     holderInfo?: CreditCardHolderInfo,
     apiKey?: string,
     environment: AsaasEnvironment = 'sandbox'
-  ): Promise<AsaasSubscriptionResponse> {
-    const payload: {
-      creditCard: CreditCardData;
-      creditCardHolderInfo?: CreditCardHolderInfo;
-    } = {
-      creditCard: cardData,
-      creditCardHolderInfo: holderInfo
+  ): Promise<{ success: boolean; id: string; message?: string }> {
+    const payload = {
+      subscriptionId,
+      holderName: cardData.holderName,
+      number: cardData.number,
+      expiryMonth: cardData.expiryMonth,
+      expiryYear: cardData.expiryYear,
+      ccv: cardData.ccv
     };
+
+    if (this.updateCreditCardCallableFn) {
+      const res = await this.updateCreditCardCallableFn(payload);
+      return res.data;
+    }
+
+    if (this.firebaseService.app) {
+      try {
+        const callable = httpsCallable<any, any>(
+          getFunctions(this.firebaseService.app),
+          'updateCreditCard'
+        );
+        const res = await callable(payload);
+        return res.data;
+      } catch (err: any) {
+        this.logger.error('Erro na Cloud Function updateCreditCard:', err);
+        throw new Error(err?.message || 'Erro ao atualizar dados do cartão.');
+      }
+    }
 
     if (this.http && apiKey) {
       try {
@@ -627,7 +669,16 @@ export class AsaasService {
           'access_token': apiKey
         });
         const url = `${this.getBaseUrl(environment)}/subscriptions/${subscriptionId}`;
-        return await firstValueFrom(this.http.put<AsaasSubscriptionResponse>(url, payload, { headers }));
+        const httpPayload = {
+          creditCard: cardData,
+          creditCardHolderInfo: holderInfo
+        };
+        const res = await firstValueFrom(this.http.put<any>(url, httpPayload, { headers }));
+        return {
+          success: true,
+          id: res?.id || subscriptionId,
+          message: 'Cartão atualizado com sucesso.'
+        };
       } catch (err: any) {
         this.logger.error('Erro ao atualizar cartão de crédito da assinatura no Asaas:', err);
         const apiErrors = err?.error?.errors;
@@ -636,21 +687,17 @@ export class AsaasService {
           description = apiErrors.map((e: any) => e.description || e.message).join(' | ');
         } else if (err?.error?.message) {
           description = err.error.message;
+        } else if (err?.message) {
+          description = err.message;
         }
         throw new Error(description);
       }
     }
 
     return {
+      success: true,
       id: subscriptionId,
-      customer: 'cus_simulated',
-      status: 'ACTIVE',
-      value: 9.90,
-      cycle: 'MONTHLY',
-      nextDueDate: new Date().toISOString().split('T')[0],
-      billingType: 'CREDIT_CARD',
-      dateCreated: new Date().toISOString()
+      message: 'Cartão de crédito atualizado com sucesso.'
     };
   }
 }
-
