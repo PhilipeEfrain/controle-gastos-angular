@@ -376,11 +376,6 @@ export class SettingsComponent implements OnInit {
   async onConfirmCancelSubscription(): Promise<void> {
     this.isCancelingSubscription.set(true);
     try {
-      const user = this.authStore.currentUser();
-      if (user?.asaasSubscriptionId) {
-        await this.asaasService.cancelSubscription(user.asaasSubscriptionId);
-      }
-
       await this.authStore.cancelSubscription();
 
       const expiresDate = this.authStore.planExpiresAtFormatted();

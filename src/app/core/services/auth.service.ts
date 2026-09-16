@@ -22,6 +22,7 @@ import {
   writeBatch
 } from 'firebase/firestore';
 import { Observable } from 'rxjs';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { FirebaseService } from './firebase.service';
 import { LoggerService } from './logger.service';
 import { UserProfile, PlanType, PlanStatus } from '../models/user.model';
@@ -35,6 +36,9 @@ export class AuthService {
   private logger = inject(LoggerService);
   private auth = this.firebaseService.auth;
   private firestore = this.firebaseService.firestore;
+
+  // Callable mockável para testes unitários
+  cancelSubscriptionCallableFn: ((data: any) => Promise<{ data: any }>) | null = null;
 
   /**
    * Observable com as mudanças de estado de autenticação
@@ -279,8 +283,9 @@ export class AuthService {
   }
 
   /**
-   * Cancela a assinatura do usuário: atualiza o status para 'canceled' no Firestore
-   * O usuário mantém acesso aos benefícios até a data limite planExpiresAt e nenhum dado histórico é apagado.
+   * Cancela a assinatura do usuário com segurança.
+   * Prioriza a Cloud Function cancelSubscription (que revoga no Asaas e atualiza o Firestore via Admin SDK).
+   * Caso a Cloud Function falhe ou esteja desconectada, faz o fallback direto no Firestore.
    */
   async cancelUserSubscription(userId: string, subscriptionId?: string): Promise<void> {
     if (!environment.production && userId.startsWith('e2e-')) {
@@ -297,9 +302,28 @@ export class AuthService {
       return;
     }
 
+    // 1. Tenta executar cancelamento via Cloud Function no backend (Admin SDK)
+    if (this.cancelSubscriptionCallableFn) {
+      await this.cancelSubscriptionCallableFn({ subscriptionId: subscriptionId || undefined });
+      return;
+    }
+
+    if (this.firebaseService.app) {
+      try {
+        const functions = getFunctions(this.firebaseService.app);
+        const cancelFn = httpsCallable<any, any>(functions, 'cancelSubscription');
+        await cancelFn({ subscriptionId: subscriptionId || undefined });
+        return;
+      } catch (fnErr: any) {
+        this.logger.warn('[AuthService] Cloud Function cancelSubscription falhou, aplicando fallback Firestore:', fnErr?.message);
+      }
+    }
+
+    // 2. Fallback via cliente Firestore direto
     const userDocRef = doc(this.firestore, `users/${userId}`);
     const updatePayload: Record<string, any> = {
       planStatus: 'canceled',
+      inactivatedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
 

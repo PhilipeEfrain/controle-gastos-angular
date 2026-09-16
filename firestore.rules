@@ -48,7 +48,8 @@ service cloud.firestore {
         'asaasCustomerId', 'asaasSubscriptionId',
         'preferences', 'createdAt', 'updatedAt',
         'inactivatedAt', 'inactivationReason',
-        'scheduledPlan', 'scheduledPlanDate'
+        'scheduledPlan', 'scheduledPlanDate',
+        'activeIncomeConfig'
       ])
         && (!('displayName' in data) || isValidString(data.displayName, 1, 100))
         && (!('photoURL' in data) || data.photoURL == null || (data.photoURL is string && data.photoURL.size() <= 1500))
@@ -63,7 +64,8 @@ service cloud.firestore {
         && (!('scheduledPlan' in data) || data.scheduledPlan == null || data.scheduledPlan in ['free', 'pro', 'duo'])
         && (!('scheduledPlanDate' in data) || data.scheduledPlanDate == null || data.scheduledPlanDate is string)
         && (!('inactivatedAt' in data) || data.inactivatedAt == null || data.inactivatedAt is string)
-        && (!('inactivationReason' in data) || data.inactivationReason == null || data.inactivationReason is string);
+        && (!('inactivationReason' in data) || data.inactivationReason == null || data.inactivationReason is string)
+        && (!('activeIncomeConfig' in data) || data.activeIncomeConfig is map);
     }
 
     // Validador de Ciclo Mensal com Suporte a Renda, Totais e Regime Salarial
@@ -292,7 +294,7 @@ service cloud.firestore {
       allow update: if (isOwner(userId) && isValidUserProfile(request.resource.data)
                         && (!('role' in request.resource.data) || request.resource.data.role == resource.data.role || (!('role' in resource.data) && request.resource.data.role == 'user'))
                         && (!('plan' in request.resource.data) || request.resource.data.plan == resource.data.plan || (!('plan' in resource.data) && request.resource.data.plan == 'free'))
-                        && (!('planStatus' in request.resource.data) || request.resource.data.planStatus == resource.data.planStatus || (!('planStatus' in resource.data) && request.resource.data.planStatus == 'active'))
+                        && (!('planStatus' in request.resource.data) || request.resource.data.planStatus == resource.data.planStatus || (!('planStatus' in resource.data) && request.resource.data.planStatus == 'active') || request.resource.data.planStatus == 'canceled')
                         && (!('asaasSubscriptionId' in request.resource.data) || request.resource.data.asaasSubscriptionId == resource.data.asaasSubscriptionId || (!('asaasSubscriptionId' in resource.data) && request.resource.data.asaasSubscriptionId == null))
                        )
                      || isAdmin();

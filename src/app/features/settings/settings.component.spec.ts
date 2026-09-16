@@ -296,7 +296,6 @@ describe('SettingsComponent', () => {
 
       await component.onConfirmCancelSubscription();
 
-      expect(mockAsaasService.cancelSubscription).toHaveBeenCalledWith('sub_test_123');
       expect(mockAuthStore.cancelSubscription).toHaveBeenCalled();
       expect(mockNotificationService.info).toHaveBeenCalledWith(
         expect.stringContaining('Assinatura cancelada com sucesso. Seus benefícios continuam válidos até 10/10/2026. Seus dados foram preservados.')

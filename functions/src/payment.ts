@@ -475,7 +475,20 @@ export async function cancelSubscriptionBackend(
   const targetSubId = payload.subscriptionId || currentSubId;
 
   if (!targetSubId) {
-    throw new Error('Você não possui assinatura ativa no momento.');
+    // Se não possui assinatura ativa no Asaas, cancela no Firestore de forma segura
+    const nowIso = new Date().toISOString();
+    await userDocRef.set({
+      planStatus: 'canceled',
+      inactivatedAt: nowIso,
+      updatedAt: nowIso
+    }, { merge: true });
+
+    return {
+      success: true,
+      deleted: false,
+      id: '',
+      message: 'Assinatura cancelada com sucesso no sistema.'
+    };
   }
 
   // Se o payload informou uma subscriptionId diferente da do usuário, rejeita
