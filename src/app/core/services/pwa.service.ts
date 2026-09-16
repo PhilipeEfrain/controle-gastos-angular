@@ -1,5 +1,6 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { NotificationService } from './notification.service';
+import { environment } from '../../../environments/environment';
 
 export interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -80,10 +81,37 @@ export class PwaService {
   }
 
   /**
-   * Registra o Service Worker customizado (/sw.js)
+   * Registra o Service Worker customizado (/sw.js) exclusivamente em produção.
+   * Em localhost e desenvolvimento, desregistra qualquer Service Worker ativo
+   * e purga os caches para evitar arquivos antigos presos no navegador.
    */
   registerServiceWorker(): void {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
+      return;
+    }
+
+    const isLocalhost = Boolean(
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '[::1]' ||
+      window.location.hostname.match(/^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/)
+    );
+
+    if (!environment.production || isLocalhost) {
+      // Desregistra Service Workers ativos em ambiente local de desenvolvimento
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        for (const registration of registrations) {
+          registration.unregister();
+        }
+      });
+
+      // Purga caches locais do navegador
+      if ('caches' in window) {
+        caches.keys().then((keys) => {
+          for (const key of keys) {
+            caches.delete(key);
+          }
+        });
+      }
       return;
     }
 

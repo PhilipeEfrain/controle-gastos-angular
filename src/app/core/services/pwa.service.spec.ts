@@ -77,5 +77,23 @@ describe('PwaService (CARD-075)', () => {
       expect.stringContaining('instalado com sucesso')
     );
   });
+
+  it('deve desregistrar Service Workers ativos em ambiente local de desenvolvimento', () => {
+    const unregisterMock = vi.fn().mockResolvedValue(true);
+    const mockRegistration = { unregister: unregisterMock };
+    const getRegistrationsMock = vi.fn().mockResolvedValue([mockRegistration]);
+
+    Object.defineProperty(navigator, 'serviceWorker', {
+      value: {
+        getRegistrations: getRegistrationsMock,
+        register: vi.fn()
+      },
+      configurable: true,
+      writable: true
+    });
+
+    service.registerServiceWorker();
+    expect(getRegistrationsMock).toHaveBeenCalled();
+  });
 });
 

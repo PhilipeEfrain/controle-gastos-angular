@@ -3,7 +3,25 @@
  * Suporte a PWA, Instalação Nativa, Cache do App Shell Offline e Blindagem Rigorosa de CSP.
  */
 
-const CACHE_VERSION = 'quinzena-v2.0.0';
+const isLocalhost = Boolean(
+  self.location.hostname === 'localhost' ||
+  self.location.hostname === '[::1]' ||
+  self.location.hostname.match(/^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/)
+);
+
+if (isLocalhost) {
+  self.addEventListener('install', () => self.skipWaiting());
+  self.addEventListener('activate', (event) => {
+    event.waitUntil(
+      caches.keys()
+        .then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
+        .then(() => self.registration.unregister())
+        .then(() => self.clients.claim())
+    );
+  });
+  self.addEventListener('fetch', () => {});
+} else {
+const CACHE_VERSION = 'quinzena-v2.0.1';
 const APP_SHELL_CACHE = `quinzena-shell-${CACHE_VERSION}`;
 
 // Recursos essenciais do App Shell cacheados no install para disponibilidade offline
@@ -111,3 +129,5 @@ self.addEventListener('message', (event) => {
     self.skipWaiting();
   }
 });
+}
+
