@@ -55,13 +55,8 @@ describe('ExpiringDataBannerComponent', () => {
     expect(emitted).toBe(false);
   });
 
-  it('deve emitir dismiss ao clicar no botão de fechar', () => {
-    let dismissed = false;
-    component.dismiss.subscribe(() => (dismissed = true));
-
-    const dismissBtn = fixture.nativeElement.querySelector('.btn-dismiss') as HTMLButtonElement;
-    dismissBtn.click();
-
-    expect(dismissed).toBe(true);
+  it('não deve ter botão de fechar, permanecendo ativo até o final da carência (Regra 4)', () => {
+    const dismissBtn = fixture.nativeElement.querySelector('.btn-dismiss');
+    expect(dismissBtn).toBeNull();
   });
 });

@@ -100,10 +100,12 @@ describe('PlanLimitsService', () => {
       expect(expiring?.plan).toBe('free');
     });
 
-    it('não deve retornar ExpiringCycleInfo se o ciclo -3 não existir nos ciclos do usuário', () => {
+    it('não deve retornar ExpiringCycleInfo se o usuário Free tiver 3 ou menos meses ativos (Regra 1)', () => {
       const available = ['2026-09', '2026-08', '2026-07'];
-      const expiring = service.getExpiringCycleInfo(available, '2026-09');
-      expect(expiring).toBeNull();
+      expect(service.getExpiringCycleInfo(available, '2026-09')).toBeNull();
+
+      const availableTwo = ['2026-09', '2026-06']; // Menos de 3 meses mesmo com offset antigo
+      expect(service.getExpiringCycleInfo(availableTwo, '2026-09')).toBeNull();
     });
 
     it('não deve permitir exportação em PDF regular no plano Free', () => {
@@ -152,8 +154,24 @@ describe('PlanLimitsService', () => {
       expect(service.isCycleExpired(-12)).toBe(false);
     });
 
-    it('deve retornar ExpiringCycleInfo para o ciclo de offset -12 no Pro', () => {
-      const available = ['2026-09', '2026-08', '2025-09'];
+    it('não deve retornar ExpiringCycleInfo se o usuário Pro tiver 12 ou menos meses ativos (Regra 1)', () => {
+      const availableFew = ['2026-09', '2026-08', '2025-09']; // Apenas 3 meses, mesmo que um seja de 12 meses atrás
+      expect(service.getExpiringCycleInfo(availableFew, '2026-09')).toBeNull();
+
+      // Exatamente 12 meses ativos
+      const availableTwelve = [
+        '2026-09', '2026-08', '2026-07', '2026-06', '2026-05', '2026-04',
+        '2026-03', '2026-02', '2026-01', '2025-12', '2025-11', '2025-10'
+      ];
+      expect(service.getExpiringCycleInfo(availableTwelve, '2026-09')).toBeNull();
+    });
+
+    it('deve retornar ExpiringCycleInfo para o ciclo de offset -12 no Pro quando tiver mais de 12 meses ativos (13 meses)', () => {
+      const available = [
+        '2026-09', '2026-08', '2026-07', '2026-06', '2026-05', '2026-04',
+        '2026-03', '2026-02', '2026-01', '2025-12', '2025-11', '2025-10',
+        '2025-09'
+      ];
       const refDate = new Date(2026, 8, 12);
       const expiring = service.getExpiringCycleInfo(available, '2026-09', refDate);
 

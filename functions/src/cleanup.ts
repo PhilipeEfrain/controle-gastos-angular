@@ -69,6 +69,13 @@ export async function cleanupUserExpiredCycles(
   const cyclesColRef = db.collection(`users/${userId}/ciclos_mensais`);
   const cyclesSnap = await cyclesColRef.get();
 
+  const limit = getRetentionLimitMonths(plan);
+  // Regra 1 (CARD-089): O usuário precisa ter no mínimo 'limit' meses ativos.
+  // Se o total de ciclos cadastrados for <= limit, nada deve ser excluído.
+  if (cyclesSnap.size <= limit) {
+    return { cyclesDeleted: 0, expensesDeleted: 0 };
+  }
+
   for (const cycleDoc of cyclesSnap.docs) {
     const cycleYearMonth = cycleDoc.id;
     if (!isCycleExpiredForPlan(cycleYearMonth, baseYearMonth, plan)) {
