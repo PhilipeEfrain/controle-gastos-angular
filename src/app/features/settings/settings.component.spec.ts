@@ -224,6 +224,12 @@ describe('SettingsComponent', () => {
 
       component.openDeleteAccountModal();
       expect(component.isDeleteAccountModalOpen()).toBe(true);
+      fixture.detectChanges();
+
+      const modalEl = fixture.nativeElement.querySelector('app-confirmation-modal');
+      expect(modalEl).toBeTruthy();
+      const modalTitle = fixture.nativeElement.querySelector('.modal-title');
+      expect(modalTitle?.textContent).toContain('Excluir Conta Permanentemente');
 
       await component.onConfirmDeleteAccount();
 

@@ -623,10 +623,11 @@
   <!-- Modal de Confirmação de Exclusão de Conta -->
   @if (isDeleteAccountModalOpen()) {
     <app-confirmation-modal
+      [isOpen]="isDeleteAccountModalOpen()"
       title="Excluir Conta Permanentemente"
       message="Tem certeza absoluta que deseja excluir sua conta? Todos os ciclos mensais, despesas, tributos e viagens serão apagados permanentemente do Firestore conforme os termos da LGPD. Esta operação não pode ser desfeita."
-      confirmText="Sim, Excluir Meus Dados"
-      cancelText="Cancelar"
+      confirmButtonText="Sim, Excluir Meus Dados"
+      cancelButtonText="Cancelar"
       variant="danger"
       (confirm)="onConfirmDeleteAccount()"
       (cancel)="closeDeleteAccountModal()"
@@ -636,10 +637,11 @@
   <!-- Modal de Confirmação de Cancelamento de Assinatura -->
   @if (isCancelSubscriptionModalOpen()) {
     <app-confirmation-modal
+      [isOpen]="isCancelSubscriptionModalOpen()"
       title="Cancelar Assinatura Recorrente"
       message="Tem certeza que deseja cancelar sua assinatura? Você manterá acesso completo aos benefícios do seu plano até o final do período vigente. Nenhum dado histórico ou ciclo será apagado."
-      confirmText="Sim, Confirmar Cancelamento"
-      cancelText="Manter Assinatura"
+      confirmButtonText="Sim, Confirmar Cancelamento"
+      cancelButtonText="Manter Assinatura"
       variant="danger"
       (confirm)="onConfirmCancelSubscription()"
       (cancel)="closeCancelSubscriptionModal()"

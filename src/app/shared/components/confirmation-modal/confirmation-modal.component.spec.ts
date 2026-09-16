@@ -49,4 +49,33 @@ describe('ConfirmationModalComponent', () => {
 
     expect(closed).toBe(true);
   });
+
+  it('deve vir com isOpen = true por padrão e renderizar o modal', () => {
+    const defaultFixture = TestBed.createComponent(ConfirmationModalComponent);
+    defaultFixture.detectChanges();
+
+    const modalContainer = defaultFixture.nativeElement.querySelector('.modal-container');
+    expect(defaultFixture.componentInstance.isOpen()).toBe(true);
+    expect(modalContainer).toBeTruthy();
+  });
+
+  it('deve respeitar confirmText e cancelText como aliases', () => {
+    fixture.componentRef.setInput('confirmText', 'Sim, Excluir');
+    fixture.componentRef.setInput('cancelText', 'Não, Voltar');
+    fixture.detectChanges();
+
+    const confirmBtn = fixture.nativeElement.querySelector('.btn-confirm') as HTMLButtonElement;
+    const cancelBtn = fixture.nativeElement.querySelector('.btn-cancel') as HTMLButtonElement;
+
+    expect(confirmBtn.textContent?.trim()).toBe('Sim, Excluir');
+    expect(cancelBtn.textContent?.trim()).toBe('Não, Voltar');
+  });
+
+  it('não deve renderizar conteúdo se isOpen for explicitamente false', () => {
+    fixture.componentRef.setInput('isOpen', false);
+    fixture.detectChanges();
+
+    const modalContainer = fixture.nativeElement.querySelector('.modal-container');
+    expect(modalContainer).toBeNull();
+  });
 });

@@ -28,7 +28,7 @@
           class="btn-cancel"
           (click)="onCancel()"
         >
-          {{ cancelButtonText() }}
+          {{ resolvedCancelText() }}
         </button>
 
         <button
@@ -38,7 +38,7 @@
           [class.btn-primary]="variant() === 'primary'"
           (click)="onConfirm()"
         >
-          {{ confirmButtonText() }}
+          {{ resolvedConfirmText() }}
         </button>
       </div>
     </div>
