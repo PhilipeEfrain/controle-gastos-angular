@@ -227,17 +227,26 @@ export class PlanLimitsService {
     if (!availableCycles || availableCycles.length === 0) return null;
 
     const activeLimit = this.currentFeatures().activeRetentionMonths;
-    // O mês em carência é aquele cujo offset é exatamente -activeRetentionMonths
-    for (const mesAno of availableCycles) {
-      const offset = getMonthOffset(mesAno, currentMonth);
-      if (offset === -activeLimit) {
-        return {
-          mesAno,
-          label: formatYearMonthLabel(mesAno),
-          daysRemainingInMonth: getDaysRemainingInCurrentMonth(referenceDate),
-          plan: this.currentPlan()
-        };
-      }
+
+    // Regra 1 (CARD-089): O usuário precisa ter no mínimo 12 meses ativos para pro/duo ou 3 meses para o free.
+    // Se o total de ciclos registrados for menor ou igual ao limite de retenção, nenhum aviso de expiração é disparado.
+    if (availableCycles.length <= activeLimit) {
+      return null;
+    }
+
+    // Identifica os ciclos em período de carência ou que ultrapassaram a janela ativa (offset <= -activeLimit)
+    const expiringCycles = availableCycles
+      .filter(mesAno => getMonthOffset(mesAno, currentMonth) <= -activeLimit)
+      .sort((a, b) => a.localeCompare(b));
+
+    if (expiringCycles.length > 0) {
+      const targetMesAno = expiringCycles[0];
+      return {
+        mesAno: targetMesAno,
+        label: formatYearMonthLabel(targetMesAno),
+        daysRemainingInMonth: getDaysRemainingInCurrentMonth(referenceDate),
+        plan: this.currentPlan()
+      };
     }
 
     return null;

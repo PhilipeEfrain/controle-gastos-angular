@@ -12,16 +12,13 @@
       (upgradeClick)="openSubscriptionModal()"
     />
 
-    <!-- Banner de Dados em Mês de Carência / Prestes a Expirar (CARD-072) -->
+    <!-- Banner de Dados em Mês de Carência / Prestes a Expirar (CARD-072 / CARD-089) -->
     @if (expiringCycleData(); as expiringInfo) {
-      @if (!isExpiringDataBannerDismissed()) {
-        <app-expiring-data-banner
-          [info]="expiringInfo"
-          [isDownloading]="isDownloadingExpiringPdf()"
-          (downloadPdf)="downloadExpiringCyclePdf($event)"
-          (dismiss)="dismissExpiringBanner()"
-        />
-      }
+      <app-expiring-data-banner
+        [info]="expiringInfo"
+        [isDownloading]="isDownloadingExpiringPdf()"
+        (downloadPdf)="promptExpiringDownloadConfirm($event)"
+      />
     }
 
     <!-- Header do Dashboard: Mês Seletor e Perfil -->
@@ -515,12 +512,24 @@
   (cancel)="cancelDeleteExpense()"
 ></app-confirmation-modal>
 
-<!-- Modal de Aviso de Retenção e Expiração de Dados (CARD-072) -->
+<!-- Modal de Confirmação de Download e Exclusão do Histórico Expirado (CARD-089) -->
+<app-confirmation-modal
+  [isOpen]="isExpiringDownloadConfirmOpen()"
+  title="Baixar Relatório e Excluir Histórico?"
+  [message]="expiringDownloadConfirmMessage()"
+  confirmButtonText="Baixar e Excluir"
+  cancelButtonText="Cancelar"
+  variant="danger"
+  (confirm)="confirmDownloadAndPurgeExpiringCycle()"
+  (cancel)="cancelExpiringDownloadConfirm()"
+></app-confirmation-modal>
+
+<!-- Modal de Aviso de Retenção e Expiração de Dados (CARD-072 / CARD-089) -->
 <app-expiring-data-modal
   [isOpen]="isExpiringDataModalOpen()"
   [info]="expiringCycleData()"
   [isDownloading]="isDownloadingExpiringPdf()"
-  (downloadPdf)="downloadExpiringCyclePdf($event)"
+  (downloadPdf)="promptExpiringDownloadConfirm($event)"
   (upgrade)="onUpgradeFromExpiring()"
   (close)="dismissExpiringModal()"
 ></app-expiring-data-modal>

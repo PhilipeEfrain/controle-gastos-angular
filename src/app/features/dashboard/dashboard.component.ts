@@ -98,11 +98,20 @@ export class DashboardComponent implements OnInit {
   readonly navModalService = inject(NavigationModalService);
   private readonly exportService = inject(ExportService);
 
-  // Estado de Dados em Mês de Carência / Prestes a Expirar (CARD-072)
+  // Estado de Dados em Mês de Carência / Prestes a Expirar (CARD-072 / CARD-089)
   readonly expiringCycleData = signal<ExpiringCycleInfo | null>(null);
   readonly isExpiringDataModalOpen = signal<boolean>(false);
   readonly isExpiringDataBannerDismissed = signal<boolean>(false);
   readonly isDownloadingExpiringPdf = signal<boolean>(false);
+  readonly isExpiringDownloadConfirmOpen = signal<boolean>(false);
+  readonly expiringTargetMonth = signal<string | null>(null);
+
+  readonly expiringDownloadConfirmMessage = computed<string>(() => {
+    const mesAno = this.expiringTargetMonth();
+    if (!mesAno) return '';
+    const label = formatYearMonthLabel(mesAno);
+    return `Atenção: Ao baixar o relatório de ${label}, todo o histórico e lançamentos de despesas deste mês serão excluídos definitivamente do sistema. O mês atual em curso não será afetado. Deseja baixar o PDF e confirmar a exclusão?`;
+  });
 
   // Modo Casal / Duo State
   readonly duoGroup = signal<DuoGroup | null>(null);
@@ -722,34 +731,30 @@ export class DashboardComponent implements OnInit {
   }
 
   /**
-   * Checa se o usuário possui ciclo no mês de carência (+1) e gerencia modal/banner (CARD-072)
+   * Checa se o usuário possui ciclo no mês de carência (+1) e gerencia modal/banner (CARD-072 / CARD-089)
    */
   async checkExpiringCycle(): Promise<void> {
     const user = this.authStore.currentUser();
     if (!user) return;
 
-    const expiringMonth = this.planLimitsService.getGracePeriodMonth();
     try {
-      const cycle = await this.cycleService.getCycle(user.uid, expiringMonth);
-      if (cycle) {
-        const daysRemaining = getDaysRemainingInCurrentMonth();
-        const info: ExpiringCycleInfo = {
-          mesAno: expiringMonth,
-          label: formatYearMonthLabel(expiringMonth),
-          daysRemainingInMonth: daysRemaining,
-          plan: this.planLimitsService.currentPlan()
-        };
-        this.expiringCycleData.set(info);
+      const activeCycles = await this.cycleService.getUserActiveCycles(user.uid);
+      const expiringInfo = this.planLimitsService.getExpiringCycleInfo(activeCycles);
 
-        // Verifica se o modal já foi dispensado nesta sessão
+      if (expiringInfo) {
+        this.expiringCycleData.set(expiringInfo);
+
+        // Verifica se o modal já foi dispensado anteriormente (persistido em localStorage - Regra 4)
         try {
-          const modalDismissed = sessionStorage.getItem(`quinzena_expiring_modal_dismissed_${user.uid}_${expiringMonth}`);
+          const modalDismissed = localStorage.getItem(`quinzena_expiring_modal_dismissed_${user.uid}_${expiringInfo.mesAno}`);
           if (!modalDismissed) {
             this.isExpiringDataModalOpen.set(true);
           }
         } catch {
           this.isExpiringDataModalOpen.set(true);
         }
+      } else {
+        this.expiringCycleData.set(null);
       }
     } catch (err) {
       console.warn('Erro ao verificar ciclo em carência:', err);
@@ -761,9 +766,9 @@ export class DashboardComponent implements OnInit {
     const info = this.expiringCycleData();
     if (user && info) {
       try {
-        sessionStorage.setItem(`quinzena_expiring_modal_dismissed_${user.uid}_${info.mesAno}`, 'true');
+        localStorage.setItem(`quinzena_expiring_modal_dismissed_${user.uid}_${info.mesAno}`, 'true');
       } catch {
-        // Ignora caso sessionStorage não esteja disponível
+        // Ignora caso localStorage não esteja disponível
       }
     }
     this.isExpiringDataModalOpen.set(false);
@@ -776,6 +781,44 @@ export class DashboardComponent implements OnInit {
   onUpgradeFromExpiring(): void {
     this.dismissExpiringModal();
     this.openSubscriptionModal();
+  }
+
+  promptExpiringDownloadConfirm(mesAno: string): void {
+    this.expiringTargetMonth.set(mesAno);
+    this.isExpiringDownloadConfirmOpen.set(true);
+  }
+
+  cancelExpiringDownloadConfirm(): void {
+    this.isExpiringDownloadConfirmOpen.set(false);
+    this.expiringTargetMonth.set(null);
+  }
+
+  /**
+   * Baixa o relatório em PDF e, em seguida, expurga definitivamente o histórico do ciclo expirado (Regras 3 e 5)
+   */
+  async confirmDownloadAndPurgeExpiringCycle(): Promise<void> {
+    const mesAno = this.expiringTargetMonth();
+    const user = this.authStore.currentUser();
+    if (!mesAno || !user || this.isDownloadingExpiringPdf()) return;
+
+    this.isExpiringDownloadConfirmOpen.set(false);
+
+    try {
+      // 1. Gera e faz o download do relatório em PDF (o próprio método gerencia o isDownloadingExpiringPdf)
+      await this.downloadExpiringCyclePdf(mesAno);
+
+      // 2. Exclui o histórico de despesas e o ciclo expirado (mês atual/carência preservado)
+      await this.cycleService.purgeExpiredCycle(user.uid, mesAno);
+
+      // 3. Remove o alerta e o card do topo
+      this.expiringCycleData.set(null);
+      this.isExpiringDataModalOpen.set(false);
+      this.notificationService.success(`Histórico de ${formatYearMonthLabel(mesAno)} exportado em PDF e expurgado com sucesso.`);
+    } catch (err: any) {
+      this.notificationService.error('Erro ao processar exclusão do histórico: ' + (err.message || err));
+    } finally {
+      this.expiringTargetMonth.set(null);
+    }
   }
 
   async downloadExpiringCyclePdf(mesAno: string): Promise<void> {

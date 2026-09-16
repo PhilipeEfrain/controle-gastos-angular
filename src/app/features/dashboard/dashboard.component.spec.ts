@@ -111,7 +111,9 @@ describe('DashboardComponent', () => {
 
     mockCycleService = {
       saveIncome: vi.fn().mockResolvedValue(undefined),
-      getCycle: vi.fn().mockResolvedValue(null)
+      getCycle: vi.fn().mockResolvedValue(null),
+      getUserActiveCycles: vi.fn().mockResolvedValue([]),
+      purgeExpiredCycle: vi.fn().mockResolvedValue(undefined)
     };
 
     mockRouter = {
@@ -135,7 +137,19 @@ describe('DashboardComponent', () => {
       checkTripLimit: vi.fn().mockReturnValue({ allowed: true }),
       isHistoryMonthAllowed: vi.fn().mockReturnValue(true),
       canExportPdf: vi.fn().mockReturnValue(true),
-      getGracePeriodMonth: vi.fn().mockReturnValue('2024-11'),
+      getGracePeriodMonth: vi.fn().mockReturnValue('2026-06'),
+      getExpiringCycleInfo: vi.fn().mockImplementation((availableCycles: string[]) => {
+        if (!availableCycles || availableCycles.length <= 3) return null;
+        if (availableCycles.includes('2026-06')) {
+          return {
+            mesAno: '2026-06',
+            label: 'Junho de 2026',
+            daysRemainingInMonth: 10,
+            plan: 'free'
+          };
+        }
+        return null;
+      }),
       currentPlan: vi.fn().mockReturnValue('free')
     };
 
@@ -583,41 +597,41 @@ describe('DashboardComponent', () => {
     });
   });
 
-  describe('Cenários BDD CARD-072: Retenção, Carência e Download de PDF Expirando', () => {
+  describe('Cenários BDD CARD-072 / CARD-089: Retenção, Carência e Download de PDF Expirando com Exclusão', () => {
     beforeEach(() => {
+      localStorage.clear();
       sessionStorage.clear();
     });
 
-    it('deve identificar ciclo em carência e abrir o modal se ainda não foi dispensado na sessão', async () => {
-      mockCycleService.getCycle.mockResolvedValueOnce({
-        id: '2024-11',
-        mesAno: '2024-11',
-        renda_quinzena_1: 2000,
-        renda_quinzena_2: 1500
-      });
+    it('não deve disparar aviso se o usuário tiver menos meses que o mínimo do plano (Regra 1)', async () => {
+      // Usuário Free com apenas 2 meses registrados (mínimo exigido: 3)
+      mockCycleService.getUserActiveCycles.mockResolvedValueOnce(['2026-09', '2026-08']);
+
+      await component.checkExpiringCycle();
+
+      expect(component.expiringCycleData()).toBeNull();
+      expect(component.isExpiringDataModalOpen()).toBe(false);
+    });
+
+    it('deve identificar ciclo em carência e abrir o modal se ainda não foi dispensado quando tiver meses suficientes (Regra 1 e 2)', async () => {
+      // Free com 4 meses (3 ativos + 1 em carência)
+      mockCycleService.getUserActiveCycles.mockResolvedValueOnce(['2026-09', '2026-08', '2026-07', '2026-06']);
 
       await component.checkExpiringCycle();
 
       expect(component.expiringCycleData()).toEqual(
         expect.objectContaining({
-          mesAno: '2024-11',
-          label: 'Novembro de 2024',
+          mesAno: '2026-06',
+          label: 'Junho de 2026',
           plan: 'free'
         })
       );
       expect(component.isExpiringDataModalOpen()).toBe(true);
-      expect(component.isExpiringDataBannerDismissed()).toBe(false);
     });
 
-    it('não deve abrir o modal de aviso se já tiver sido dispensado na sessão atual', async () => {
-      sessionStorage.setItem('quinzena_expiring_modal_dismissed_user-777_2024-11', 'true');
-
-      mockCycleService.getCycle.mockResolvedValueOnce({
-        id: '2024-11',
-        mesAno: '2024-11',
-        renda_quinzena_1: 2000,
-        renda_quinzena_2: 1500
-      });
+    it('não deve abrir o modal de aviso se já tiver sido dispensado no localStorage (Regra 4)', async () => {
+      localStorage.setItem('quinzena_expiring_modal_dismissed_user-777_2026-06', 'true');
+      mockCycleService.getUserActiveCycles.mockResolvedValueOnce(['2026-09', '2026-08', '2026-07', '2026-06']);
 
       await component.checkExpiringCycle();
 
@@ -625,10 +639,10 @@ describe('DashboardComponent', () => {
       expect(component.isExpiringDataModalOpen()).toBe(false);
     });
 
-    it('deve fechar o modal e persistir no sessionStorage ao dispensar', () => {
+    it('deve fechar o modal e persistir no localStorage ao dispensar (Regra 4)', () => {
       component.expiringCycleData.set({
-        mesAno: '2024-11',
-        label: 'Novembro de 2024',
+        mesAno: '2026-06',
+        label: 'Junho de 2026',
         daysRemainingInMonth: 10,
         plan: 'free'
       });
@@ -637,16 +651,21 @@ describe('DashboardComponent', () => {
       component.dismissExpiringModal();
 
       expect(component.isExpiringDataModalOpen()).toBe(false);
-      expect(sessionStorage.getItem('quinzena_expiring_modal_dismissed_user-777_2024-11')).toBe('true');
+      expect(localStorage.getItem('quinzena_expiring_modal_dismissed_user-777_2026-06')).toBe('true');
     });
 
-    it('deve dispensar o banner do topo ao chamar dismissExpiringBanner()', () => {
-      expect(component.isExpiringDataBannerDismissed()).toBe(false);
-      component.dismissExpiringBanner();
-      expect(component.isExpiringDataBannerDismissed()).toBe(true);
+    it('deve abrir modal de confirmação com aviso de exclusão ao solicitar download do ciclo expirado (Regra 3)', () => {
+      component.promptExpiringDownloadConfirm('2026-06');
+      expect(component.isExpiringDownloadConfirmOpen()).toBe(true);
+      expect(component.expiringTargetMonth()).toBe('2026-06');
+      expect(component.expiringDownloadConfirmMessage()).toContain('Junho de 2026');
+      expect(component.expiringDownloadConfirmMessage()).toContain('excluídos definitivamente');
+
+      component.cancelExpiringDownloadConfirm();
+      expect(component.isExpiringDownloadConfirmOpen()).toBe(false);
     });
 
-    it('deve gerar PDF do ciclo em carência e exibir feedback de sucesso', async () => {
+    it('deve baixar o PDF e depois expurgar o ciclo expirado ao confirmar (Regras 3 e 5)', async () => {
       const mockExpiringExpenses: Expense[] = [
         {
           id: 'exp-old-1',
@@ -660,8 +679,8 @@ describe('DashboardComponent', () => {
 
       mockExpenseService.getExpensesStream.mockReturnValueOnce(of(mockExpiringExpenses));
       mockCycleService.getCycle.mockResolvedValueOnce({
-        id: '2024-11',
-        mesAno: '2024-11',
+        id: '2026-06',
+        mesAno: '2026-06',
         renda_quinzena_1: 2500,
         renda_quinzena_2: 2000
       });
@@ -669,10 +688,11 @@ describe('DashboardComponent', () => {
       const exportService = TestBed.inject(ExportService);
       vi.spyOn(exportService, 'exportToPDF').mockImplementation(() => {});
 
-      await component.downloadExpiringCyclePdf('2024-11');
+      component.promptExpiringDownloadConfirm('2026-06');
+      await component.confirmDownloadAndPurgeExpiringCycle();
 
       expect(exportService.exportToPDF).toHaveBeenCalledWith(
-        '2024-11',
+        '2026-06',
         mockExpiringExpenses,
         expect.objectContaining({
           totalRenda: 4500,
@@ -681,7 +701,9 @@ describe('DashboardComponent', () => {
         }),
         'Investidor Pro'
       );
-      expect(component.isDownloadingExpiringPdf()).toBe(false);
+      expect(mockCycleService.purgeExpiredCycle).toHaveBeenCalledWith('user-777', '2026-06');
+      expect(component.expiringCycleData()).toBeNull();
+      expect(component.isExpiringDataModalOpen()).toBe(false);
     });
 
     it('deve fechar o modal de expiração e abrir o modal de assinatura ao escolher fazer upgrade', () => {

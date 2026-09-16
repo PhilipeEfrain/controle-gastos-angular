@@ -7,7 +7,8 @@ import {
   onSnapshot,
   updateDoc,
   collection,
-  writeBatch
+  writeBatch,
+  deleteDoc
 } from 'firebase/firestore';
 import { Observable, of } from 'rxjs';
 import { FirebaseService } from './firebase.service';
@@ -503,5 +504,53 @@ export class MonthlyCycleService {
       saldo_final: roundBRL(saldoFinal),
       updatedAt: new Date().toISOString()
     });
+  }
+
+  /**
+   * Busca a lista de meses (YYYY-MM) com ciclos cadastrados do usuário (CARD-089)
+   */
+  async getUserActiveCycles(userId: string): Promise<string[]> {
+    if (!userId || userId.startsWith('e2e-')) {
+      return [];
+    }
+    try {
+      const ciclosColRef = collection(this.firestore, `users/${userId}/ciclos_mensais`);
+      const snap = await getDocs(ciclosColRef);
+      if (snap.empty) return [];
+      return snap.docs
+        .map(d => d.id)
+        .filter(id => /^\d{4}-\d{2}$/.test(id))
+        .sort();
+    } catch (err) {
+      console.warn('[MonthlyCycleService] Erro ao buscar ciclos ativos:', err);
+      return [];
+    }
+  }
+
+  /**
+   * Exclui definitivamente um ciclo mensal e todas as suas despesas associadas (CARD-089)
+   * O mês de carência / mês atual NUNCA é excluído.
+   */
+  async purgeExpiredCycle(userId: string, mesAno: string): Promise<void> {
+    if (!userId || !mesAno || userId.startsWith('e2e-')) {
+      return;
+    }
+    try {
+      // 1. Exclui as despesas da subcoleção em lote
+      const expColRef = collection(this.firestore, `users/${userId}/ciclos_mensais/${mesAno}/despesas`);
+      const expSnap = await getDocs(expColRef);
+      if (!expSnap.empty) {
+        const batch = writeBatch(this.firestore);
+        expSnap.docs.forEach(docSnap => batch.delete(docSnap.ref));
+        await batch.commit();
+      }
+
+      // 2. Exclui o documento do ciclo
+      const cycleDocRef = doc(this.firestore, `users/${userId}/ciclos_mensais/${mesAno}`);
+      await deleteDoc(cycleDocRef);
+    } catch (err) {
+      console.error('[MonthlyCycleService] Erro ao expurgar ciclo expirado:', err);
+      throw err;
+    }
   }
 }
