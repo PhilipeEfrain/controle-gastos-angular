@@ -319,7 +319,7 @@ export class DashboardComponent implements OnInit {
 
   // Onboarding & Guia de Primeiro Acesso
   readonly isOnboardingDismissed = signal<boolean>(false);
-  readonly hasExploredFeatures = signal<boolean>(false);
+  readonly hasExploredFeaturesSignal = signal<boolean>(false);
 
   readonly hasIncomes = computed<boolean>(() => {
     const cycle = this.financeStore.currentCycle();
@@ -332,12 +332,49 @@ export class DashboardComponent implements OnInit {
     return this.financeStore.expenses().length > 0;
   });
 
+  readonly hasExploredFeatures = computed<boolean>(() => {
+    // 1. Sinal manual ativo (clique em explorar ou memorizado no localStorage)
+    if (this.hasExploredFeaturesSignal()) {
+      return true;
+    }
+
+    // 2. Se o usuário já cadastrou tributos anuais
+    if (this.financeStore.taxes().length > 0) {
+      return true;
+    }
+
+    // 3. Se o usuário já cadastrou despesas compartilhadas no Duo
+    if (this.financeStore.sharedExpenses().length > 0) {
+      return true;
+    }
+
+    // 4. Se existem despesas no ciclo que utilizam recursos extras (parcelada, recorrente, comprovante, compartilhada)
+    const expenses = this.financeStore.expenses();
+    const hasAdvancedExpenses = expenses.some(
+      e => (e.total_parcelas && e.total_parcelas > 1) ||
+           Boolean(e.grupo_parcela_id) ||
+           Boolean(e.recorrente) ||
+           Boolean(e.codigo_comprovante) ||
+           Boolean(e.isShared)
+    );
+    if (hasAdvancedExpenses) {
+      return true;
+    }
+
+    // 5. Se o usuário já possui múltiplos itens cadastrados (mais de 1 despesa lançada)
+    if (expenses.length > 1) {
+      return true;
+    }
+
+    return false;
+  });
+
   readonly showOnboardingChecklist = computed<boolean>(() => {
     return !this.isOnboardingDismissed();
   });
 
   onExploreFeaturesFromOnboarding(): void {
-    this.hasExploredFeatures.set(true);
+    this.hasExploredFeaturesSignal.set(true);
     try {
       const user = this.authStore.currentUser();
       if (user?.uid) {
@@ -351,6 +388,14 @@ export class DashboardComponent implements OnInit {
 
   onDismissOnboarding(): void {
     this.isOnboardingDismissed.set(true);
+    try {
+      const user = this.authStore.currentUser();
+      if (user?.uid) {
+        localStorage.setItem(`onboarding_dismissed_${user.uid}`, 'true');
+      }
+    } catch {
+      // Ignora erro
+    }
   }
 
   async ngOnInit(): Promise<void> {
@@ -377,7 +422,7 @@ export class DashboardComponent implements OnInit {
         }
         const explored = localStorage.getItem(`onboarding_explored_${user.uid}`);
         if (explored === 'true') {
-          this.hasExploredFeatures.set(true);
+          this.hasExploredFeaturesSignal.set(true);
         }
       } catch {
         // Ignora erro

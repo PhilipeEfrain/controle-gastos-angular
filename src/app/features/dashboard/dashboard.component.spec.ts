@@ -289,15 +289,47 @@ describe('DashboardComponent', () => {
       expect(component.hasIncomes()).toBe(true);
     });
 
-    it('deve ocultar o checklist de onboarding quando onDismissOnboarding() for chamado', () => {
+    it('deve ocultar o checklist de onboarding quando onDismissOnboarding() for chamado e gravar no localStorage', () => {
+      const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
       component.onDismissOnboarding();
       expect(component.showOnboardingChecklist()).toBe(false);
+      expect(setItemSpy).toHaveBeenCalledWith('onboarding_dismissed_user-777', 'true');
     });
 
     it('deve marcar recurso como explorado e navegar para /parcelamentos', () => {
       component.onExploreFeaturesFromOnboarding();
       expect(component.hasExploredFeatures()).toBe(true);
       expect(mockRouter.navigate).toHaveBeenCalledWith(['/parcelamentos']);
+    });
+
+    it('deve reconhecer hasExploredFeatures como true se houver despesas parceladas ou recorrentes', () => {
+      mockFinanceStore.expenses.set([
+        {
+          id: 'exp-parcelada',
+          descricao: 'Notebook',
+          valor: 500,
+          quinzena: 1,
+          categoria: 'Outros',
+          status_pagamento: false,
+          total_parcelas: 10,
+          parcela_atual: 1
+        }
+      ]);
+      expect(component.hasExploredFeatures()).toBe(true);
+    });
+
+    it('deve reconhecer hasExploredFeatures como true se houver múltiplos itens cadastrados', () => {
+      mockFinanceStore.expenses.set([
+        { id: 'exp-1', descricao: 'A', valor: 50, quinzena: 1, categoria: 'Outros', status_pagamento: false },
+        { id: 'exp-2', descricao: 'B', valor: 60, quinzena: 1, categoria: 'Outros', status_pagamento: false }
+      ]);
+      expect(component.hasExploredFeatures()).toBe(true);
+    });
+
+    it('deve reconhecer hasExploredFeatures como true se houver tributos cadastrados', () => {
+      mockFinanceStore.expenses.set([mockExpense]);
+      mockFinanceStore.taxes.set([{ id: 'tax-1', titulo: 'IPTU', valor_total: 1200, status: 'Pendente' } as any]);
+      expect(component.hasExploredFeatures()).toBe(true);
     });
   });
 

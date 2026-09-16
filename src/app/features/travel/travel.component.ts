@@ -130,6 +130,11 @@ export class TravelComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const user = this.authStore.currentUser();
     if (user) {
+      try {
+        localStorage.setItem(`onboarding_explored_${user.uid}`, 'true');
+      } catch {
+        // Ignora erro
+      }
       this.initTripsStream(user.uid);
     }
   }

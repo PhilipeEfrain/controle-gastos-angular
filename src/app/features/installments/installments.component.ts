@@ -83,6 +83,12 @@ export class InstallmentsComponent implements OnInit {
       return;
     }
 
+    try {
+      localStorage.setItem(`onboarding_explored_${user.uid}`, 'true');
+    } catch {
+      // Ignora erro
+    }
+
     this.isLoading.set(true);
     this.installmentService
       .getInstallmentsOverview(user.uid)
