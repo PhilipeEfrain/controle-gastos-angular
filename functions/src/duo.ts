@@ -197,36 +197,41 @@ export async function disconnectDuoPartnerBackend(
     updatedAt: nowIso
   });
 
-  // 2. Limpa duoPartnerId no perfil do titular (mantém duoGroupId)
+  // 2. Limpa duoPartnerId no perfil do titular (mantém duoGroupId se existir documento)
   if (ownerId) {
     const ownerUserRef = db.collection('users').doc(ownerId);
-    await ownerUserRef.set({
-      duoPartnerId: null,
-      updatedAt: nowIso
-    }, { merge: true });
+    const ownerSnap = await ownerUserRef.get();
+    if (ownerSnap.exists) {
+      await ownerUserRef.update({
+        duoPartnerId: null,
+        updatedAt: nowIso
+      });
+    }
   }
 
-  // 3. Atualiza perfil do parceiro desvinculado (se existia)
+  // 3. Atualiza perfil do parceiro desvinculado (se existir documento)
   if (currentPartnerId) {
     const partnerUserRef = db.collection('users').doc(currentPartnerId);
     const partnerUserSnap = await partnerUserRef.get();
-    const partnerUserData = partnerUserSnap.data() || {};
+    if (partnerUserSnap.exists) {
+      const partnerUserData = partnerUserSnap.data() || {};
 
-    // Se o parceiro não possui assinatura própria ativa no Asaas, retorna para 'free'
-    const hasOwnSubscription = !!partnerUserData.asaasSubscriptionId && partnerUserData.planStatus === 'active';
+      // Se o parceiro não possui assinatura própria ativa no Asaas, retorna para 'free'
+      const hasOwnSubscription = !!partnerUserData.asaasSubscriptionId && partnerUserData.planStatus === 'active';
 
-    const partnerUpdates: Record<string, any> = {
-      duoPartnerId: null,
-      duoGroupId: null,
-      updatedAt: nowIso
-    };
+      const partnerUpdates: Record<string, any> = {
+        duoPartnerId: null,
+        duoGroupId: null,
+        updatedAt: nowIso
+      };
 
-    if (!hasOwnSubscription) {
-      partnerUpdates.plan = 'free';
-      partnerUpdates.planStatus = 'active';
+      if (!hasOwnSubscription) {
+        partnerUpdates.plan = 'free';
+        partnerUpdates.planStatus = 'active';
+      }
+
+      await partnerUserRef.update(partnerUpdates);
     }
-
-    await partnerUserRef.set(partnerUpdates, { merge: true });
   }
 
   const isOwner = callerUid === ownerId;

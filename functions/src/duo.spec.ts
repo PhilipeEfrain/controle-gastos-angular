@@ -133,15 +133,15 @@ describe('acceptDuoInviteBackend', () => {
 describe('disconnectDuoPartnerBackend', () => {
   let mockDb: any;
   let mockGroupUpdateFn: any;
-  let mockOwnerSetFn: any;
-  let mockPartnerSetFn: any;
+  let mockOwnerUpdateFn: any;
+  let mockPartnerUpdateFn: any;
   let mockPartnerData: any;
   let mockGroupData: any;
 
   beforeEach(() => {
     mockGroupUpdateFn = vi.fn().mockResolvedValue(true);
-    mockOwnerSetFn = vi.fn().mockResolvedValue(true);
-    mockPartnerSetFn = vi.fn().mockResolvedValue(true);
+    mockOwnerUpdateFn = vi.fn().mockResolvedValue(true);
+    mockPartnerUpdateFn = vi.fn().mockResolvedValue(true);
 
     mockGroupData = {
       ownerId: 'usr_owner_1',
@@ -178,16 +178,16 @@ describe('disconnectDuoPartnerBackend', () => {
               if (userId === 'usr_owner_1') {
                 return {
                   get: vi.fn().mockResolvedValue({ exists: true, data: () => ({ plan: 'duo' }) }),
-                  set: mockOwnerSetFn
+                  update: mockOwnerUpdateFn
                 };
               }
               if (userId === 'usr_partner_2') {
                 return {
                   get: vi.fn().mockResolvedValue({ exists: true, data: () => mockPartnerData }),
-                  set: mockPartnerSetFn
+                  update: mockPartnerUpdateFn
                 };
               }
-              return { get: vi.fn().mockResolvedValue({ exists: false }), set: vi.fn() };
+              return { get: vi.fn().mockResolvedValue({ exists: false }), update: vi.fn() };
             })
           };
         }
@@ -243,20 +243,18 @@ describe('disconnectDuoPartnerBackend', () => {
     );
 
     // 2. Perfil do titular deve ter duoPartnerId limpo
-    expect(mockOwnerSetFn).toHaveBeenCalledWith(
-      expect.objectContaining({ duoPartnerId: null }),
-      { merge: true }
+    expect(mockOwnerUpdateFn).toHaveBeenCalledWith(
+      expect.objectContaining({ duoPartnerId: null })
     );
 
     // 3. Parceiro deve voltar para free e ter vínculos limpos
-    expect(mockPartnerSetFn).toHaveBeenCalledWith(
+    expect(mockPartnerUpdateFn).toHaveBeenCalledWith(
       expect.objectContaining({
         duoPartnerId: null,
         duoGroupId: null,
         plan: 'free',
         planStatus: 'active'
-      }),
-      { merge: true }
+      })
     );
   });
 
@@ -274,9 +272,8 @@ describe('disconnectDuoPartnerBackend', () => {
     expect(mockGroupUpdateFn).toHaveBeenCalledWith(
       expect.objectContaining({ status: 'pending', partnerId: null })
     );
-    expect(mockPartnerSetFn).toHaveBeenCalledWith(
-      expect.objectContaining({ plan: 'free', duoPartnerId: null }),
-      { merge: true }
+    expect(mockPartnerUpdateFn).toHaveBeenCalledWith(
+      expect.objectContaining({ plan: 'free', duoPartnerId: null })
     );
   });
 
@@ -291,18 +288,16 @@ describe('disconnectDuoPartnerBackend', () => {
     );
 
     expect(res.success).toBe(true);
-    expect(mockPartnerSetFn).toHaveBeenCalledWith(
+    expect(mockPartnerUpdateFn).toHaveBeenCalledWith(
       {
         duoPartnerId: null,
         duoGroupId: null,
         updatedAt: expect.any(String)
-      },
-      { merge: true }
+      }
     );
     // Não altera o plan para 'free'
-    expect(mockPartnerSetFn).not.toHaveBeenCalledWith(
-      expect.objectContaining({ plan: 'free' }),
-      expect.anything()
+    expect(mockPartnerUpdateFn).not.toHaveBeenCalledWith(
+      expect.objectContaining({ plan: 'free' })
     );
   });
 });
