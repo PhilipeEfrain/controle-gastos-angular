@@ -235,19 +235,40 @@ export class MonthlyCycleService {
       total_renda: config.total_renda,
       total_gastos: 0,
       saldo_final: config.total_renda,
-      regime_salarial: config.regime_salarial,
-      dia_pagamento: config.dia_pagamento,
-      descricao_dia_pagamento: config.descricao_dia_pagamento,
       updatedAt: new Date().toISOString()
     };
 
+    if (config.regime_salarial) {
+      inheritedCycle.regime_salarial = config.regime_salarial;
+    }
+    if (config.dia_pagamento !== undefined && config.dia_pagamento !== null) {
+      inheritedCycle.dia_pagamento = config.dia_pagamento;
+    }
+    if (config.descricao_dia_pagamento !== undefined && config.descricao_dia_pagamento !== null) {
+      inheritedCycle.descricao_dia_pagamento = config.descricao_dia_pagamento;
+    }
+
     // Auto-persiste no Firestore de forma assíncrona para que o ciclo já exista
     const cycleDocRef = doc(this.firestore, `users/${userId}/ciclos_mensais/${mesAno}`);
-    setDoc(cycleDocRef, inheritedCycle, { merge: true }).catch(err => {
+    const firestorePayload = this.sanitizeFirestorePayload(inheritedCycle);
+    setDoc(cycleDocRef, firestorePayload, { merge: true }).catch(err => {
       console.warn('[MonthlyCycleService] Erro ao persistir ciclo herdado:', err);
     });
 
     return inheritedCycle;
+  }
+
+  /**
+   * Remove chaves com valor undefined para compatibilidade estrita com o Firestore SDK
+   */
+  private sanitizeFirestorePayload<T extends Record<string, any>>(obj: T): Partial<T> {
+    const clean: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (value !== undefined) {
+        clean[key] = value;
+      }
+    }
+    return clean;
   }
 
   /**
@@ -385,7 +406,7 @@ export class MonthlyCycleService {
 
     try {
       // 1. Tenta salvar o payload completo (compatível com as regras atualizadas)
-      await setDoc(cycleDocRef, cycleData, { merge: true });
+      await setDoc(cycleDocRef, this.sanitizeFirestorePayload(cycleData), { merge: true });
     } catch (err: any) {
       const isPermissionErr =
         err?.code === 'permission-denied' ||
@@ -414,7 +435,7 @@ export class MonthlyCycleService {
           regime_salarial: fallbackRegime as any,
           updatedAt: new Date().toISOString()
         };
-        await setDoc(cycleDocRef, level2Data, { merge: true });
+        await setDoc(cycleDocRef, this.sanitizeFirestorePayload(level2Data), { merge: true });
       } catch (err2: any) {
         // 3. Fallback nível 3: salva estritamente os campos universais da coleção
         const level3Data: Partial<MonthlyCycle> = {
@@ -424,7 +445,7 @@ export class MonthlyCycleService {
           total_renda: totalRenda,
           updatedAt: new Date().toISOString()
         };
-        await setDoc(cycleDocRef, level3Data, { merge: true });
+        await setDoc(cycleDocRef, this.sanitizeFirestorePayload(level3Data), { merge: true });
       }
     }
 
@@ -444,7 +465,7 @@ export class MonthlyCycleService {
 
     if (!userId.startsWith('e2e-')) {
       const userDocRef = doc(this.firestore, `users/${userId}`);
-      setDoc(userDocRef, { activeIncomeConfig: activeConfig }, { merge: true }).catch(err => {
+      setDoc(userDocRef, { activeIncomeConfig: this.sanitizeFirestorePayload(activeConfig) }, { merge: true }).catch(err => {
         console.warn('[MonthlyCycleService] Erro ao sincronizar activeIncomeConfig no perfil do usuário:', err);
       });
     }
