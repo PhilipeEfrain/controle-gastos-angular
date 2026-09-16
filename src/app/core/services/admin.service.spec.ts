@@ -77,6 +77,23 @@ describe('AdminService', () => {
       // Conversão: (3 / 5) * 100 = 60.0%
       expect(metrics.conversionRate).toBe(60);
     });
+
+    it('Cenário BDD: usuário admin não deve contabilizar valor no MRR nem como assinante comercial', () => {
+      const mockUsersWithAdmin: UserProfile[] = [
+        { uid: 'u-admin', email: 'admin@test.com', displayName: 'Admin Owner', photoURL: null, role: 'admin', plan: 'duo' },
+        { uid: 'u1', email: 'u1@test.com', displayName: 'User 1', photoURL: null, role: 'user', plan: 'pro' },
+        { uid: 'u2', email: 'u2@test.com', displayName: 'User 2', photoURL: null, role: 'user', plan: 'free' }
+      ];
+
+      const metrics = service.calculateSaaSMetrics(mockUsersWithAdmin);
+
+      expect(metrics.totalUsers).toBe(3);
+      expect(metrics.duoUsers).toBe(0); // Admin era Duo, mas é isento
+      expect(metrics.proUsers).toBe(1); // Somente o cliente pro conta
+      expect(metrics.paidUsers).toBe(1);
+      expect(metrics.estimatedMRR).toBe(9.90); // R$ 9.90 do pro, R$ 0.00 do admin
+      expect(metrics.conversionRate).toBe(50); // 1 pagante entre 2 clientes comerciais
+    });
   });
 
   describe('Integração Asaas (CARD-032)', () => {

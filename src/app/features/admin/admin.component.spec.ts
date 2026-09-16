@@ -66,9 +66,10 @@ describe('AdminComponent (Painel Administrativo)', () => {
       updateUserRole: vi.fn().mockResolvedValue(undefined),
       calculateSaaSMetrics: vi.fn((users: UserProfile[]) => {
         const total = users.length;
-        const free = users.filter(u => (u.plan || 'free') === 'free').length;
-        const pro = users.filter(u => u.plan === 'pro').length;
-        const duo = users.filter(u => u.plan === 'duo').length;
+        const nonAdmin = users.filter(u => u.role !== 'admin');
+        const free = nonAdmin.filter(u => (u.plan || 'free') === 'free').length;
+        const pro = nonAdmin.filter(u => u.plan === 'pro').length;
+        const duo = nonAdmin.filter(u => u.plan === 'duo').length;
         const paid = pro + duo;
         const mrr = (pro * 9.90) + (duo * 19.90);
         return {
@@ -78,7 +79,7 @@ describe('AdminComponent (Painel Administrativo)', () => {
           duoUsers: duo,
           paidUsers: paid,
           estimatedMRR: Number(mrr.toFixed(2)),
-          conversionRate: total > 0 ? Number(((paid / total) * 100).toFixed(1)) : 0
+          conversionRate: nonAdmin.length > 0 ? Number(((paid / nonAdmin.length) * 100).toFixed(1)) : 0
         };
       }),
       getAsaasConfig: vi.fn().mockResolvedValue({
@@ -150,8 +151,8 @@ describe('AdminComponent (Painel Administrativo)', () => {
     expect(mockAdminService.getUsersPage).toHaveBeenCalledWith(50);
     expect(component.users().length).toBe(3);
     expect(component.metrics().totalUsers).toBe(3);
-    expect(component.metrics().paidUsers).toBe(2);
-    expect(component.metrics().estimatedMRR).toBe(29.80);
+    expect(component.metrics().paidUsers).toBe(1);
+    expect(component.metrics().estimatedMRR).toBe(19.90);
   });
 
   it('Cenário BDD 1: deve renderizar os 4 cards de KPIs com valores calculados', async () => {
@@ -165,8 +166,8 @@ describe('AdminComponent (Painel Administrativo)', () => {
 
     expect(totalEl.textContent.trim()).toBe('3');
     expect(freeEl.textContent.trim()).toBe('1');
-    expect(paidEl.textContent.trim()).toBe('2');
-    expect(mrrEl.textContent).toContain('29,80');
+    expect(paidEl.textContent.trim()).toBe('1');
+    expect(mrrEl.textContent).toContain('19,90');
   });
 
   it('Cenário BDD 2: deve filtrar usuários por termo de busca reativo', async () => {

@@ -255,7 +255,9 @@ export class AdminService {
   }
 
   /**
-   * Calcula métricas agregadas de negócio (MRR, Distribuição de Planos, Conversão)
+   * Calcula métricas agregadas de negócio (MRR, Distribuição de Planos, Conversão).
+   * O usuário administrador não contabiliza receita (MRR) nem como assinante comercial,
+   * visto que é o dono da aplicação e possui acesso total isento.
    */
   calculateSaaSMetrics(users: UserProfile[]): SaaSMetrics {
     const totalUsers = users.length;
@@ -274,10 +276,16 @@ export class AdminService {
     let freeUsers = 0;
     let proUsers = 0;
     let duoUsers = 0;
+    let adminUsers = 0;
 
     for (const user of users) {
+      // O usuário admin não contabiliza valor/MRR nem assinante comercial
+      if (user.role === 'admin') {
+        adminUsers++;
+        continue;
+      }
+
       const plan = user.plan || 'free';
-      const status = user.planStatus || 'active';
 
       if (plan === 'pro') {
         proUsers++;
@@ -289,8 +297,9 @@ export class AdminService {
     }
 
     const paidUsers = proUsers + duoUsers;
+    const clientUsers = totalUsers - adminUsers;
     const estimatedMRR = (proUsers * this.PLAN_PRICES.pro) + (duoUsers * this.PLAN_PRICES.duo);
-    const conversionRate = totalUsers > 0 ? (paidUsers / totalUsers) * 100 : 0;
+    const conversionRate = clientUsers > 0 ? (paidUsers / clientUsers) * 100 : 0;
 
     return {
       totalUsers,
