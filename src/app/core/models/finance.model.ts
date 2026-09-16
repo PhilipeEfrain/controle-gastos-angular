@@ -36,6 +36,17 @@ export interface RecurringExpense {
 
 export type SalaryRegime = 'quinzenal' | 'mensal_q1' | 'mensal_q2' | 'divisao_50_50' | 'mensal_unico';
 
+export interface ActiveIncomeConfig {
+  renda_quinzena_1: number;
+  renda_quinzena_2: number;
+  total_renda: number;
+  regime_salarial?: SalaryRegime;
+  dia_pagamento?: number | string;
+  descricao_dia_pagamento?: string;
+  effectiveFrom: string; // Formato YYYY-MM a partir do qual esta renda vigora
+  updatedAt: string;
+}
+
 export interface MonthlyCycle {
   id?: string;
   mesAno: string; // Formato YYYY-MM (ex: "2025-03")

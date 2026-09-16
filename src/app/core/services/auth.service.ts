@@ -173,6 +173,9 @@ export class AuthService {
         if (data['scheduledPlanDate']) {
           userProfile.scheduledPlanDate = data['scheduledPlanDate'];
         }
+        if (data['activeIncomeConfig']) {
+          userProfile.activeIncomeConfig = data['activeIncomeConfig'];
+        }
 
         // Verifica se o downgrade agendado atingiu a data de vigência (próxima cobrança)
         if (userProfile.scheduledPlan && userProfile.scheduledPlanDate) {
