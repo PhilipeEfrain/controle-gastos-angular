@@ -283,4 +283,25 @@ describe('FinanceStore (Signals Reactive State)', () => {
     expect(balance.totalGastos).toBe(700);
     expect(balance.saldoFinal).toBe(5300);
   });
+
+  it('Cenário BDD CARD-088: deve manter a renda repetida e calcular saldo correto ao carregar ciclo herdado', () => {
+    mockCycleService.getCycleStream.mockReturnValue(of({
+      id: '2026-10',
+      mesAno: '2026-10',
+      renda_quinzena_1: 4000,
+      renda_quinzena_2: 3000,
+      total_renda: 7000,
+      total_gastos: 0,
+      saldo_final: 7000,
+      regime_salarial: 'quinzenal'
+    }));
+
+    store.setSelectedMonth('2026-10', 'usr-test-1');
+
+    expect(mockCycleService.getCycleStream).toHaveBeenCalledWith('usr-test-1', '2026-10');
+    expect(store.selectedMonth()).toBe('2026-10');
+    expect(store.currentCycle()?.total_renda).toBe(7000);
+    expect(store.balanceSummary().totalRenda).toBe(7000);
+    expect(store.balanceSummary().saldoFinal).toBe(7000);
+  });
 });

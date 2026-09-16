@@ -19,6 +19,13 @@ export class GlobalErrorHandler implements ErrorHandler {
   private errorHistory = new Map<string, number>();
   private totalErrorsSentInSession = 0;
 
+  /**
+   * Flag de controle para envio automático ao Telegram.
+   * Desativado por padrão (false): erros de console NÃO disparam mensagens para o bot.
+   * O bot deve ser acionado exclusivamente quando um usuário envia um feedback manual.
+   */
+  enableAutoDispatchToTelegram = false;
+
   constructor(
     private readonly injector: Injector,
     private readonly ngZone: NgZone
@@ -28,7 +35,12 @@ export class GlobalErrorHandler implements ErrorHandler {
     // 1. Sempre registra o erro no console para visibilidade local imediata
     console.error('[GlobalErrorHandler Intercepted]:', error);
 
-    // 2. Extrai dados normalizados e seguros do erro
+    // 2. Se o envio automático de erros de console estiver desativado, encerra sem notificar o Telegram
+    if (!this.enableAutoDispatchToTelegram) {
+      return;
+    }
+
+    // 3. Extrai dados normalizados e seguros do erro
     const { name, message, stack } = this.extractErrorInfo(error);
 
     // 3. Checagem de Throttle e Limite de Sessão

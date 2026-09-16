@@ -34,9 +34,24 @@ describe('GlobalErrorHandler (CARD-074)', () => {
     // Mock simples do runOutsideAngular para executar a callback imediatamente
     vi.spyOn(ngZone, 'runOutsideAngular').mockImplementation((fn: () => any) => fn());
     handler.resetThrottle();
+    // Ativa para os testes de formatação/sanitização
+    handler.enableAutoDispatchToTelegram = true;
   });
 
-  it('Cenário BDD 1: deve interceptar um Error e despachar para o Telegram com severidade crítica', async () => {
+  it('deve registrar erro no console e NÃO enviar ao Telegram quando desativado por padrão', async () => {
+    handler.enableAutoDispatchToTelegram = false;
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const error = new Error('Erro de console comum');
+
+    handler.handleError(error);
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    expect(consoleSpy).toHaveBeenCalledWith('[GlobalErrorHandler Intercepted]:', error);
+    expect(mockFeedbackService.sendFeedback).not.toHaveBeenCalled();
+    consoleSpy.mockRestore();
+  });
+
+  it('Cenário BDD 1: quando habilitado explicitamente, deve despachar para o Telegram com severidade crítica', async () => {
     const error = new TypeError('Cannot read properties of undefined (reading "calcularTotal")');
     error.stack = 'TypeError: Cannot read properties...\n    at DashboardComponent.ngOnInit';
 
