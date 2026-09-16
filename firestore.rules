@@ -49,7 +49,7 @@ service cloud.firestore {
         'preferences', 'createdAt', 'updatedAt',
         'inactivatedAt', 'inactivationReason',
         'scheduledPlan', 'scheduledPlanDate',
-        'activeIncomeConfig'
+        'activeIncomeConfig', 'duoPartnerId', 'duoGroupId'
       ])
         && (!('displayName' in data) || isValidString(data.displayName, 1, 100))
         && (!('photoURL' in data) || data.photoURL == null || (data.photoURL is string && data.photoURL.size() <= 1500))
@@ -242,8 +242,8 @@ service cloud.firestore {
       );
       allow create: if isAuthenticated() && request.auth.uid == request.resource.data.ownerId && isValidDuoGroup(request.resource.data);
       allow update: if isAuthenticated() && (
-        request.auth.uid in resource.data.members ||
-        (request.auth.uid == resource.data.partnerId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['partnerId', 'status', 'updatedAt']))
+        request.auth.uid == resource.data.ownerId ||
+        (request.auth.uid == resource.data.partnerId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['partnerId', 'partnerEmail', 'partnerName', 'status', 'updatedAt']))
       ) && isValidDuoGroup(request.resource.data);
       allow delete: if isAuthenticated() && request.auth.uid == resource.data.ownerId;
 

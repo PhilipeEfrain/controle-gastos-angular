@@ -1,4 +1,5 @@
 import type { Firestore } from 'firebase-admin/firestore';
+import { cleanupOldDuoPartnerLinks } from './duo.js';
 
 export interface CreatePixOrderRequest {
   plan: 'pro' | 'duo';
@@ -428,6 +429,14 @@ export async function createCreditCardOrderBackend(
   const expDate = new Date();
   expDate.setDate(expDate.getDate() + days);
   const planExpiresAt = expDate.toISOString();
+
+  if (payload.plan === 'duo') {
+    try {
+      await cleanupOldDuoPartnerLinks(callerUid, db);
+    } catch (cleanErr) {
+      console.warn('[payment] Erro ao limpar vínculos Duo antigos:', cleanErr);
+    }
+  }
 
   await userDocRef.set({
     plan: payload.plan,

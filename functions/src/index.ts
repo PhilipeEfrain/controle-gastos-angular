@@ -8,9 +8,9 @@ import { cleanupAllExpiredCycles } from './cleanup.js';
 import { sendTelegramFeedback } from './feedback.js';
 import { deleteUserCascade, testAsaasConnectionBackend } from './admin.js';
 import { createPixOrderBackend, createCreditCardOrderBackend, cancelSubscriptionBackend, updateCreditCardBackend } from './payment.js';
-import { acceptDuoInviteBackend } from './duo.js';
+import { acceptDuoInviteBackend, disconnectDuoPartnerBackend } from './duo.js';
 import type { CreatePixOrderRequest, CreateCreditCardOrderRequest, CancelSubscriptionRequest, UpdateCreditCardRequest } from './payment.js';
-import type { AcceptDuoInviteRequest } from './duo.js';
+import type { AcceptDuoInviteRequest, DisconnectDuoPartnerRequest } from './duo.js';
 import type { AdminDeleteUserRequest, AdminTestAsaasRequest } from './admin.js';
 import type { TelegramFeedbackData } from './feedback.js';
 import type { AsaasWebhookPayload } from './types.js';
@@ -344,6 +344,41 @@ export const acceptDuoInvite = onCall(
         throw new HttpsError('failed-precondition', msg);
       }
       if (msg.includes('inválido')) {
+        throw new HttpsError('invalid-argument', msg);
+      }
+      throw new HttpsError('internal', msg);
+    }
+  }
+);
+
+/**
+ * Função Callable para desvinculação de parceiro do grupo Duo com permissões de Admin.
+ * Suporta execução tanto pelo titular (dono) quanto pelo parceiro convidado.
+ */
+export const disconnectDuoPartner = onCall(
+  {
+    cors: true,
+    maxInstances: 10
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError(
+        'unauthenticated',
+        'O usuário deve estar autenticado para desvincular do grupo Duo.'
+      );
+    }
+
+    try {
+      const data = request.data as DisconnectDuoPartnerRequest;
+      const result = await disconnectDuoPartnerBackend(data, request.auth.uid, { db });
+      return result;
+    } catch (err: any) {
+      console.error('[disconnectDuoPartner] Erro ao desvincular parceiro Duo:', err?.message || err);
+      const msg = err?.message || 'Falha ao desvincular do grupo Duo.';
+      if (msg.includes('não possui permissão')) {
+        throw new HttpsError('permission-denied', msg);
+      }
+      if (msg.includes('não fornecido') || msg.includes('não encontrado')) {
         throw new HttpsError('invalid-argument', msg);
       }
       throw new HttpsError('internal', msg);

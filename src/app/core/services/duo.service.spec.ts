@@ -244,13 +244,26 @@ describe('DuoService', () => {
       expect(group.partnerId).toBe('partner_222');
       expect(group.status).toBe('active');
     });
+  });
 
-    it('deve usar fallback mock quando acceptDuoInviteCallableFn não estiver configurada', async () => {
-      const group = await service.acceptInvite('DUO-5678', 'partner_333', 'ana@exemplo.com', 'Ana Paula');
+  describe('disconnectPartner', () => {
+    it('deve invocar disconnectDuoPartnerCallableFn passando o groupId', async () => {
+      service.disconnectDuoPartnerCallableFn = vi.fn().mockResolvedValue({
+        data: { success: true }
+      });
 
-      expect(group.id).toBe('group_mock');
-      expect(group.partnerId).toBe('partner_333');
-      expect(group.status).toBe('active');
+      await service.disconnectPartner('grp_duo_123');
+
+      expect(service.disconnectDuoPartnerCallableFn).toHaveBeenCalledWith({
+        groupId: 'grp_duo_123'
+      });
+    });
+
+    it('deve propagar erro quando a Cloud Function falhar', async () => {
+      service.disconnectDuoPartnerCallableFn = vi.fn().mockRejectedValue(new Error('Erro de permissão'));
+
+      await expect(service.disconnectPartner('grp_duo_123')).rejects.toThrow('Erro de permissão');
     });
   });
 });
+

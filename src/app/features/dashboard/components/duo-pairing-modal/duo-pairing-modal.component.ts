@@ -68,8 +68,8 @@ export class DuoPairingModalComponent {
 
     this.isLoading.set(true);
     try {
-      let group = await this.duoService.getDuoGroupForUser(user.uid);
-      if (!group && this.authStore.isDuo()) {
+      let group = await this.duoService.getDuoGroupForUser(user.uid, !!user.asaasSubscriptionId);
+      if (!group && this.authStore.isDuo() && user.asaasSubscriptionId) {
         group = await this.duoService.createOrGetDuoGroup(
           user.uid,
           user.email || '',
@@ -182,12 +182,22 @@ export class DuoPairingModalComponent {
 
     this.isDisconnectConfirmOpen.set(false);
     this.isLoading.set(true);
+    const wasOwner = this.isOwner();
     try {
       await this.duoService.disconnectPartner(group.id);
-      await this.loadGroupData();
-      this.notificationService.info('Parceiro desvinculado com sucesso.');
-    } catch (err) {
-      this.notificationService.error('Erro ao desvincular parceiro.');
+      if (!wasOwner) {
+        const currentUser = this.authStore.currentUser();
+        if (!currentUser?.asaasSubscriptionId) {
+          this.authStore.updateCurrentUser({ plan: 'free', duoPartnerId: null, duoGroupId: null });
+        }
+        this.notificationService.info('Você saiu do Modo Casal.');
+        this.close.emit();
+      } else {
+        await this.loadGroupData();
+        this.notificationService.info('Parceiro desvinculado com sucesso.');
+      }
+    } catch (err: any) {
+      this.notificationService.error(err?.message || 'Erro ao desvincular parceiro.');
     } finally {
       this.isLoading.set(false);
     }

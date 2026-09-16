@@ -23,6 +23,8 @@ export interface UserProfile {
   asaasSubscriptionId?: string | null;
   scheduledPlan?: PlanType | null;
   scheduledPlanDate?: string | null;
+  duoPartnerId?: string | null;
+  duoGroupId?: string | null;
   activeIncomeConfig?: ActiveIncomeConfig;
   preferences?: UserPreferences;
   createdAt?: string;

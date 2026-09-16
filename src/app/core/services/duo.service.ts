@@ -30,6 +30,7 @@ export class DuoService {
    * Mock/override da callable function para testes unitários
    */
   acceptDuoInviteCallableFn: ((data: any) => Promise<{ data: any }>) | null = null;
+  disconnectDuoPartnerCallableFn: ((data: any) => Promise<{ data: any }>) | null = null;
 
   private get db(): Firestore {
     if (!this.firebaseService) {
@@ -47,9 +48,10 @@ export class DuoService {
   }
 
   /**
-   * Busca o grupo Duo no qual o usuário é titular (owner) ou parceiro (partner)
+   * Busca o grupo Duo no qual o usuário é titular (owner) ou parceiro (partner).
+   * Se isPaidOwner for true, ignora registros residuais onde o usuário figurava como parceiro.
    */
-  async getDuoGroupForUser(userId: string): Promise<DuoGroup | null> {
+  async getDuoGroupForUser(userId: string, isPaidOwner?: boolean): Promise<DuoGroup | null> {
     if (!userId || userId.startsWith('e2e-')) return null;
 
     // 1. Busca se é titular
@@ -61,6 +63,10 @@ export class DuoService {
     if (!snapOwner.empty) {
       const docSnap = snapOwner.docs[0];
       return { id: docSnap.id, ...(docSnap.data() as Omit<DuoGroup, 'id'>) };
+    }
+
+    if (isPaidOwner) {
+      return null;
     }
 
     // 2. Busca se é parceiro
@@ -85,7 +91,7 @@ export class DuoService {
     ownerEmail: string,
     ownerName: string
   ): Promise<DuoGroup> {
-    const existing = await this.getDuoGroupForUser(ownerId);
+    const existing = await this.getDuoGroupForUser(ownerId, true);
     if (existing) {
       return existing;
     }
@@ -191,20 +197,30 @@ export class DuoService {
   }
 
   /**
-   * Desconecta o parceiro e reseta o status do grupo para pending
+   * Desconecta o parceiro e reseta o status do grupo para pending via Cloud Function segura
    */
   async disconnectPartner(groupId: string): Promise<void> {
-    const groupRef = doc(this.db, 'duo_groups', groupId);
-    let previousPartnerId: string | null = null;
-    try {
-      const snap = await getDoc(groupRef);
-      if (snap.exists()) {
-        previousPartnerId = snap.data()['partnerId'] || null;
-      }
-    } catch {
-      // Ignora erro de leitura prévia
+    if (this.disconnectDuoPartnerCallableFn) {
+      await this.disconnectDuoPartnerCallableFn({ groupId });
+      return;
     }
 
+    if (this.firebaseService?.app) {
+      try {
+        const callable = httpsCallable<any, any>(
+          getFunctions(this.firebaseService.app),
+          'disconnectDuoPartner'
+        );
+        await callable({ groupId });
+        return;
+      } catch (err: any) {
+        console.error('[DuoService] Erro ao desconectar parceiro Duo via Cloud Function:', err);
+        throw new Error(err?.message || 'Erro ao desconectar parceiro do Modo Casal.');
+      }
+    }
+
+    // Fallback Mock para testes unitários ou desconectados
+    const groupRef = doc(this.db, 'duo_groups', groupId);
     const newCode = this.generateInviteCode();
     await updateDoc(groupRef, {
       partnerId: null,
@@ -214,18 +230,6 @@ export class DuoService {
       inviteCode: newCode,
       updatedAt: new Date().toISOString()
     });
-
-    if (previousPartnerId) {
-      try {
-        const partnerUserRef = doc(this.db, 'users', previousPartnerId);
-        await updateDoc(partnerUserRef, {
-          plan: 'free',
-          updatedAt: new Date().toISOString()
-        });
-      } catch (e) {
-        console.warn('Erro ao retornar plano do parceiro para free:', e);
-      }
-    }
   }
 
   /**

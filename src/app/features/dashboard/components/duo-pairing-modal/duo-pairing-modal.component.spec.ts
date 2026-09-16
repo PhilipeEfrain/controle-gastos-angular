@@ -164,8 +164,8 @@ describe('DuoPairingModalComponent', () => {
     mockDuoService.disconnectPartner = vi.fn().mockResolvedValue(undefined);
     component.currentGroup.set({
       id: 'grp-active',
-      ownerId: 'user-1',
-      ownerEmail: 'user1@test.com',
+      ownerId: 'user-owner',
+      ownerEmail: 'owner@test.com',
       ownerName: 'User 1',
       partnerId: 'user-2',
       partnerEmail: 'user2@test.com',
@@ -194,5 +194,36 @@ describe('DuoPairingModalComponent', () => {
     expect(mockDuoService.disconnectPartner).toHaveBeenCalledWith('grp-active');
     expect(component.isDisconnectConfirmOpen()).toBe(false);
     expect(mockNotificationService.info).toHaveBeenCalledWith('Parceiro desvinculado com sucesso.');
+  });
+
+  it('Cenário BDD: deve permitir que o parceiro convidado se desvincule voluntariamente retornando ao plano free', async () => {
+    mockDuoService.disconnectPartner = vi.fn().mockResolvedValue(undefined);
+    component.currentGroup.set({
+      id: 'grp-active',
+      ownerId: 'user-titular',
+      ownerEmail: 'titular@test.com',
+      ownerName: 'Titular',
+      partnerId: 'user-owner', // usuário atual é o parceiro
+      partnerEmail: 'owner@test.com',
+      partnerName: 'Philipe',
+      inviteCode: 'DUO-9999',
+      status: 'active'
+    });
+
+    const closeSpy = vi.spyOn(component.close, 'emit');
+
+    component.onDisconnect();
+    expect(component.isDisconnectConfirmOpen()).toBe(true);
+
+    await component.confirmDisconnect();
+
+    expect(mockDuoService.disconnectPartner).toHaveBeenCalledWith('grp-active');
+    expect(mockAuthStore.updateCurrentUser).toHaveBeenCalledWith({
+      plan: 'free',
+      duoPartnerId: null,
+      duoGroupId: null
+    });
+    expect(mockNotificationService.info).toHaveBeenCalledWith('Você saiu do Modo Casal.');
+    expect(closeSpy).toHaveBeenCalled();
   });
 });

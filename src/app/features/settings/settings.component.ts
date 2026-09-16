@@ -79,6 +79,16 @@ export class SettingsComponent implements OnInit {
   readonly duoGroup = signal<DuoGroup | null>(null);
   readonly isDuoPairingModalOpen = signal<boolean>(false);
 
+  readonly isDuoOwner = computed(() => {
+    const group = this.duoGroup();
+    const user = this.authStore.currentUser();
+    if (!user) return false;
+    if (group) {
+      return group.ownerId === user.uid;
+    }
+    return !!user.asaasSubscriptionId;
+  });
+
   // Formulário de Troca de Cartão
   readonly cardNumber = signal<string>('');
   readonly cardHolderName = signal<string>('');
@@ -133,8 +143,8 @@ export class SettingsComponent implements OnInit {
     const user = this.authStore.currentUser();
     if (!user?.uid) return;
     try {
-      let group = await this.duoService.getDuoGroupForUser(user.uid);
-      if (!group && this.authStore.isDuo?.()) {
+      let group = await this.duoService.getDuoGroupForUser(user.uid, !!user.asaasSubscriptionId);
+      if (!group && this.authStore.isDuo?.() && user.asaasSubscriptionId) {
         group = await this.duoService.createOrGetDuoGroup(
           user.uid,
           user.email || '',

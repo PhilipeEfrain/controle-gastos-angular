@@ -326,8 +326,33 @@ describe('SettingsComponent', () => {
 
       await component.loadDuoGroup();
 
-      expect(mockDuoService.getDuoGroupForUser).toHaveBeenCalledWith('usr-999');
+      expect(mockDuoService.getDuoGroupForUser).toHaveBeenCalledWith('usr-999', true);
       expect(component.duoGroup()).toEqual(mockGroup);
+    });
+
+    it('Cenário BDD: deve renderizar visão de convidado com botão de sair do modo casal quando o usuário for parceiro convidado', () => {
+      (mockAuthStore.isDuo as any).set(true);
+      (mockAuthStore.currentPlan as any).set('duo');
+      (mockAuthStore.currentUser as any).set({ ...mockUser, asaasSubscriptionId: null });
+      component.duoGroup.set({
+        id: 'grp-duo-1',
+        ownerId: 'usr-titular-dono',
+        ownerEmail: 'titular@financas.com',
+        ownerName: 'Titular Oficial',
+        partnerId: 'usr-999',
+        partnerEmail: 'dev@financas.com',
+        partnerName: 'Carlos Silva',
+        inviteCode: 'DUO-7777',
+        status: 'active'
+      });
+      component.setTab('subscription');
+      fixture.detectChanges();
+
+      const el = fixture.nativeElement as HTMLElement;
+      expect(component.isDuoOwner()).toBe(false);
+      const leaveBtn = el.querySelector('#btn-settings-duo-leave') as HTMLButtonElement;
+      expect(leaveBtn).toBeTruthy();
+      expect(leaveBtn.textContent).toContain('Sair do Modo Casal');
     });
 
     it('deve abrir o modal de pareamento via openDuoPairingModal', () => {

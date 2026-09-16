@@ -361,7 +361,11 @@
                     </div>
                     <h3 class="plan-title">
                       @if (authStore.currentPlan() === 'duo') {
-                        Plano Casal / Duo
+                        @if (isDuoOwner()) {
+                          Plano Casal / Duo (Titular)
+                        } @else {
+                          Plano Casal / Duo (Convidado(a))
+                        }
                       } @else if (authStore.currentPlan() === 'pro') {
                         Plano Pro Individual
                       } @else {
@@ -371,8 +375,14 @@
                   </div>
 
                   <div class="plan-pricing">
-                    <span class="price-value">{{ getPlanPriceFormatted() }}</span>
-                    @if (authStore.currentPlan() !== 'free') {
+                    <span class="price-value">
+                      @if (authStore.currentPlan() === 'duo' && !isDuoOwner()) {
+                        Incluso 💕
+                      } @else {
+                        {{ getPlanPriceFormatted() }}
+                      }
+                    </span>
+                    @if (authStore.currentPlan() !== 'free' && (authStore.currentPlan() !== 'duo' || isDuoOwner())) {
                       <span class="price-cycle">/ mês</span>
                     }
                   </div>
@@ -390,6 +400,10 @@
                       <span class="expiry-label">Validade da Conta</span>
                       <strong class="expiry-date-value">Plano Gratuito Vitalício</strong>
                       <span class="expiry-desc">Sem renovações ou cobranças programadas.</span>
+                    } @else if (authStore.currentPlan() === 'duo' && !isDuoOwner()) {
+                      <span class="expiry-label">Vínculo Modo Casal</span>
+                      <strong class="expiry-date-value">Incluso pelo Titular ({{ duoGroup()?.ownerName || 'Dono da Conta' }})</strong>
+                      <span class="expiry-desc">Você usufrui dos benefícios do Plano Duo enquanto mantiver o pareamento ativo.</span>
                     } @else if (authStore.planStatus() === 'canceled') {
                       <span class="expiry-label">Acesso Garantido Até</span>
                       <strong class="expiry-date-value" id="plan-expiration-date">
@@ -455,6 +469,29 @@
                         <path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.12z" clip-rule="evenodd" />
                       </svg>
                       <span>Fazer Upgrade para o PRO (R$ 9,90/mês)</span>
+                    </button>
+                  } @else if (authStore.currentPlan() === 'duo' && !isDuoOwner()) {
+                    <button
+                      type="button"
+                      class="btn-outline-danger"
+                      (click)="openDuoPairingModal()"
+                      id="btn-leave-duo-settings"
+                    >
+                      <svg viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd" />
+                      </svg>
+                      <span>Sair do Modo Casal</span>
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-upgrade-duo"
+                      (click)="openUpgradeModal('duo')"
+                      id="btn-own-duo-plan"
+                    >
+                      <svg viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.12z" clip-rule="evenodd" />
+                      </svg>
+                      <span>Assinar Meu Próprio Plano Duo</span>
                     </button>
                   } @else {
                     @if (authStore.planStatus() !== 'canceled') {
@@ -534,51 +571,77 @@
                 <div class="duo-partner-settings-card">
                   <div class="duo-partner-header">
                     <div class="duo-partner-badge">MODO CASAL 💕</div>
-                    <h3 class="duo-partner-title">Gerenciamento do Parceiro(a)</h3>
-                    <p class="duo-partner-desc">
-                      Seu plano Duo permite conectar 2 contas com acesso completo e rateio 50/50.
-                    </p>
+                    @if (isDuoOwner()) {
+                      <h3 class="duo-partner-title">Gerenciamento do Parceiro(a)</h3>
+                      <p class="duo-partner-desc">
+                        Seu plano Duo permite conectar 2 contas com acesso completo e rateio 50/50.
+                      </p>
+                    } @else {
+                      <h3 class="duo-partner-title">Modo Casal Conectado</h3>
+                      <p class="duo-partner-desc">
+                        Você está conectado(a) com <strong>{{ duoGroup()?.ownerName || 'seu parceiro(a)' }}</strong>. Ambos dividem as despesas com sincronização e rateio 50/50.
+                      </p>
+                    }
                   </div>
 
                   <div class="duo-partner-body">
-                    @if (duoGroup()?.partnerId) {
+                    @if (isDuoOwner()) {
+                      @if (duoGroup()?.partnerId) {
+                        <div class="duo-partner-status status-connected">
+                          <div class="status-icon">✓</div>
+                          <div class="status-info">
+                            <span class="status-label">Parceiro(a) Conectado(a)</span>
+                            <strong class="partner-name">{{ duoGroup()?.partnerName || 'Parceiro(a)' }}</strong>
+                            <span class="partner-email">{{ duoGroup()?.partnerEmail }}</span>
+                          </div>
+                          <button
+                            type="button"
+                            class="btn-manage-duo-settings"
+                            (click)="openDuoPairingModal()"
+                            id="btn-settings-duo-manage"
+                          >
+                            Gerenciar / Desvincular
+                          </button>
+                        </div>
+                      } @else {
+                        <div class="duo-partner-status status-pending">
+                          <div class="status-icon">⏳</div>
+                          <div class="status-info">
+                            <span class="status-label">Pareamento Pendente</span>
+                            <strong class="partner-name">Nenhum parceiro conectado ainda</strong>
+                            <span class="partner-email">
+                              @if (duoGroup()?.partnerEmail) {
+                                E-mail pré-cadastrado: {{ duoGroup()?.partnerEmail }}
+                              } @else {
+                                Envie o código de convite ou cadastre o e-mail do seu parceiro.
+                              }
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            class="btn-connect-duo-settings"
+                            (click)="openDuoPairingModal()"
+                            id="btn-settings-duo-connect"
+                          >
+                            Conectar Parceiro(a) / Ver Código
+                          </button>
+                        </div>
+                      }
+                    } @else {
                       <div class="duo-partner-status status-connected">
-                        <div class="status-icon">✓</div>
+                        <div class="status-icon">💕</div>
                         <div class="status-info">
-                          <span class="status-label">Parceiro(a) Conectado(a)</span>
-                          <strong class="partner-name">{{ duoGroup()?.partnerName || 'Parceiro(a)' }}</strong>
-                          <span class="partner-email">{{ duoGroup()?.partnerEmail }}</span>
+                          <span class="status-label">Titular do Plano</span>
+                          <strong class="partner-name">{{ duoGroup()?.ownerName || 'Titular' }}</strong>
+                          <span class="partner-email">{{ duoGroup()?.ownerEmail }}</span>
                         </div>
                         <button
                           type="button"
                           class="btn-manage-duo-settings"
                           (click)="openDuoPairingModal()"
-                          id="btn-settings-duo-manage"
+                          id="btn-settings-duo-leave"
                         >
-                          Gerenciar / Desvincular
-                        </button>
-                      </div>
-                    } @else {
-                      <div class="duo-partner-status status-pending">
-                        <div class="status-icon">⏳</div>
-                        <div class="status-info">
-                          <span class="status-label">Pareamento Pendente</span>
-                          <strong class="partner-name">Nenhum parceiro conectado ainda</strong>
-                          <span class="partner-email">
-                            @if (duoGroup()?.partnerEmail) {
-                              E-mail pré-cadastrado: {{ duoGroup()?.partnerEmail }}
-                            } @else {
-                              Envie o código de convite ou cadastre o e-mail do seu parceiro.
-                            }
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          class="btn-connect-duo-settings"
-                          (click)="openDuoPairingModal()"
-                          id="btn-settings-duo-connect"
-                        >
-                          Conectar Parceiro(a) / Ver Código
+                          Sair do Modo Casal
                         </button>
                       </div>
                     }

@@ -101,3 +101,138 @@ export async function acceptDuoInviteBackend(
     message: 'Pareamento Duo concluído com sucesso!'
   };
 }
+
+export interface DisconnectDuoPartnerRequest {
+  groupId: string;
+}
+
+export interface DisconnectDuoPartnerResponse {
+  success: boolean;
+  message: string;
+  isOwner: boolean;
+}
+
+/**
+ * Gera um código de convite aleatório padronizado (ex: DUO-7842)
+ */
+export function generateDuoInviteCode(): string {
+  const randomDigits = Math.floor(1000 + Math.random() * 9000);
+  return `DUO-${randomDigits}`;
+}
+
+/**
+ * Limpa vínculos de grupos Duo antigos onde o usuário figurava como parceiro dependente.
+ * Usado quando o usuário contrata seu próprio plano Duo para torná-lo dono com autonomia.
+ */
+export async function cleanupOldDuoPartnerLinks(userId: string, db: Firestore): Promise<void> {
+  if (!userId) return;
+  const groupsRef = db.collection('duo_groups');
+  const snap = await groupsRef.where('partnerId', '==', userId).get();
+  const nowIso = new Date().toISOString();
+
+  for (const docSnap of snap.docs) {
+    const data = docSnap.data();
+    const newCode = generateDuoInviteCode();
+    await docSnap.ref.update({
+      partnerId: null,
+      partnerEmail: null,
+      partnerName: null,
+      status: 'pending',
+      inviteCode: newCode,
+      updatedAt: nowIso
+    });
+    if (data.ownerId) {
+      await db.collection('users').doc(data.ownerId).set({
+        duoPartnerId: null,
+        updatedAt: nowIso
+      }, { merge: true });
+    }
+  }
+}
+
+/**
+ * Desconecta parceiro do grupo Duo com privilégios Admin.
+ * Pode ser executado tanto pelo Titular (Dono) quanto pelo Parceiro Convidado.
+ */
+export async function disconnectDuoPartnerBackend(
+  payload: DisconnectDuoPartnerRequest,
+  callerUid: string,
+  deps: DuoDependencies
+): Promise<DisconnectDuoPartnerResponse> {
+  if (!callerUid || typeof callerUid !== 'string') {
+    throw new Error('Acesso não autenticado. Faça login para continuar.');
+  }
+
+  const groupId = (payload?.groupId || '').trim();
+  if (!groupId) {
+    throw new Error('Identificador do grupo Duo não fornecido.');
+  }
+
+  const { db } = deps;
+  const groupRef = db.collection('duo_groups').doc(groupId);
+  const groupSnap = await groupRef.get();
+
+  if (!groupSnap.exists) {
+    throw new Error('Grupo Duo não encontrado.');
+  }
+
+  const groupData = groupSnap.data() || {};
+  const ownerId = groupData.ownerId;
+  const currentPartnerId = groupData.partnerId;
+
+  if (callerUid !== ownerId && callerUid !== currentPartnerId) {
+    throw new Error('Você não possui permissão para gerenciar este grupo Duo.');
+  }
+
+  const nowIso = new Date().toISOString();
+  const newInviteCode = generateDuoInviteCode();
+
+  // 1. Atualiza o grupo Duo para status 'pending' e remove dados do parceiro
+  await groupRef.update({
+    partnerId: null,
+    partnerEmail: null,
+    partnerName: null,
+    status: 'pending',
+    inviteCode: newInviteCode,
+    updatedAt: nowIso
+  });
+
+  // 2. Limpa duoPartnerId no perfil do titular (mantém duoGroupId)
+  if (ownerId) {
+    const ownerUserRef = db.collection('users').doc(ownerId);
+    await ownerUserRef.set({
+      duoPartnerId: null,
+      updatedAt: nowIso
+    }, { merge: true });
+  }
+
+  // 3. Atualiza perfil do parceiro desvinculado (se existia)
+  if (currentPartnerId) {
+    const partnerUserRef = db.collection('users').doc(currentPartnerId);
+    const partnerUserSnap = await partnerUserRef.get();
+    const partnerUserData = partnerUserSnap.data() || {};
+
+    // Se o parceiro não possui assinatura própria ativa no Asaas, retorna para 'free'
+    const hasOwnSubscription = !!partnerUserData.asaasSubscriptionId && partnerUserData.planStatus === 'active';
+
+    const partnerUpdates: Record<string, any> = {
+      duoPartnerId: null,
+      duoGroupId: null,
+      updatedAt: nowIso
+    };
+
+    if (!hasOwnSubscription) {
+      partnerUpdates.plan = 'free';
+      partnerUpdates.planStatus = 'active';
+    }
+
+    await partnerUserRef.set(partnerUpdates, { merge: true });
+  }
+
+  const isOwner = callerUid === ownerId;
+  return {
+    success: true,
+    message: isOwner ? 'Parceiro desvinculado com sucesso.' : 'Você saiu do grupo Duo com sucesso.',
+    isOwner
+  };
+}
