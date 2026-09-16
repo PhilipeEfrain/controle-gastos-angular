@@ -1,23 +1,23 @@
 <div
   class="app-card"
-  [class.app-card--hoverable]="hoverable()"
-  [class.app-card--success]="variant() === 'success'"
-  [class.app-card--danger]="variant() === 'danger'"
-  [class.app-card--warning]="variant() === 'warning'"
-  [class.app-card--primary]="variant() === 'primary'"
-  [class.app-card--p-none]="padding() === 'none'"
-  [class.app-card--p-sm]="padding() === 'sm'"
-  [class.app-card--p-md]="padding() === 'md'"
-  [class.app-card--p-lg]="padding() === 'lg'"
+  [class.app-card--hoverable]="hoverable"
+  [class.app-card--success]="variant === 'success'"
+  [class.app-card--danger]="variant === 'danger'"
+  [class.app-card--warning]="variant === 'warning'"
+  [class.app-card--primary]="variant === 'primary'"
+  [class.app-card--p-none]="padding === 'none'"
+  [class.app-card--p-sm]="padding === 'sm'"
+  [class.app-card--p-md]="padding === 'md'"
+  [class.app-card--p-lg]="padding === 'lg'"
 >
-  @if (title() || subtitle()) {
+  @if (title || subtitle) {
     <header class="app-card__header">
       <div class="app-card__header-titles">
-        @if (title()) {
-          <h3 class="app-card__title">{{ title() }}</h3>
+        @if (title) {
+          <h3 class="app-card__title">{{ title }}</h3>
         }
-        @if (subtitle()) {
-          <p class="app-card__subtitle">{{ subtitle() }}</p>
+        @if (subtitle) {
+          <p class="app-card__subtitle">{{ subtitle }}</p>
         }
       </div>
       <div class="app-card__header-actions">

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, input } from '@angular/core';
+import { Component, ChangeDetectionStrategy, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 export type CardVariant = 'default' | 'success' | 'danger' | 'warning' | 'primary';
@@ -13,9 +13,9 @@ export type CardPadding = 'none' | 'sm' | 'md' | 'lg';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppCardComponent {
-  readonly title = input<string>();
-  readonly subtitle = input<string>();
-  readonly variant = input<CardVariant>('default');
-  readonly padding = input<CardPadding>('md');
-  readonly hoverable = input<boolean>(false);
+  @Input() title?: string;
+  @Input() subtitle?: string;
+  @Input() variant: CardVariant = 'default';
+  @Input() padding: CardPadding = 'md';
+  @Input() hoverable: boolean = false;
 }
