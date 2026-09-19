@@ -18,6 +18,7 @@ import { NavigationModalService } from '../../services/navigation-modal.service'
 import { BrandLogoComponent } from '../../../shared/components/brand-logo/brand-logo.component';
 import { SubscriptionModalComponent } from '../../../shared/components/subscription-modal/subscription-modal.component';
 import { FeedbackModalComponent } from '../../../shared/components/feedback-modal/feedback-modal.component';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-navbar',
@@ -53,6 +54,8 @@ export class NavbarComponent {
   readonly canInstall = this.pwaService.canInstall;
   readonly isDark = this.themeService.isDark;
   readonly currentTheme = this.themeService.currentTheme;
+  readonly isDevMode = !environment.production;
+  readonly devEnvironmentLabel = (environment as any).useEmulators ? 'EMULATOR' : 'SANDBOX';
 
   readonly themeTooltip = computed(() => {
     const theme = this.currentTheme();

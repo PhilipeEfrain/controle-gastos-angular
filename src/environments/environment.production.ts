@@ -1,5 +1,6 @@
 export const environment = {
   production: true,
+  useEmulators: false,
   firebase: {
     projectId: 'controle-gastos-app-36264',
     appId: '1:562686483207:web:8f8fb528069c1af4b083a2',

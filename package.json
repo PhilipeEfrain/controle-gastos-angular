@@ -9,7 +9,10 @@
     "test": "ng test",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "deploy:rules": "firebase deploy --only firestore:rules"
+    "deploy:rules": "firebase deploy --only firestore:rules",
+    "deploy:rules:dev": "firebase deploy --only firestore:rules --project development",
+    "deploy:rules:prod": "firebase deploy --only firestore:rules --project production",
+    "emulators": "firebase emulators:start"
   },
   "private": true,
   "packageManager": "npm@11.17.0",

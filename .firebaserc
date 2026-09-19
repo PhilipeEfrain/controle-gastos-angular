@@ -1,5 +1,7 @@
 {
   "projects": {
-    "default": "controle-gastos-app-36264"
+    "default": "controle-gastos-app-36264",
+    "production": "controle-gastos-app-36264",
+    "development": "controle-gastos-dev"
   }
 }

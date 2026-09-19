@@ -5,6 +5,9 @@
       <a routerLink="/dashboard" (click)="closeAllMenus()" class="brand-link">
         <app-brand-logo [size]="'sm'" />
         <span class="beta-badge" title="Versão em Acesso Antecipado">Beta</span>
+        @if (isDevMode) {
+          <span class="dev-badge" [title]="'Ambiente de Testes: ' + devEnvironmentLabel">{{ devEnvironmentLabel }}</span>
+        }
       </a>
     </div>
 
