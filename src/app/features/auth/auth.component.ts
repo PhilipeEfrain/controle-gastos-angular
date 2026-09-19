@@ -7,6 +7,7 @@ import { AuthStore } from '../../core/state/auth.store';
 import { EarlyAccessService } from '../../core/services/early-access.service';
 import { AppCardComponent } from '../../shared/components/app-card/app-card.component';
 import { BrandLogoComponent } from '../../shared/components/brand-logo/brand-logo.component';
+import { environment } from '../../../environments/environment';
 
 export type AuthTab = 'login' | 'register' | 'forgot';
 
@@ -26,6 +27,7 @@ export class AuthComponent {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
+  readonly isDevMode = !environment.production && environment.useEmulators;
   readonly activeTab = signal<AuthTab>('login');
   readonly isLoading = signal<boolean>(false);
   readonly errorMessage = signal<string | null>(null);
@@ -59,6 +61,14 @@ export class AuthComponent {
     this.activeTab.set(tab);
     this.errorMessage.set(null);
     this.successMessage.set(null);
+  }
+
+  fillAdminCredentials(): void {
+    this.setTab('login');
+    this.loginForm.patchValue({
+      email: 'admin@quinzena.local',
+      password: 'admin123'
+    });
   }
 
   togglePasswordVisibility(): void {

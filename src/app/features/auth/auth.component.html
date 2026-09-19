@@ -159,6 +159,25 @@
               <span>Acessar Meu Painel</span>
             }
           </button>
+
+          @if (isDevMode) {
+            <div class="auth-dev-helper" id="auth-dev-helper">
+              <div class="auth-dev-helper__header">
+                <span class="auth-dev-helper__badge">DEV [Emulador]</span>
+                <span class="auth-dev-helper__info">Ambiente Local Seguro</span>
+              </div>
+              <div class="auth-dev-helper__actions">
+                <button
+                  type="button"
+                  class="auth-dev-helper__btn"
+                  (click)="fillAdminCredentials()"
+                  title="Preencher com credenciais do Administrador local (admin@quinzena.local / admin123)"
+                >
+                  ⚡ Preencher Admin Dev (admin@quinzena.local)
+                </button>
+              </div>
+            </div>
+          }
         </form>
       }
 
