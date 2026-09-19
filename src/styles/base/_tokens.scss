@@ -52,6 +52,8 @@
   --color-surface: var(--bg-surface);
   --color-surface-elevated: var(--bg-surface-elevated);
   --color-surface-hover: var(--bg-surface-hover);
+  --color-bg: var(--color-background);
+  --color-text: var(--color-text-primary);
 
   // Bordas e Divisores
   --border-color: rgba(245, 242, 233, 0.09);
@@ -255,4 +257,215 @@
   --shadow-glow-primary: 0 0 20px rgba(59, 130, 246, 0.25);
   --shadow-glow-success: 0 0 20px rgba(16, 185, 129, 0.25);
 }
+
+// ========================================================
+// NOVO TEMA: Electric Sky & Midnight (Fintech Moderna)
+// ========================================================
+[data-theme='electric-sky'] {
+  --color-primary: #0ea5e9;
+  --color-primary-hover: #0284c7;
+  --color-primary-light: #7dd3fc;
+  --color-primary-bg: rgba(14, 165, 233, 0.12);
+  --color-primary-border: rgba(14, 165, 233, 0.35);
+  --color-accent: #38bdf8;
+
+  --btn-primary-bg: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%);
+  --btn-primary-hover-bg: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
+  --btn-primary-text: #ffffff;
+  --btn-primary-border: rgba(56, 189, 248, 0.4);
+  --btn-primary-shadow: 0 4px 14px rgba(14, 165, 233, 0.35);
+
+  --color-success: #06b6d4;
+  --color-success-hover: #22d3ee;
+  --color-success-bg: rgba(6, 182, 212, 0.12);
+  --color-success-border: rgba(6, 182, 212, 0.28);
+  --color-success-light: #67e8f9;
+
+  --color-danger: #f43f5e;
+  --color-danger-hover: #e11d48;
+  --color-danger-bg: rgba(244, 63, 94, 0.12);
+  --color-danger-border: rgba(244, 63, 94, 0.28);
+  --color-danger-light: #fb7185;
+
+  --color-warning: #f59e0b;
+  --color-warning-hover: #d97706;
+  --color-warning-bg: rgba(245, 158, 11, 0.12);
+  --color-warning-border: rgba(245, 158, 11, 0.28);
+
+  --bg-app: #090d16;
+  --bg-surface: #111827;
+  --bg-surface-elevated: #1e293b;
+  --bg-surface-hover: #26354d;
+
+  --color-background: var(--bg-app);
+  --color-surface: var(--bg-surface);
+  --color-surface-elevated: var(--bg-surface-elevated);
+  --color-surface-hover: var(--bg-surface-hover);
+
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-color-focus: rgba(14, 165, 233, 0.5);
+
+  --color-border: var(--border-color);
+  --color-border-focus: var(--border-color-focus);
+
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+
+  --glass-bg: rgba(17, 24, 39, 0.85);
+  --glass-border: rgba(56, 189, 248, 0.12);
+  --glass-blur: blur(16px);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.25);
+  --shadow-glow-primary: 0 0 20px rgba(14, 165, 233, 0.3);
+  --shadow-glow-success: 0 0 20px rgba(6, 182, 212, 0.3);
+}
+
+// ========================================================
+// NOVO TEMA: Deep Cobalt & Titanium (Confiança Bancária)
+// ========================================================
+[data-theme='deep-cobalt'] {
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-light: #93c5fd;
+  --color-primary-bg: rgba(37, 99, 235, 0.12);
+  --color-primary-border: rgba(37, 99, 235, 0.35);
+  --color-accent: #60a5fa;
+
+  --btn-primary-bg: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+  --btn-primary-hover-bg: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%);
+  --btn-primary-text: #ffffff;
+  --btn-primary-border: rgba(96, 165, 250, 0.4);
+  --btn-primary-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+
+  --color-success: #14b8a6;
+  --color-success-hover: #2dd4bf;
+  --color-success-bg: rgba(20, 184, 166, 0.12);
+  --color-success-border: rgba(20, 184, 166, 0.28);
+  --color-success-light: #5eead4;
+
+  --color-danger: #ef4444;
+  --color-danger-hover: #dc2626;
+  --color-danger-bg: rgba(239, 68, 68, 0.12);
+  --color-danger-border: rgba(239, 68, 68, 0.28);
+  --color-danger-light: #f87171;
+
+  --color-warning: #f59e0b;
+  --color-warning-hover: #d97706;
+  --color-warning-bg: rgba(245, 158, 11, 0.12);
+  --color-warning-border: rgba(245, 158, 11, 0.28);
+
+  --bg-app: #070b14;
+  --bg-surface: #0f172a;
+  --bg-surface-elevated: #1e293b;
+  --bg-surface-hover: #283548;
+
+  --color-background: var(--bg-app);
+  --color-surface: var(--bg-surface);
+  --color-surface-elevated: var(--bg-surface-elevated);
+  --color-surface-hover: var(--bg-surface-hover);
+
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-color-focus: rgba(37, 99, 235, 0.5);
+
+  --color-border: var(--border-color);
+  --color-border-focus: var(--border-color-focus);
+
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+
+  --glass-bg: rgba(15, 23, 42, 0.85);
+  --glass-border: rgba(96, 165, 250, 0.12);
+  --glass-blur: blur(16px);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.25);
+  --shadow-glow-primary: 0 0 20px rgba(37, 99, 235, 0.3);
+  --shadow-glow-success: 0 0 20px rgba(20, 184, 166, 0.3);
+}
+
+// ========================================================
+// NOVO TEMA: Obsidiana & Aurora (Minimalista OLED)
+// ========================================================
+[data-theme='obsidian'] {
+  --color-primary: #6366f1;
+  --color-primary-hover: #4f46e5;
+  --color-primary-light: #a5b4fc;
+  --color-primary-bg: rgba(99, 102, 241, 0.12);
+  --color-primary-border: rgba(99, 102, 241, 0.35);
+  --color-accent: #38bdf8;
+
+  --btn-primary-bg: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+  --btn-primary-hover-bg: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%);
+  --btn-primary-text: #ffffff;
+  --btn-primary-border: rgba(165, 180, 252, 0.4);
+  --btn-primary-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+
+  --color-success: #00d2b4;
+  --color-success-hover: #2dd4bf;
+  --color-success-bg: rgba(0, 210, 180, 0.12);
+  --color-success-border: rgba(0, 210, 180, 0.28);
+  --color-success-light: #5eead4;
+
+  --color-danger: #e11d48;
+  --color-danger-hover: #be123c;
+  --color-danger-bg: rgba(225, 29, 72, 0.12);
+  --color-danger-border: rgba(225, 29, 72, 0.28);
+  --color-danger-light: #fb7185;
+
+  --color-warning: #f59e0b;
+  --color-warning-hover: #d97706;
+  --color-warning-bg: rgba(245, 158, 11, 0.12);
+  --color-warning-border: rgba(245, 158, 11, 0.28);
+
+  --bg-app: #0a0a0c;
+  --bg-surface: #141418;
+  --bg-surface-elevated: #1e1e24;
+  --bg-surface-hover: #282832;
+
+  --color-background: var(--bg-app);
+  --color-surface: var(--bg-surface);
+  --color-surface-elevated: var(--bg-surface-elevated);
+  --color-surface-hover: var(--bg-surface-hover);
+
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-color-focus: rgba(99, 102, 241, 0.5);
+
+  --color-border: var(--border-color);
+  --color-border-focus: var(--border-color-focus);
+
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+
+  --glass-bg: rgba(20, 20, 24, 0.85);
+  --glass-border: rgba(165, 180, 252, 0.12);
+  --glass-blur: blur(16px);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.55);
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.35), 0 2px 4px -1px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.45), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  --shadow-glow-primary: 0 0 20px rgba(99, 102, 241, 0.3);
+  --shadow-glow-success: 0 0 20px rgba(0, 210, 180, 0.3);
+}
+
 

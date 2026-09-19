@@ -61,10 +61,10 @@ export class LandingComponent implements OnInit {
       description: 'Acompanhe o progresso de cada compra a prazo (ex: 3/10) e realize quitação antecipada ou cancelamento de parcelas futuras em lote.'
     },
     {
-      icon: '✈️',
-      badge: 'Colaborativo',
-      title: 'Gastos de Viagem & Rateio',
-      description: 'Registre gastos de viagens com múltiplos participantes, separe itens individuais de compartilhados e gere cobranças formatadas para WhatsApp e Pix.'
+      icon: '🤝',
+      badge: 'Novo · Grátis',
+      title: 'Quinzena Dividir (Rolês & Restaurante)',
+      description: 'Divida contas de viagens, churrascos e comandas de bar/restaurante com taxa de 10% e couvert. Seus amigos acessam pelo link e pagam direto via PIX — sem precisar instalar nada.'
     },
     {
       icon: '🏛️',

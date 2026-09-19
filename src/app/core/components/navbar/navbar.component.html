@@ -55,7 +55,19 @@
         <span>Compromissos</span>
       </a>
 
-      <!-- 4. Espaço Casal (Condicional Duo) -->
+      <!-- 4. Quinzena Dividir (Rolê & Restaurante) -->
+      <a
+        routerLink="/dividir"
+        routerLinkActive="active"
+        class="nav-link"
+        id="nav-dividir"
+        title="Quinzena Dividir — Rateio de Contas e Restaurante"
+      >
+        <span class="nav-emoji">🤝</span>
+        <span>Dividir</span>
+      </a>
+
+      <!-- 5. Espaço Casal (Condicional Duo) -->
       @if (isDuo() || currentPlan() === 'duo') {
         <button
           type="button"
@@ -70,7 +82,7 @@
         </button>
       }
 
-      <!-- 5. Relatórios & Dossiê (Dropdown Semântico) -->
+      <!-- 6. Relatórios & Dossiê (Dropdown Semântico) -->
       <div class="nav-dropdown-wrapper">
         <button
           type="button"
@@ -93,6 +105,21 @@
 
         @if (isReportsMenuOpen()) {
           <div class="nav-dropdown-menu" role="menu">
+            <a
+              routerLink="/dividir"
+              (click)="closeReportsMenu()"
+              class="dropdown-item"
+              id="dropdown-dividir"
+              role="menuitem"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="dropdown-item-icon">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
+              </svg>
+              <div class="dropdown-item-content">
+                <span class="item-title">Dividir Contas</span>
+                <span class="item-desc">Divisão de despesas de rolês e restaurante</span>
+              </div>
+            </a>
             <a
               routerLink="/tributos"
               (click)="closeReportsMenu()"
@@ -156,13 +183,25 @@
         [attr.aria-label]="themeTooltip()"
         id="btn-navbar-theme"
       >
-        @if (currentTheme() === 'dark') {
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
+        @if (currentTheme() === 'deep-cobalt') {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon theme-icon-cobalt">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+          </svg>
+        } @else if (currentTheme() === 'electric-sky') {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon theme-icon-electric">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" />
+          </svg>
+        } @else if (currentTheme() === 'obsidian') {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon theme-icon-obsidian">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
           </svg>
         } @else if (currentTheme() === 'dark-blue') {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon theme-icon-blue">
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+        } @else if (currentTheme() === 'dark') {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon theme-icon-dark-green">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
           </svg>
         } @else {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon theme-icon-sun">
@@ -481,7 +520,20 @@
 
       <!-- Seção: Relatórios & Tributos -->
       <div class="drawer-group">
-        <span class="drawer-group-title">Relatórios & Planejamento</span>
+        <span class="drawer-group-title">Divisão & Planejamento</span>
+        <a
+          routerLink="/dividir"
+          (click)="closeMobileMenu()"
+          class="mobile-nav-link"
+          id="mobile-nav-dividir"
+        >
+          <span class="drawer-emoji">🤝</span>
+          <div class="drawer-link-text">
+            <span class="drawer-link-main">Dividir Contas</span>
+            <span class="drawer-link-sub">Rolês em grupo e comanda de restaurante</span>
+          </div>
+        </a>
+
         <a
           routerLink="/tributos"
           (click)="closeMobileMenu()"
@@ -584,27 +636,57 @@
           class="mobile-nav-link mobile-theme-btn"
           (click)="toggleTheme()"
         >
-          @if (currentTheme() === 'dark') {
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="drawer-icon">
+          @if (currentTheme() === 'deep-cobalt') {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="drawer-icon theme-icon-cobalt">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+            </svg>
+            <div class="drawer-link-text">
+              <span class="drawer-link-main">Tema: Cobalto & Titanium (Padrão)</span>
+              <span class="drawer-link-sub">Toque para alternar</span>
+            </div>
+          } @else if (currentTheme() === 'electric-sky') {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="drawer-icon theme-icon-electric">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" />
+            </svg>
+            <div class="drawer-link-text">
+              <span class="drawer-link-main">Tema: Electric Sky</span>
+              <span class="drawer-link-sub">Toque para alternar</span>
+            </div>
+          } @else if (currentTheme() === 'obsidian') {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="drawer-icon theme-icon-obsidian">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
+            </svg>
+            <div class="drawer-link-text">
+              <span class="drawer-link-main">Tema: Obsidiana OLED</span>
+              <span class="drawer-link-sub">Toque para alternar</span>
+            </div>
+          } @else if (currentTheme() === 'dark-blue') {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="drawer-icon theme-icon-blue">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+            <div class="drawer-link-text">
+              <span class="drawer-link-main">Tema: Escuro Azul (Original)</span>
+              <span class="drawer-link-sub">Toque para alternar</span>
+            </div>
+          } @else if (currentTheme() === 'dark') {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="drawer-icon theme-icon-dark-green">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
             </svg>
             <div class="drawer-link-text">
               <span class="drawer-link-main">Tema: Escuro Quinzena</span>
               <span class="drawer-link-sub">Toque para alternar</span>
             </div>
-          } @else if (currentTheme() === 'dark-blue') {
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="drawer-icon">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-            </svg>
-            <div class="drawer-link-text">
-              <span class="drawer-link-main">Tema: Escuro Azul</span>
-              <span class="drawer-link-sub">Toque para alternar</span>
-            </div>
           } @else {
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="drawer-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="drawer-icon theme-icon-sun">
               <circle cx="12" cy="12" r="5" />
               <line x1="12" y1="1" x2="12" y2="3" />
               <line x1="12" y1="21" x2="12" y2="23" />
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+              <line x1="1" y1="12" x2="3" y2="12" />
+              <line x1="21" y1="12" x2="23" y2="12" />
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
             </svg>
             <div class="drawer-link-text">
               <span class="drawer-link-main">Tema: Modo Claro</span>

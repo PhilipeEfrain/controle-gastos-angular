@@ -206,11 +206,14 @@ export class SettingsComponent implements OnInit {
       }).catch(err => console.warn('Erro ao sincronizar preferência de tema no Firestore:', err));
     }
     const themeLabels: Record<AppTheme, string> = {
-      'dark': 'Escuro Quinzena',
+      'electric-sky': 'Electric Sky (Azul Fintech)',
       'dark-blue': 'Escuro Azul (Original)',
+      'deep-cobalt': 'Cobalto & Titanium',
+      'obsidian': 'Obsidiana OLED',
+      'dark': 'Escuro Quinzena',
       'light': 'Modo Claro'
     };
-    this.notificationService.info(`Tema alterado para ${themeLabels[theme]}.`);
+    this.notificationService.info(`Tema alterado para ${themeLabels[theme] || theme}.`);
   }
 
   async onSendPasswordReset(): Promise<void> {

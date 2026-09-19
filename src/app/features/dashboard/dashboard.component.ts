@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { FinanceStore } from '../../core/state/finance.store';
 import { AuthStore } from '../../core/state/auth.store';
 import { ExpenseService } from '../../core/services/expense.service';
@@ -78,7 +78,8 @@ import { ExpiringDataModalComponent } from './components/expiring-data-modal/exp
     CaixinhaModalComponent,
     ConfirmationModalComponent,
     ExpiringDataBannerComponent,
-    ExpiringDataModalComponent
+    ExpiringDataModalComponent,
+    RouterLink
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],

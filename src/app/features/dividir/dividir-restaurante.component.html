@@ -1,0 +1,479 @@
+<div class="restaurante-wrapper">
+  <!-- Cabeçalho do Local & Participantes -->
+  <app-card class="section-card">
+    <div class="card-header-row">
+      <div class="header-titles">
+        <span class="step-badge">Passo 1</span>
+        <h2 class="card-title">Mesa e Participantes</h2>
+        <p class="card-subtitle">Informe o local e quem está dividindo a conta com você.</p>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group full-width">
+        <label for="placeName">Nome do restaurante ou bar (opcional)</label>
+        <input
+          id="placeName"
+          type="text"
+          [(ngModel)]="placeName"
+          placeholder="Ex: Bar do Zé, Coco Bambu, Outback..."
+          class="input-field"
+        />
+      </div>
+
+      <div class="form-group full-width">
+        <label>Quem está na mesa?</label>
+        <div class="participant-input-row">
+          <input
+            type="text"
+            [(ngModel)]="newParticipantName"
+            placeholder="Nome do amigo (ex: Lucas, Mari...)"
+            class="input-field"
+            (keydown.enter)="$event.preventDefault(); addParticipant()"
+          />
+          <button type="button" class="btn-secondary" (click)="addParticipant()">
+            + Adicionar
+          </button>
+        </div>
+
+        <div class="participants-chips">
+          @for (p of participants(); track p.id) {
+            <div class="participant-chip">
+              <span class="chip-name">{{ p.name }}</span>
+              <button
+                type="button"
+                class="chip-remove"
+                title="Remover participante"
+                (click)="removeParticipant(p.id)"
+              >
+                &times;
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </app-card>
+
+  <!-- Escolha do Método de Divisão -->
+  <app-card class="section-card">
+    <div class="card-header-row">
+      <div class="header-titles">
+        <span class="step-badge">Passo 2</span>
+        <h2 class="card-title">Como deseja lançar a conta?</h2>
+        <p class="card-subtitle">Escolha o modo mais prático para o seu grupo.</p>
+      </div>
+    </div>
+
+    <div class="method-selector">
+      <button
+        type="button"
+        class="method-tab"
+        [class.active]="method() === 'by_item'"
+        (click)="method.set('by_item')"
+      >
+        <div class="method-icon">🧾</div>
+        <div class="method-info">
+          <strong>Por Itens (Comanda)</strong>
+          <span>Lance cada prato ou bebida e marque quem consumiu</span>
+        </div>
+      </button>
+
+      <button
+        type="button"
+        class="method-tab"
+        [class.active]="method() === 'by_person'"
+        (click)="method.set('by_person')"
+      >
+        <div class="method-icon">👤</div>
+        <div class="method-info">
+          <strong>Por Pessoa (Direto)</strong>
+          <span>Informe o total consumido por cada um diretamente</span>
+        </div>
+      </button>
+    </div>
+
+    <!-- MODO 1: POR ITENS -->
+    @if (method() === 'by_item') {
+      <div class="by-item-container">
+        <!-- Formulário Adicionar Item -->
+        <div class="add-item-box">
+          <h3 class="box-title">Adicionar item da conta</h3>
+          <div class="item-inputs-row">
+            <div class="form-group flex-2">
+              <label for="itemDesc">Descrição do prato ou bebida</label>
+              <input
+                id="itemDesc"
+                type="text"
+                [(ngModel)]="newItemDescription"
+                placeholder="Ex: Porção de fritas, Chopp, Pizza grande..."
+                class="input-field"
+                (keydown.enter)="$event.preventDefault(); addItem()"
+              />
+            </div>
+            <div class="form-group flex-1">
+              <label for="itemPrice">Valor (R$)</label>
+              <input
+                id="itemPrice"
+                type="number"
+                step="0.01"
+                min="0"
+                [(ngModel)]="newItemPrice"
+                placeholder="0,00"
+                class="input-field"
+                (keydown.enter)="$event.preventDefault(); addItem()"
+              />
+            </div>
+          </div>
+
+          <div class="assign-section">
+            <div class="assign-header">
+              <label>Quem consumiu este item?</label>
+              <button type="button" class="btn-text-action" (click)="selectAllForNewItem()">
+                Marcar todos da mesa
+              </button>
+            </div>
+            <div class="assign-chips">
+              @for (p of participants(); track p.id) {
+                <button
+                  type="button"
+                  class="select-chip"
+                  [class.selected]="newItemParticipantIds().includes(p.id)"
+                  (click)="toggleNewItemParticipant(p.id)"
+                >
+                  <span class="check-icon">✓</span>
+                  {{ p.name }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="add-item-footer">
+            @if (newItemPerPersonPreview()) {
+              <span class="preview-item-rateio">
+                ⚡ {{ newItemPerPersonPreview() }}
+              </span>
+            }
+            <button type="button" class="btn-primary" (click)="addItem()">
+              + Inserir item na comanda
+            </button>
+          </div>
+        </div>
+
+        <!-- Lista de Itens Adicionados -->
+        <div class="items-list-box">
+          <div class="items-header">
+            <h4>Itens lançados ({{ items().length }})</h4>
+            <span class="subtotal-indicator">
+              Subtotal: <strong>{{ formatMoney(billResult().subtotalItems) }}</strong>
+            </span>
+          </div>
+
+          @if (items().length === 0) {
+            <div class="empty-items-notice">
+              <span>🧾 Nenhum item adicionado ainda. Preencha o formulário acima para lançar o primeiro prato ou bebida.</span>
+            </div>
+          } @else {
+            <div class="items-cards">
+              @for (item of items(); track item.id) {
+                <div class="item-row-card">
+                  <div class="item-main">
+                    <span class="item-title">{{ item.description }}</span>
+                    <span class="item-participants-list">
+                      Consumido por: {{ getParticipantNamesForItem(item.participantIds) }}
+                    </span>
+                  </div>
+                  <div class="item-actions">
+                    <span class="item-price-tag">{{ formatMoney(item.price) }}</span>
+                    <button
+                      type="button"
+                      class="btn-icon-delete"
+                      title="Excluir item"
+                      (click)="removeItem(item.id)"
+                    >
+                      <svg viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- MODO 2: POR PESSOA -->
+    @if (method() === 'by_person') {
+      <div class="by-person-container">
+        <h3 class="box-title">Consumo individual de cada participante</h3>
+        <p class="box-help">Digite o valor de consumo registrado para cada pessoa:</p>
+
+        <div class="direct-grid">
+          @for (p of participants(); track p.id) {
+            <div class="direct-card">
+              <label [for]="'person-' + p.id">{{ p.name }}</label>
+              <div class="input-prefix-wrapper">
+                <span class="prefix">R$</span>
+                <input
+                  [id]="'person-' + p.id"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  [value]="getDirectConsumption(p.id) || ''"
+                  (input)="updateDirectConsumption(p.id, $any($event.target).value)"
+                  placeholder="0,00"
+                  class="input-field"
+                />
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="shared-table-box">
+          <div class="shared-header">
+            <div>
+              <strong>Consumo compartilhado da mesa (opcional)</strong>
+              <p>Itens divididos igualmente entre todos (ex: couvert coletivo, porções gerais, jarra de suco):</p>
+            </div>
+            <div class="input-prefix-wrapper compact">
+              <span class="prefix">R$</span>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                [ngModel]="sharedTableAmount()"
+                (ngModelChange)="sharedTableAmount.set($event || 0)"
+                placeholder="0,00"
+                class="input-field"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  </app-card>
+
+  <!-- Passo 3: Taxas, Couvert e Pagamento -->
+  <app-card class="section-card">
+    <div class="card-header-row">
+      <div class="header-titles">
+        <span class="step-badge">Passo 3</span>
+        <h2 class="card-title">Taxas de Serviço e Couvert</h2>
+        <p class="card-subtitle">Configure se haverá acréscimo dos 10% do garçom e couvert artístico.</p>
+      </div>
+    </div>
+
+    <div class="fees-container">
+      <!-- Taxa de Serviço / Garçom -->
+      <div class="fee-card" [class.enabled]="hasServiceFee()">
+        <div class="fee-header">
+          <label class="toggle-control">
+            <input
+              type="checkbox"
+              [ngModel]="hasServiceFee()"
+              (ngModelChange)="hasServiceFee.set($event)"
+            />
+            <span class="toggle-slider"></span>
+            <span class="toggle-label">Taxa de Serviço / Garçom</span>
+          </label>
+
+          @if (hasServiceFee()) {
+            <div class="percentage-badge">
+              <input
+                type="number"
+                min="0"
+                max="100"
+                [ngModel]="serviceFeePercentage()"
+                (ngModelChange)="serviceFeePercentage.set($event || 0)"
+                class="compact-number-input"
+              />
+              <span>%</span>
+            </div>
+          }
+        </div>
+
+        @if (hasServiceFee()) {
+          <div class="fee-options">
+            <span class="options-title">Forma de rateio da taxa:</span>
+            <div class="radio-pills">
+              <label class="radio-pill" [class.active]="serviceFeeMode() === 'proportional'">
+                <input
+                  type="radio"
+                  name="serviceMode"
+                  value="proportional"
+                  [checked]="serviceFeeMode() === 'proportional'"
+                  (change)="serviceFeeMode.set('proportional')"
+                />
+                <span>Proporcional ao consumo (Justo)</span>
+              </label>
+              <label class="radio-pill" [class.active]="serviceFeeMode() === 'equal'">
+                <input
+                  type="radio"
+                  name="serviceMode"
+                  value="equal"
+                  [checked]="serviceFeeMode() === 'equal'"
+                  (change)="serviceFeeMode.set('equal')"
+                />
+                <span>Dividir em partes iguais</span>
+              </label>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Couvert Artístico -->
+      <div class="fee-card" [class.enabled]="hasCouvert()">
+        <div class="fee-header">
+          <label class="toggle-control">
+            <input
+              type="checkbox"
+              [ngModel]="hasCouvert()"
+              (ngModelChange)="hasCouvert.set($event)"
+            />
+            <span class="toggle-slider"></span>
+            <span class="toggle-label">Couvert Artístico (música ao vivo)</span>
+          </label>
+
+          @if (hasCouvert()) {
+            <div class="couvert-value-input">
+              <span>R$</span>
+              <input
+                type="number"
+                step="0.50"
+                min="0"
+                [ngModel]="couvertPerPerson()"
+                (ngModelChange)="couvertPerPerson.set($event || 0)"
+                class="compact-number-input"
+              />
+              <span class="per-person-text">/ pessoa</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Pagamento e PIX -->
+      <div class="payment-setup-box">
+        <h3 class="box-title">Quem pagou a conta?</h3>
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="payerSelect">Pagador da comanda</label>
+            <select
+              id="payerSelect"
+              [ngModel]="paidByParticipantId()"
+              (ngModelChange)="paidByParticipantId.set($event)"
+              class="input-field"
+            >
+              @for (p of participants(); track p.id) {
+                <option [value]="p.id">{{ p.name }} (pagou tudo na maquininha)</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group flex-1">
+            <label for="pixKey">Chave PIX de quem pagou (para receber os reembolsos)</label>
+            <input
+              id="pixKey"
+              type="text"
+              [ngModel]="payerPixKey()"
+              (ngModelChange)="payerPixKey.set($event)"
+              placeholder="CPF, celular, e-mail ou chave aleatória"
+              class="input-field"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </app-card>
+
+  <!-- Passo 4: Fechamento da Conta & WhatsApp -->
+  <app-card class="section-card result-card">
+    <div class="card-header-row">
+      <div class="header-titles">
+        <span class="step-badge success">Resultado</span>
+        <h2 class="card-title">Fechamento da Mesa</h2>
+        <p class="card-subtitle">Confira a divisão individual exata e compartilhe com o grupo.</p>
+      </div>
+      <button type="button" class="btn-ghost" (click)="resetAll()">
+        Limpar comanda
+      </button>
+    </div>
+
+    <!-- Totais Consolidados -->
+    <div class="totals-dashboard">
+      <div class="total-metric">
+        <span class="metric-label">Subtotal Itens</span>
+        <span class="metric-value">{{ formatMoney(billResult().subtotalItems) }}</span>
+      </div>
+
+      @if (hasServiceFee()) {
+        <div class="total-metric">
+          <span class="metric-label">Taxa Garçom ({{ serviceFeePercentage() }}%)</span>
+          <span class="metric-value">{{ formatMoney(billResult().totalServiceFee) }}</span>
+        </div>
+      }
+
+      @if (hasCouvert()) {
+        <div class="total-metric">
+          <span class="metric-label">Couvert Total</span>
+          <span class="metric-value">{{ formatMoney(billResult().totalCouvert) }}</span>
+        </div>
+      }
+
+      <div class="total-metric highlight">
+        <span class="metric-label">Total da Comanda</span>
+        <span class="metric-value grand-total">{{ formatMoney(billResult().grandTotal) }}</span>
+      </div>
+    </div>
+
+    <!-- Balanço por Pessoa -->
+    <div class="breakdown-section">
+      <h3 class="breakdown-title">Valores individuais a pagar:</h3>
+      <div class="breakdown-grid">
+        @for (b of billResult().participantsBreakdown; track b.participantId) {
+          <div class="person-bill-card">
+            <div class="person-info">
+              <span class="person-name">{{ b.name }}</span>
+              <div class="person-details">
+                <span>Consumo: {{ formatMoney(b.baseConsumption) }}</span>
+                @if (b.serviceFeeShare > 0) {
+                  <span>• Taxa: {{ formatMoney(b.serviceFeeShare) }}</span>
+                }
+                @if (b.couvertShare > 0) {
+                  <span>• Couvert: {{ formatMoney(b.couvertShare) }}</span>
+                }
+              </div>
+            </div>
+            <div class="person-total">
+              <span class="total-tag">{{ formatMoney(b.totalToPay) }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Ações de Compartilhamento WhatsApp -->
+    <div class="share-actions-row">
+      <button type="button" class="btn-whatsapp" (click)="openWhatsAppDirectly()">
+        <svg viewBox="0 0 24 24" fill="currentColor" class="whatsapp-icon">
+          <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.699c.971.53 1.954.82 3.123.82 3.181 0 5.768-2.587 5.768-5.768 0-3.18-2.587-5.766-5.768-5.766zm9.969 5.766c0 5.514-4.486 10-10 10-1.748 0-3.385-.45-4.819-1.239l-5.181 1.359 1.381-5.051c-.886-1.503-1.381-3.256-1.381-5.069 0-5.514 4.486-10 10-10s10 4.486 10 10z"/>
+        </svg>
+        <span>Enviar no WhatsApp</span>
+      </button>
+
+      <button
+        type="button"
+        class="btn-copy-text"
+        [class.copied]="hasCopiedWhatsApp()"
+        (click)="copyWhatsAppSummary()"
+      >
+        <svg viewBox="0 0 20 20" fill="currentColor" class="copy-icon">
+          <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+          <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+        </svg>
+        <span>{{ hasCopiedWhatsApp() ? '✓ Resumo copiado!' : 'Copiar texto' }}</span>
+      </button>
+    </div>
+  </app-card>
+</div>

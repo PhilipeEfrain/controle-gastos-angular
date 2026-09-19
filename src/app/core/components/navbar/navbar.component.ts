@@ -13,7 +13,7 @@ import { AuthStore } from '../../state/auth.store';
 import { AuthService } from '../../services/auth.service';
 import { NotificationService } from '../../services/notification.service';
 import { PwaService } from '../../services/pwa.service';
-import { ThemeService } from '../../services/theme.service';
+import { ThemeService, AppTheme } from '../../services/theme.service';
 import { NavigationModalService } from '../../services/navigation-modal.service';
 import { BrandLogoComponent } from '../../../shared/components/brand-logo/brand-logo.component';
 import { SubscriptionModalComponent } from '../../../shared/components/subscription-modal/subscription-modal.component';
@@ -56,9 +56,15 @@ export class NavbarComponent {
 
   readonly themeTooltip = computed(() => {
     const theme = this.currentTheme();
-    if (theme === 'dark') return 'Tema atual: Escuro Quinzena (clique para Escuro Azul)';
-    if (theme === 'dark-blue') return 'Tema atual: Escuro Azul (clique para Modo Claro)';
-    return 'Tema atual: Modo Claro (clique para Escuro Quinzena)';
+    const names: Record<AppTheme, string> = {
+      'electric-sky': 'Electric Sky (Azul Fintech)',
+      'dark-blue': 'Escuro Azul (Original)',
+      'deep-cobalt': 'Cobalto & Titanium',
+      'obsidian': 'Obsidiana OLED',
+      'dark': 'Escuro Quinzena',
+      'light': 'Modo Claro'
+    };
+    return `Tema atual: ${names[theme] || theme} (clique para alternar)`;
   });
 
   readonly userInitials = computed(() => {

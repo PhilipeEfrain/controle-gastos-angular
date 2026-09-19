@@ -10,6 +10,7 @@
       <nav class="header-nav">
         <a href="#como-funciona" class="nav-link">Como Funciona</a>
         <a href="#recursos" class="nav-link">Recursos</a>
+        <a routerLink="/dividir" class="nav-link nav-link-highlight">Dividir Contas ✨</a>
         <a href="#planos" class="nav-link">Planos & Preços</a>
         <a href="#offline" class="nav-link">PWA Offline</a>
         <a href="#faq" class="nav-link">FAQ</a>
@@ -68,6 +69,7 @@
         <nav class="landing-mobile-nav">
           <a href="#como-funciona" (click)="closeMobileMenu()" class="mobile-nav-link">Como Funciona</a>
           <a href="#recursos" (click)="closeMobileMenu()" class="mobile-nav-link">Recursos</a>
+          <a routerLink="/dividir" (click)="closeMobileMenu()" class="mobile-nav-link mobile-nav-link-highlight">Dividir Contas ✨</a>
           <a href="#planos" (click)="closeMobileMenu()" class="mobile-nav-link">Planos & Preços</a>
           <a href="#offline" (click)="closeMobileMenu()" class="mobile-nav-link">PWA Offline</a>
           <a href="#faq" (click)="closeMobileMenu()" class="mobile-nav-link">FAQ</a>
@@ -168,6 +170,11 @@
         </button>
         }
       </div>
+
+      <p class="hero-guarantee-note">
+        <svg viewBox="0 0 20 20" fill="currentColor" class="guarantee-icon"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+        <span>100% gratuito para começar · Não pede cartão de crédito · Acesso imediato</span>
+      </p>
 
       <!-- Hero Visual Preview / Mockup -->
       <div class="hero-mockup-wrapper">

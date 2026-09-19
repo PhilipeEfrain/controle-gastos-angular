@@ -256,6 +256,23 @@ service cloud.firestore {
       }
     }
 
+    // Regras para Módulo Dividir (Rateio de Despesas Compartilhadas / Split)
+    match /split_groups/{groupId} {
+      // Convidado com o link/token pode visualizar o grupo específico; anfitrião pode listar seus grupos
+      allow get: if true;
+      allow list: if isAuthenticated() && request.auth.uid == resource.data.ownerId;
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.ownerId;
+      allow update: if isAuthenticated();
+      allow delete: if isAuthenticated() && request.auth.uid == resource.data.ownerId;
+
+      // Despesas do Grupo
+      match /expenses/{expenseId} {
+        allow read: if true;
+        allow create, update: if isAuthenticated();
+        allow delete: if isAuthenticated();
+      }
+    }
+
     // Configurações Globais do Sistema e Gateway Asaas (Acesso restrito a administradores, exceto early_access público)
     match /system_config/{configId} {
       allow get: if configId == 'early_access' || isAdmin();

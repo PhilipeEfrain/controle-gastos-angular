@@ -344,6 +344,27 @@
       .preview-box { background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); }
     }
 
+    &.electric-sky-preview {
+      background: #090d16;
+      .preview-header { background: #111827; }
+      .preview-line { background: #1e293b; }
+      .preview-box { background: rgba(14, 165, 233, 0.25); border: 1px solid rgba(56, 189, 248, 0.5); }
+    }
+
+    &.deep-cobalt-preview {
+      background: #070b14;
+      .preview-header { background: #0f172a; }
+      .preview-line { background: #1e293b; }
+      .preview-box { background: rgba(37, 99, 235, 0.25); border: 1px solid rgba(96, 165, 250, 0.5); }
+    }
+
+    &.obsidian-preview {
+      background: #0a0a0c;
+      .preview-header { background: #141418; }
+      .preview-line { background: #1e1e24; }
+      .preview-box { background: rgba(99, 102, 241, 0.25); border: 1px solid rgba(165, 180, 252, 0.5); }
+    }
+
     &.light-preview {
       background: #f5f2e9;
       .preview-header { background: #ffffff; }

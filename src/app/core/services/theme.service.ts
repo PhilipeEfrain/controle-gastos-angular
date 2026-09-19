@@ -1,6 +1,15 @@
 import { Injectable, signal, computed, effect } from '@angular/core';
 
-export type AppTheme = 'dark' | 'dark-blue' | 'light';
+export type AppTheme = 'dark' | 'electric-sky' | 'dark-blue' | 'deep-cobalt' | 'obsidian' | 'light';
+
+export const AVAILABLE_THEMES: AppTheme[] = [
+  'deep-cobalt',
+  'electric-sky',
+  'obsidian',
+  'dark-blue',
+  'dark',
+  'light'
+];
 
 @Injectable({
   providedIn: 'root'
@@ -8,9 +17,9 @@ export type AppTheme = 'dark' | 'dark-blue' | 'light';
 export class ThemeService {
   private readonly STORAGE_KEY = 'app_theme_preference';
 
-  // Signal com o tema ativo
-  readonly currentTheme = signal<AppTheme>('dark');
-  readonly isDark = computed(() => this.currentTheme() === 'dark' || this.currentTheme() === 'dark-blue');
+  // Signal com o tema ativo (Padrão: Deep Cobalt)
+  readonly currentTheme = signal<AppTheme>('deep-cobalt');
+  readonly isDark = computed(() => this.currentTheme() !== 'light');
 
   constructor() {
     this.initTheme();
@@ -25,13 +34,13 @@ export class ThemeService {
   private initTheme(): void {
     if (typeof window !== 'undefined' && window.localStorage) {
       const savedTheme = localStorage.getItem(this.STORAGE_KEY) as AppTheme | null;
-      if (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'dark-blue') {
+      if (savedTheme && AVAILABLE_THEMES.includes(savedTheme)) {
         this.currentTheme.set(savedTheme);
         return;
       }
     }
-    // Default Dark
-    this.currentTheme.set('dark');
+    // Default: Deep Cobalt quando o usuário não escolhe
+    this.currentTheme.set('deep-cobalt');
   }
 
   setTheme(theme: AppTheme): void {
@@ -43,15 +52,9 @@ export class ThemeService {
 
   toggleTheme(): void {
     const current = this.currentTheme();
-    let nextTheme: AppTheme;
-    if (current === 'dark') {
-      nextTheme = 'dark-blue';
-    } else if (current === 'dark-blue') {
-      nextTheme = 'light';
-    } else {
-      nextTheme = 'dark';
-    }
-    this.setTheme(nextTheme);
+    const currentIndex = AVAILABLE_THEMES.indexOf(current);
+    const nextIndex = (currentIndex + 1) % AVAILABLE_THEMES.length;
+    this.setTheme(AVAILABLE_THEMES[nextIndex]);
   }
 
   private applyThemeToDOM(theme: AppTheme): void {

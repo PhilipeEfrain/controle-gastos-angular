@@ -57,6 +57,16 @@ export const routes: Routes = [
       import('./features/legal/privacy.component').then(m => m.PrivacyComponent)
   },
   {
+    path: 'dividir',
+    loadComponent: () =>
+      import('./features/dividir/dividir-home.component').then(m => m.DividirHomeComponent)
+  },
+  {
+    path: 'dividir/:id',
+    loadComponent: () =>
+      import('./features/dividir/dividir-group.component').then(m => m.DividirGroupComponent)
+  },
+  {
     path: '',
     loadComponent: () =>
       import('./features/landing/landing.component').then(m => m.LandingComponent),

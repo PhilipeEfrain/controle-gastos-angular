@@ -254,14 +254,31 @@
     .theme-icon {
       width: 1.125rem;
       height: 1.125rem;
+      transition: transform $transition-fast, color $transition-fast;
     }
 
-    .theme-icon-sun {
-      color: #f59e0b;
+    .theme-icon-cobalt {
+      color: #60a5fa;
+    }
+
+    .theme-icon-electric {
+      color: #38bdf8;
+    }
+
+    .theme-icon-obsidian {
+      color: #a5b4fc;
     }
 
     .theme-icon-blue {
       color: #60a5fa;
+    }
+
+    .theme-icon-dark-green {
+      color: #34d399;
+    }
+
+    .theme-icon-sun {
+      color: #f59e0b;
     }
   }
 
@@ -853,6 +870,15 @@
           color: var(--color-text-secondary);
         }
       }
+    }
+
+    .mobile-theme-btn {
+      .theme-icon-cobalt { color: #60a5fa; }
+      .theme-icon-electric { color: #38bdf8; }
+      .theme-icon-obsidian { color: #a5b4fc; }
+      .theme-icon-blue { color: #60a5fa; }
+      .theme-icon-dark-green { color: #34d399; }
+      .theme-icon-sun { color: #f59e0b; }
     }
 
     .mobile-btn-upgrade-drawer {

@@ -1,0 +1,235 @@
+<div class="dividir-page">
+  <div class="dividir-container">
+    <!-- Header -->
+    <header class="page-header">
+      <div class="header-content">
+        <div class="brand-row">
+          <app-brand-logo></app-brand-logo>
+          <span class="badge-tag">Dividir</span>
+        </div>
+        @if (activeTab() === 'role') {
+          <h1 class="page-title">Divida despesas em grupo sem complicação</h1>
+          <p class="page-subtitle">
+            Ideal para viagens, eventos e contas compartilhadas. Seus amigos acessam pelo link, veem o saldo e pagam direto via PIX — sem precisar instalar nada.
+          </p>
+        } @else {
+          <h1 class="page-title">Divida a conta do restaurante ou bar</h1>
+          <p class="page-subtitle">
+            Fechamento de mesa descomplicado: calcule consumo individual, taxa de serviço, couvert e envie o resumo pronto direto no WhatsApp.
+          </p>
+        }
+      </div>
+
+      @if (activeTab() === 'role') {
+        <div class="header-actions">
+          <button type="button" class="btn-primary" (click)="openCreateModal()">
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+            </svg>
+            <span>Criar novo grupo</span>
+          </button>
+        </div>
+      }
+    </header>
+
+    <!-- Barra de Navegação em Abas -->
+    <nav class="dividir-nav-tabs" aria-label="Abas de divisão">
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab() === 'role'"
+        (click)="activeTab.set('role')"
+      >
+        <span class="tab-icon">🎉</span>
+        <span class="tab-label">Dividir Rolê</span>
+      </button>
+
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab() === 'restaurante'"
+        (click)="activeTab.set('restaurante')"
+      >
+        <span class="tab-icon">🍽️</span>
+        <span class="tab-label">Dividir Restaurante</span>
+      </button>
+    </nav>
+
+    @if (activeTab() === 'role') {
+      @if (!isAuthenticated()) {
+        <!-- Banner para Visitantes / Deslogados -->
+        <app-card class="visitor-welcome-card">
+          <div class="welcome-inner">
+            <div class="welcome-text">
+              <h3>Divisão de contas sem limites chatos</h3>
+              <p>
+                Adicione quantas despesas precisar, sem esperas artificiais e sem anúncios. O acerto de contas é direto entre os participantes via PIX.
+              </p>
+            </div>
+            <div class="welcome-actions">
+              <a routerLink="/auth" [queryParams]="{ redirect: '/dividir' }" class="btn-accent">
+                Criar conta gratuita
+              </a>
+            </div>
+          </div>
+        </app-card>
+      }
+
+      <!-- Lista de Grupos do Usuário -->
+      <section class="groups-section">
+      <h2 class="section-heading">Seus grupos de divisão</h2>
+
+      @if (isLoading()) {
+        <div class="state-box loading">
+          <div class="spinner"></div>
+          <span>Carregando seus grupos...</span>
+        </div>
+      } @else if (groups().length === 0) {
+        <div class="state-box empty">
+          <div class="empty-icon">🤝</div>
+          <h3>Nenhum grupo criado ainda</h3>
+          <p>Crie um grupo para reunir os gastos de um evento ou viagem e compartilhe o link com os participantes.</p>
+          <button type="button" class="btn-primary btn-sm" (click)="openCreateModal()">
+            Criar primeiro grupo
+          </button>
+        </div>
+      } @else {
+        <div class="groups-grid">
+          @for (group of groups(); track group.id) {
+            <app-card class="group-card" [routerLink]="['/dividir', group.id]" [queryParams]="{ t: group.viewToken }">
+              <div class="group-card-header">
+                <span class="group-title">{{ group.title }}</span>
+                <span class="status-pill" [class.settled]="group.status === 'settled'">
+                  {{ group.status === 'settled' ? 'Liquidado' : 'Ativo' }}
+                </span>
+              </div>
+              @if (group.description) {
+                <p class="group-desc">{{ group.description }}</p>
+              }
+              <div class="group-card-footer">
+                <span class="meta-item">
+                  <svg viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                  </svg>
+                  {{ group.participants.length }} participantes
+                </span>
+                <span class="action-link">Ver detalhes &rarr;</span>
+              </div>
+            </app-card>
+          }
+        </div>
+      }
+    </section>
+    } @else {
+      <!-- Aba: Dividir Restaurante -->
+      <app-dividir-restaurante></app-dividir-restaurante>
+    }
+  </div>
+</div>
+
+<!-- Modal: Criar Novo Grupo -->
+@if (isCreateModalOpen()) {
+  <div class="modal-backdrop" (click)="closeCreateModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Criar grupo de divisão</h3>
+        <button type="button" class="btn-close" (click)="closeCreateModal()">&times;</button>
+      </div>
+
+      <form (ngSubmit)="submitCreateGroup()" class="modal-body">
+        <div class="form-group">
+          <label for="title">Nome do grupo ou evento *</label>
+          <input
+            id="title"
+            type="text"
+            [(ngModel)]="groupTitle"
+            name="title"
+            placeholder="Ex: Viagem de Férias, Churrasco de Domingo, Almoço da Turma"
+            required
+            class="input-field"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="desc">Descrição / Detalhes (opcional)</label>
+          <input
+            id="desc"
+            type="text"
+            [(ngModel)]="groupDescription"
+            name="description"
+            placeholder="Ex: Aluguel da chácara e compras do mercado"
+            class="input-field"
+          />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-2">
+            <label for="ownerPix">Sua chave PIX para receber repasses</label>
+            <input
+              id="ownerPix"
+              type="text"
+              [(ngModel)]="ownerPixKey"
+              name="ownerPix"
+              placeholder="CPF, e-mail, celular ou chave aleatória"
+              class="input-field"
+            />
+          </div>
+          <div class="form-group flex-1">
+            <label for="pixType">Tipo de chave</label>
+            <select id="pixType" [(ngModel)]="ownerPixKeyType" name="pixType" class="input-field">
+              <option value="aleatoria">Aleatória</option>
+              <option value="cpf">CPF</option>
+              <option value="telefone">Celular</option>
+              <option value="email">E-mail</option>
+              <option value="cnpj">CNPJ</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="participants-block">
+          <label>Participantes iniciais</label>
+          <div class="participant-add-row">
+            <input
+              type="text"
+              [(ngModel)]="newParticipantName"
+              name="partName"
+              placeholder="Nome do participante"
+              class="input-field"
+              (keydown.enter)="$event.preventDefault(); addParticipantToForm()"
+            />
+            <input
+              type="text"
+              [(ngModel)]="newParticipantPix"
+              name="partPix"
+              placeholder="Chave PIX (opcional)"
+              class="input-field"
+              (keydown.enter)="$event.preventDefault(); addParticipantToForm()"
+            />
+            <button type="button" class="btn-secondary" (click)="addParticipantToForm()">
+              + Adicionar
+            </button>
+          </div>
+
+          @if (participantsList.length > 0) {
+            <div class="tags-list">
+              @for (p of participantsList; track $index) {
+                <div class="participant-tag">
+                  <span>{{ p.name }}</span>
+                  @if (p.pixKey) {
+                    <small>({{ p.pixKey }})</small>
+                  }
+                  <button type="button" (click)="removeParticipantFromForm($index)">&times;</button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-ghost" (click)="closeCreateModal()">Cancelar</button>
+          <button type="submit" class="btn-primary">Criar grupo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

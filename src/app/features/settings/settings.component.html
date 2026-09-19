@@ -160,17 +160,17 @@
                 <p class="section-desc">Personalize a aparência do aplicativo para o modo escuro ou claro</p>
               </div>
 
-              <!-- Seletor de Tema com Cards Interativos (3 Opções) -->
+              <!-- Seletor de Tema com Cards Interativos (6 Opções) -->
               <div class="theme-selection-grid">
-                <!-- Tema Escuro Quinzena (Verde Orgânico) -->
+                <!-- Tema Electric Sky (Azul Elétrico & Midnight) -->
                 <button
                   type="button"
                   class="theme-card"
-                  [class.active]="themeService.currentTheme() === 'dark'"
-                  (click)="onThemeSelect('dark')"
-                  id="theme-dark-btn"
+                  [class.active]="themeService.currentTheme() === 'electric-sky'"
+                  (click)="onThemeSelect('electric-sky')"
+                  id="theme-electric-sky-btn"
                 >
-                  <div class="theme-preview dark-preview">
+                  <div class="theme-preview electric-sky-preview">
                     <div class="preview-header"></div>
                     <div class="preview-body">
                       <div class="preview-line"></div>
@@ -180,13 +180,71 @@
                   <div class="theme-info">
                     <div class="theme-title-row">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" />
                       </svg>
-                      <span class="theme-name">Escuro Quinzena</span>
+                      <span class="theme-name">Electric Sky</span>
                     </div>
-                    <p class="theme-desc">Superfície orgânica Tinta (#17211C) com acentos em Verde Ciclo e Menta Fluxo.</p>
+                    <p class="theme-desc">Superfície Midnight (#090D16) com acentos em Azul Elétrico (#0EA5E9) e Ciano vibrante.</p>
                   </div>
-                  @if (themeService.currentTheme() === 'dark') {
+                  @if (themeService.currentTheme() === 'electric-sky') {
+                    <span class="active-badge">Ativo</span>
+                  }
+                </button>
+
+                <!-- Tema Deep Cobalt (Azul Real & Titanium) -->
+                <button
+                  type="button"
+                  class="theme-card"
+                  [class.active]="themeService.currentTheme() === 'deep-cobalt'"
+                  (click)="onThemeSelect('deep-cobalt')"
+                  id="theme-deep-cobalt-btn"
+                >
+                  <div class="theme-preview deep-cobalt-preview">
+                    <div class="preview-header"></div>
+                    <div class="preview-body">
+                      <div class="preview-line"></div>
+                      <div class="preview-box"></div>
+                    </div>
+                  </div>
+                  <div class="theme-info">
+                    <div class="theme-title-row">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+                      </svg>
+                      <span class="theme-name">Deep Cobalt</span>
+                    </div>
+                    <p class="theme-desc">Navy Profundo (#070B14) com Azul Cobalto Real (#2563EB) e toques em Turquesa.</p>
+                  </div>
+                  @if (themeService.currentTheme() === 'deep-cobalt') {
+                    <span class="active-badge">Ativo</span>
+                  }
+                </button>
+
+                <!-- Tema Obsidian (Preto OLED & Aurora) -->
+                <button
+                  type="button"
+                  class="theme-card"
+                  [class.active]="themeService.currentTheme() === 'obsidian'"
+                  (click)="onThemeSelect('obsidian')"
+                  id="theme-obsidian-btn"
+                >
+                  <div class="theme-preview obsidian-preview">
+                    <div class="preview-header"></div>
+                    <div class="preview-body">
+                      <div class="preview-line"></div>
+                      <div class="preview-box"></div>
+                    </div>
+                  </div>
+                  <div class="theme-info">
+                    <div class="theme-title-row">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
+                      </svg>
+                      <span class="theme-name">Obsidiana OLED</span>
+                    </div>
+                    <p class="theme-desc">Preto Absoluto (#0A0A0C) com gradiente Aurora Ciano-Índigo. Máximo contraste e economia de bateria.</p>
+                  </div>
+                  @if (themeService.currentTheme() === 'obsidian') {
                     <span class="active-badge">Ativo</span>
                   }
                 </button>
@@ -213,9 +271,38 @@
                       </svg>
                       <span class="theme-name">Escuro Azul (Original)</span>
                     </div>
-                    <p class="theme-desc">Paleta original com Slate Noturno (#0B0F17) e destaques em Azul Oceânico e Emerald.</p>
+                    <p class="theme-desc">Paleta com Slate Noturno (#0B0F17) e destaques em Azul Oceânico clássico.</p>
                   </div>
                   @if (themeService.currentTheme() === 'dark-blue') {
+                    <span class="active-badge">Ativo</span>
+                  }
+                </button>
+
+                <!-- Tema Escuro Quinzena (Verde Orgânico) -->
+                <button
+                  type="button"
+                  class="theme-card"
+                  [class.active]="themeService.currentTheme() === 'dark'"
+                  (click)="onThemeSelect('dark')"
+                  id="theme-dark-btn"
+                >
+                  <div class="theme-preview dark-preview">
+                    <div class="preview-header"></div>
+                    <div class="preview-body">
+                      <div class="preview-line"></div>
+                      <div class="preview-box"></div>
+                    </div>
+                  </div>
+                  <div class="theme-info">
+                    <div class="theme-title-row">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
+                      </svg>
+                      <span class="theme-name">Escuro Orgânico</span>
+                    </div>
+                    <p class="theme-desc">Superfície orgânica Tinta (#17211C) com acentos em Verde Ciclo e Menta.</p>
+                  </div>
+                  @if (themeService.currentTheme() === 'dark') {
                     <span class="active-badge">Ativo</span>
                   }
                 </button>

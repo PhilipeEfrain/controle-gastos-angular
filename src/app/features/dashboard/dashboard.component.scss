@@ -284,6 +284,24 @@
       box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
     }
   }
+
+  &.dividir-nav-btn {
+    border-color: rgba(56, 189, 248, 0.3);
+    background: rgba(56, 189, 248, 0.08);
+    color: #38bdf8;
+    text-decoration: none;
+
+    .btn-emoji {
+      font-size: 0.9375rem;
+    }
+
+    &:hover {
+      background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%);
+      color: #ffffff;
+      border-color: transparent;
+      box-shadow: 0 4px 14px rgba(14, 165, 233, 0.35);
+    }
+  }
 }
 
 .logout-btn {
