@@ -55,7 +55,7 @@ export class NavbarComponent {
   readonly isDark = this.themeService.isDark;
   readonly currentTheme = this.themeService.currentTheme;
   readonly isDevMode = !environment.production;
-  readonly devEnvironmentLabel = (environment as any).useEmulators ? 'EMULATOR' : 'SANDBOX';
+  readonly devEnvironmentLabel = (environment as any).useEmulators ? 'DEV [Emulador]' : 'DEV [Sandbox]';
 
   readonly themeTooltip = computed(() => {
     const theme = this.currentTheme();

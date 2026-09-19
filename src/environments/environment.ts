@@ -16,13 +16,13 @@
  */
 export const environment = {
   production: false,
-  useEmulators: false,
+  useEmulators: true,
   firebase: {
     projectId: 'controle-gastos-dev',
     appId: '1:562686483207:web:dev-environment-placeholder',
     storageBucket: 'controle-gastos-dev.firebasestorage.app',
-    apiKey: 'AIzaSy-DEV-KEY-SUBSTITUA-PELO-SEU-PROJETO-DEV',
-    authDomain: 'controle-gastos-dev.firebaseapp.com',
+    apiKey: 'AIzaSy-DEV-KEY-EMULATORS-ACTIVE',
+    authDomain: 'localhost',
     messagingSenderId: '562686483207'
   },
   adsense: {
