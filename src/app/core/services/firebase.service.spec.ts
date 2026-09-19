@@ -16,9 +16,11 @@ describe('FirebaseService (Segregação de Ambientes)', () => {
     expect(service).toBeTruthy();
   });
 
-  it('deve expor instâncias válidas de app, auth e firestore', () => {
+  it('deve expor instâncias válidas de app, auth, firestore, functions e storage', () => {
     expect(service.app).toBeTruthy();
     expect(service.auth).toBeTruthy();
     expect(service.firestore).toBeTruthy();
+    expect(service.functions).toBeTruthy();
+    expect(service.storage).toBeTruthy();
   });
 });

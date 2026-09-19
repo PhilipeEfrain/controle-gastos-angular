@@ -50,3 +50,9 @@ Thumbs.db
 .env.*
 !.env.example
 
+# Firebase logs and local cache
+*-debug.log
+firebase-debug.*.log
+firestore-debug.log
+.firebase/
+

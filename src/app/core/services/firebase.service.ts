@@ -10,6 +10,8 @@ import {
   memoryLocalCache,
   connectFirestoreEmulator
 } from 'firebase/firestore';
+import { getFunctions, Functions, connectFunctionsEmulator } from 'firebase/functions';
+import { getStorage, FirebaseStorage, connectStorageEmulator } from 'firebase/storage';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -19,10 +21,14 @@ export class FirebaseService {
   readonly app: FirebaseApp;
   readonly auth: Auth;
   readonly firestore: Firestore;
+  readonly functions: Functions;
+  readonly storage: FirebaseStorage;
 
   constructor() {
     this.app = initializeApp(environment.firebase);
     this.auth = getAuth(this.app);
+    this.functions = getFunctions(this.app);
+    this.storage = getStorage(this.app);
 
     // Habilita persistência offline via IndexedDB com suporte a múltiplas abas (PWA / Offline First)
     let localCacheConfig;
@@ -52,9 +58,16 @@ export class FirebaseService {
       try {
         connectAuthEmulator(this.auth, 'http://localhost:9099', { disableWarnings: true });
         connectFirestoreEmulator(this.firestore, 'localhost', 8080);
+        connectFunctionsEmulator(this.functions, 'localhost', 5001);
+        connectStorageEmulator(this.storage, 'localhost', 9199);
         console.info(
-          '%c[Firebase] Modo Emulador Local ATIVO (Auth: 9099, Firestore: 8080)',
-          'background: #065f46; color: #a7f3d0; font-weight: bold; padding: 4px 8px; border-radius: 4px;'
+          '%c[Firebase] 🛡️ Suíte de Emuladores Conectada com Sucesso!\n' +
+          '• Auth: http://localhost:9099\n' +
+          '• Firestore: http://localhost:8080\n' +
+          '• Functions: http://localhost:5001\n' +
+          '• Storage: http://localhost:9199\n' +
+          '• Emulator UI: http://localhost:4000',
+          'background: #065f46; color: #a7f3d0; font-weight: bold; padding: 6px 10px; border-radius: 6px;'
         );
       } catch (emulatorErr) {
         console.warn('[Firebase] Aviso ao conectar aos emuladores:', emulatorErr);
