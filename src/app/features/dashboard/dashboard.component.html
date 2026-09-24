@@ -96,15 +96,16 @@
 
         <!-- Barra de Ações Rápidas (Desktop Quick Toolbar) -->
         <div class="dashboard-quick-actions">
-          <a
-            routerLink="/dividir"
+          <button
+            type="button"
             class="taxes-nav-btn dividir-nav-btn"
+            (click)="goToDividir()"
             title="Dividir Contas (Rolês & Restaurante)"
             id="btn-quick-dividir"
           >
             <span class="btn-emoji">🤝</span>
             <span>Dividir</span>
-          </a>
+          </button>
 
           <button
             type="button"

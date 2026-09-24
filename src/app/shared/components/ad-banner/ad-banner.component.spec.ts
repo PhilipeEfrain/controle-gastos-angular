@@ -42,12 +42,24 @@ describe('AdBannerComponent (Google AdSense Top Banner)', () => {
     expect(banner.textContent).toContain('Remover anúncios com o PRO');
   });
 
-  it('Cenário BDD 2: NÃO deve renderizar o banner para assinantes com Plano PRO ou DUO ativo', () => {
+  it('Cenário BDD 2: NÃO deve renderizar o banner para assinantes com Plano PRO ou DUO ativo quando alwaysShow for false', () => {
     mockIsProOrDuo.set(true);
     fixture.detectChanges();
 
     const banner = fixture.nativeElement.querySelector('.ad-banner-wrapper');
     expect(banner).toBeNull();
+  });
+
+  it('Cenário BDD 2b: DEVE renderizar o banner para assinantes PRO/DUO quando alwaysShow for true (módulo Dividir 100% free)', () => {
+    mockIsProOrDuo.set(true);
+    fixture.componentRef.setInput('alwaysShow', true);
+    fixture.componentRef.setInput('showUpgradePrompt', false);
+    fixture.detectChanges();
+
+    const banner = fixture.nativeElement.querySelector('.ad-banner-wrapper');
+    expect(banner).toBeTruthy();
+    expect(banner.textContent).toContain('Publicidade');
+    expect(banner.querySelector('.btn-ad-upgrade')).toBeNull();
   });
 
   it('Cenário BDD 3: deve emitir upgradeClick ao clicar no botão de remover anúncios', () => {

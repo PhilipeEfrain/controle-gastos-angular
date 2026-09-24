@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
-import { Router, ActivatedRoute, RouterLink } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { FinanceStore } from '../../core/state/finance.store';
 import { AuthStore } from '../../core/state/auth.store';
 import { ExpenseService } from '../../core/services/expense.service';
@@ -78,8 +78,7 @@ import { ExpiringDataModalComponent } from './components/expiring-data-modal/exp
     CaixinhaModalComponent,
     ConfirmationModalComponent,
     ExpiringDataBannerComponent,
-    ExpiringDataModalComponent,
-    RouterLink
+    ExpiringDataModalComponent
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
@@ -739,6 +738,10 @@ export class DashboardComponent implements OnInit {
 
   goToInstallments(): void {
     this.router.navigate(['/parcelamentos']);
+  }
+
+  goToDividir(): void {
+    this.router.navigate(['/dividir']);
   }
 
   openSubscriptionModal(): void {

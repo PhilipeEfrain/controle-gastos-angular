@@ -11,6 +11,7 @@ import { BrandLogoComponent } from '../../shared/components/brand-logo/brand-log
 import { formatBRL } from '../../core/utils/formatters';
 
 import { DividirRestauranteComponent } from './dividir-restaurante.component';
+import { AdBannerComponent } from '../../shared/components/ad-banner/ad-banner.component';
 
 @Component({
   selector: 'app-dividir-home',
@@ -21,7 +22,8 @@ import { DividirRestauranteComponent } from './dividir-restaurante.component';
     RouterModule,
     AppCardComponent,
     BrandLogoComponent,
-    DividirRestauranteComponent
+    DividirRestauranteComponent,
+    AdBannerComponent
   ],
   templateUrl: './dividir-home.component.html',
   styleUrls: ['./dividir-home.component.scss'],

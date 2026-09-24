@@ -34,6 +34,7 @@ export class AdBannerComponent implements AfterViewInit, OnDestroy {
   readonly mobileAdKey = input<string>(environment.adsterra?.banner300x250Key || 'dae845012d1ed3de4df9b34f05215bda');
   readonly showUpgradePrompt = input<boolean>(true);
   readonly cssClass = input<string>('');
+  readonly alwaysShow = input<boolean>(false);
 
   // Propriedades retrocompatíveis para evitar quebras
   readonly slotId = input<string>('');
@@ -41,8 +42,9 @@ export class AdBannerComponent implements AfterViewInit, OnDestroy {
 
   readonly upgradeClick = output<void>();
 
-  // Apenas renderiza para usuários sem plano PRO ou DUO ativo
+  // Apenas renderiza para usuários sem plano PRO ou DUO ativo, exceto se alwaysShow for true (ex: módulo Dividir)
   readonly isFreeUser = computed(() => !this.authStore.isProOrDuo());
+  readonly shouldRender = computed(() => this.alwaysShow() || this.isFreeUser());
 
   readonly isAdBlocked = signal<boolean>(false);
   readonly isMobile = signal<boolean>(false);
@@ -50,7 +52,7 @@ export class AdBannerComponent implements AfterViewInit, OnDestroy {
   private resizeListener: (() => void) | null = null;
 
   ngAfterViewInit(): void {
-    if (!isPlatformBrowser(this.platformId) || !this.isFreeUser()) {
+    if (!isPlatformBrowser(this.platformId) || !this.shouldRender()) {
       return;
     }
 

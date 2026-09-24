@@ -747,5 +747,10 @@ describe('DashboardComponent', () => {
       expect(component.isExpiringDataModalOpen()).toBe(false);
       expect(component.isSubscriptionModalOpen()).toBe(true);
     });
+
+    it('deve navegar imperativamente para /dividir ao chamar goToDividir', () => {
+      component.goToDividir();
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/dividir']);
+    });
   });
 });

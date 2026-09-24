@@ -1,4 +1,4 @@
-@if (isFreeUser()) {
+@if (shouldRender()) {
   <aside class="ad-banner-wrapper" [class]="cssClass()" role="complementary" aria-label="Espaço publicitário">
     <div class="ad-banner-card">
       <div class="ad-banner-meta">

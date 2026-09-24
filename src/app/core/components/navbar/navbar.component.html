@@ -62,6 +62,7 @@
       <a
         routerLink="/dividir"
         routerLinkActive="active"
+        (click)="navigateToDividir()"
         class="nav-link"
         id="nav-dividir"
         title="Quinzena Dividir — Rateio de Contas e Restaurante"
@@ -110,7 +111,7 @@
           <div class="nav-dropdown-menu" role="menu">
             <a
               routerLink="/dividir"
-              (click)="closeReportsMenu()"
+              (click)="navigateToDividir()"
               class="dropdown-item"
               id="dropdown-dividir"
               role="menuitem"
@@ -526,7 +527,7 @@
         <span class="drawer-group-title">Divisão & Planejamento</span>
         <a
           routerLink="/dividir"
-          (click)="closeMobileMenu()"
+          (click)="navigateToDividir()"
           class="mobile-nav-link"
           id="mobile-nav-dividir"
         >

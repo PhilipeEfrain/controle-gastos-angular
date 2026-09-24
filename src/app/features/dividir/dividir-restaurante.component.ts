@@ -2,6 +2,7 @@ import { Component, signal, computed, inject, ChangeDetectionStrategy } from '@a
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AppCardComponent } from '../../shared/components/app-card/app-card.component';
+import { AdBannerComponent } from '../../shared/components/ad-banner/ad-banner.component';
 import { NotificationService } from '../../core/services/notification.service';
 import { formatBRL } from '../../core/utils/formatters';
 import {
@@ -16,7 +17,7 @@ import {
 @Component({
   selector: 'app-dividir-restaurante',
   standalone: true,
-  imports: [CommonModule, FormsModule, AppCardComponent],
+  imports: [CommonModule, FormsModule, AppCardComponent, AdBannerComponent],
   templateUrl: './dividir-restaurante.component.html',
   styleUrls: ['./dividir-restaurante.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush

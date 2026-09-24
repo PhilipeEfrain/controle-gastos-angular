@@ -21,6 +21,7 @@ import { formatBRL } from '../../core/utils/formatters';
 import { AppCardComponent } from '../../shared/components/app-card/app-card.component';
 import { BrandLogoComponent } from '../../shared/components/brand-logo/brand-logo.component';
 import { ConfirmationModalComponent } from '../../shared/components/confirmation-modal/confirmation-modal.component';
+import { AdBannerComponent } from '../../shared/components/ad-banner/ad-banner.component';
 
 @Component({
   selector: 'app-dividir-group',
@@ -31,7 +32,8 @@ import { ConfirmationModalComponent } from '../../shared/components/confirmation
     RouterModule,
     AppCardComponent,
     BrandLogoComponent,
-    ConfirmationModalComponent
+    ConfirmationModalComponent,
+    AdBannerComponent
   ],
   templateUrl: './dividir-group.component.html',
   styleUrls: ['./dividir-group.component.scss'],

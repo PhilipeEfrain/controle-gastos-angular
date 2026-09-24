@@ -55,6 +55,9 @@
       </button>
     </nav>
 
+    <!-- Banner de Anúncios Obrigatório no Módulo Dividir (Recurso 100% Gratuito) -->
+    <app-ad-banner [alwaysShow]="true" [showUpgradePrompt]="false" />
+
     @if (activeTab() === 'role') {
       @if (!isAuthenticated()) {
         <!-- Banner para Visitantes / Deslogados -->
@@ -63,7 +66,7 @@
             <div class="welcome-text">
               <h3>Divisão de contas sem limites chatos</h3>
               <p>
-                Adicione quantas despesas precisar, sem esperas artificiais e sem anúncios. O acerto de contas é direto entre os participantes via PIX.
+                Adicione quantas despesas precisar e compartilhe o link. O acerto de contas é direto entre os participantes via PIX com cálculo automático.
               </p>
             </div>
             <div class="welcome-actions">

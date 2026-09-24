@@ -156,6 +156,11 @@ export class NavbarComponent {
     this.router.navigate(['/dashboard'], { queryParams: { tab: 'nossos' } });
   }
 
+  navigateToDividir(): void {
+    this.closeAllMenus();
+    this.router.navigate(['/dividir']);
+  }
+
   onOpenDuoPairingFromNavbar(): void {
     this.isSubscriptionModalOpen.set(false);
     this.router.navigate(['/dashboard']);
