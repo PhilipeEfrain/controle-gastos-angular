@@ -1,25 +1,24 @@
 @use '../../../../styles/abstracts' as *;
 
-// Sidebar de Anúncios - visível apenas em telas xl (≥ 1280px)
+// Sidebar de Anúncios - visível apenas em telas amplas (≥ 1536px)
 .ad-sidebar {
   position: fixed;
   top: 50%;
   transform: translateY(-50%);
   z-index: 50;
-  width: 160px;
-  max-height: calc(100vh - 120px);
+  width: 316px;
   display: none; // hidden by default
 
-  @include respond-to('xl') {
+  @include respond-to('2xl') {
     display: block;
   }
 
   &--left {
-    left: 8px;
+    left: 12px;
   }
 
   &--right {
-    right: 8px;
+    right: 12px;
   }
 }
 
@@ -50,15 +49,17 @@
 
 .ad-sidebar-slot {
   position: relative;
-  width: 100%;
-  min-height: 600px;
+  width: 300px;
+  min-height: 250px;
   display: flex;
   align-items: center;
   justify-content: center;
 
-  ins.adsbygoogle {
-    width: 160px;
-    min-height: 600px;
+  iframe {
+    position: relative;
+    z-index: 1;
+    border: none;
+    max-width: 100%;
   }
 }
 

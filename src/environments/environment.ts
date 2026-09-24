@@ -29,5 +29,12 @@ export const environment = {
     client: '',
     topDashboardSlot: '',
     enabled: false
+  },
+  adsterra: {
+    enabled: false,
+    banner728x90Key: 'f44c3704756583467ecc61b994d6f80f',
+    banner300x250Key: 'dae845012d1ed3de4df9b34f05215bda',
+    nativePlacementId: '31396525',
+    nativeContainerId: 'container-89feb5cfbf99143b86478f30d020af9a'
   }
 };

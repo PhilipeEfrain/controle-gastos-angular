@@ -16,15 +16,8 @@
         }
       </div>
 
-      <div class="ad-banner-content">
-        <div class="ad-slot-frame" [attr.data-ad-slot]="slotId()">
-          <ins class="adsbygoogle"
-               style="display:block"
-               [attr.data-ad-client]="adClient()"
-               [attr.data-ad-slot]="slotId()"
-               data-ad-format="auto"
-               data-full-width-responsive="true"></ins>
-
+      <div class="ad-banner-content" [class.is-mobile]="isMobile()">
+        <div #adContainer class="ad-slot-frame">
           @if (isAdBlocked()) {
             <div class="ad-blocked-fallback">
               <span class="ad-fallback-icon">🛡️</span>
@@ -36,17 +29,10 @@
                 Conhecer PRO
               </button>
             </div>
-          } @else {
-            <div class="ad-placeholder-preview">
-              <span class="ad-placeholder-icon">📢</span>
-              <div class="ad-placeholder-text">
-                <strong>Espaço Publicitário do Google AdSense</strong>
-                <small>Anúncios relevantes para manter o plano básico gratuito</small>
-              </div>
-            </div>
           }
         </div>
       </div>
     </div>
   </aside>
 }
+

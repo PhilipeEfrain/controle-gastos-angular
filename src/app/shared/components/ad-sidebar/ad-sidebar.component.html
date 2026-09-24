@@ -9,14 +9,7 @@
     <div class="ad-sidebar-inner">
       <span class="ad-sidebar-tag">Publicidade</span>
 
-      <div class="ad-sidebar-slot">
-        <ins class="adsbygoogle"
-             style="display:block"
-             [attr.data-ad-client]="adClient()"
-             [attr.data-ad-slot]="slotId()"
-             data-ad-format="vertical"
-             data-full-width-responsive="false"></ins>
-
+      <div #adContainer class="ad-sidebar-slot">
         @if (isAdBlocked()) {
           <div class="ad-sidebar-fallback">
             <span class="ad-fallback-icon">🛡️</span>

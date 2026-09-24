@@ -10,8 +10,15 @@ export const environment = {
     messagingSenderId: '562686483207'
   },
   adsense: {
-    client: 'ca-pub-8227454086945331',
-    topDashboardSlot: '6818458661',
-    enabled: true
+    client: '',
+    topDashboardSlot: '',
+    enabled: false
+  },
+  adsterra: {
+    enabled: true,
+    banner728x90Key: 'f44c3704756583467ecc61b994d6f80f',
+    banner300x250Key: 'dae845012d1ed3de4df9b34f05215bda',
+    nativePlacementId: '31396525',
+    nativeContainerId: 'container-89feb5cfbf99143b86478f30d020af9a'
   }
 };

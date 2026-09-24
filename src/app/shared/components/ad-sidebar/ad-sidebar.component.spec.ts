@@ -68,16 +68,17 @@ describe('AdSidebarComponent (Google AdSense Sidebar)', () => {
     expect(sidebar).toBeNull();
   });
 
-  it('deve configurar atributos data-ad-client e data-ad-slot no elemento ins.adsbygoogle', () => {
-    fixture.componentRef.setInput('adClient', 'ca-pub-1234567890123456');
-    fixture.componentRef.setInput('slotId', '9876543210');
+  it('deve renderizar iframe do anúncio Adsterra com a chave configurada no sidebar', () => {
+    fixture.componentRef.setInput('adKey', 'test-adsterra-sidebar-300');
     forceVisible();
+    component.renderAdsterraBanner();
+    fixture.detectChanges();
 
-    const insElement = fixture.nativeElement.querySelector('ins.adsbygoogle');
-    expect(insElement).toBeTruthy();
-    expect(insElement.getAttribute('data-ad-client')).toBe('ca-pub-1234567890123456');
-    expect(insElement.getAttribute('data-ad-slot')).toBe('9876543210');
-    expect(insElement.getAttribute('data-ad-format')).toBe('vertical');
+    const iframe = fixture.nativeElement.querySelector('iframe');
+    expect(iframe).toBeTruthy();
+    expect(iframe.getAttribute('data-ad-key')).toBe('test-adsterra-sidebar-300');
+    expect(iframe.getAttribute('width')).toBe('300');
+    expect(iframe.getAttribute('height')).toBe('250');
   });
 
   it('deve aplicar a classe de posição correta (left)', () => {
@@ -103,22 +104,6 @@ describe('AdSidebarComponent (Google AdSense Sidebar)', () => {
     const fallback = fixture.nativeElement.querySelector('.ad-sidebar-fallback');
     expect(fallback).toBeTruthy();
     expect(fallback.textContent).toContain('Bloqueador ativo');
-  });
-
-  it('deve chamar pushAd() sem lançar erros', () => {
-    (window as any).adsbygoogle = [];
-    component.pushAd();
-    expect((window as any).adsbygoogle.length).toBeGreaterThan(0);
-  });
-
-  it('deve resolver ensureAdSenseScript se script já existir no DOM', async () => {
-    const dummyScript = document.createElement('script');
-    dummyScript.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-test';
-    document.head.appendChild(dummyScript);
-
-    await expect(component.ensureAdSenseScript('ca-pub-test')).resolves.toBeUndefined();
-
-    dummyScript.remove();
   });
 
   it('NÃO deve renderizar sidebar quando isVisible é false (tela pequena)', () => {

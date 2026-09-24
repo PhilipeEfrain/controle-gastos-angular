@@ -64,17 +64,31 @@ describe('AdBannerComponent (Google AdSense Top Banner)', () => {
     expect(clicked).toBe(true);
   });
 
-  describe('Cenários BDD (CARD-054): Publicação de Anúncios Reais & ads.txt', () => {
-    it('Cenário BDD 4: deve configurar atributos data-ad-client e data-ad-slot no elemento ins.adsbygoogle', () => {
-      fixture.componentRef.setInput('adClient', 'ca-pub-1234567890123456');
-      fixture.componentRef.setInput('slotId', '9876543210');
+  describe('Cenários BDD (Adsterra & Publicidade Segura)', () => {
+    it('Cenário BDD 4: deve renderizar iframe do anúncio Adsterra com a chave configurada e dimensões corretas', () => {
+      fixture.componentRef.setInput('adKey', 'test-adsterra-key-728');
+      component.renderAdsterraBanner();
       fixture.detectChanges();
 
-      const insElement = fixture.nativeElement.querySelector('ins.adsbygoogle');
-      expect(insElement).toBeTruthy();
-      expect(insElement.getAttribute('data-ad-client')).toBe('ca-pub-1234567890123456');
-      expect(insElement.getAttribute('data-ad-slot')).toBe('9876543210');
-      expect(insElement.getAttribute('data-ad-format')).toBe('auto');
+      const iframe = fixture.nativeElement.querySelector('iframe');
+      expect(iframe).toBeTruthy();
+      expect(iframe.getAttribute('data-ad-key')).toBe('test-adsterra-key-728');
+      expect(iframe.getAttribute('width')).toBe('728');
+      expect(iframe.getAttribute('height')).toBe('90');
+      expect(iframe.getAttribute('title')).toBe('Publicidade Quinzena');
+    });
+
+    it('Cenário BDD 4b: deve renderizar banner mobile 300x250 em telas menores que 768px', () => {
+      component.isMobile.set(true);
+      fixture.componentRef.setInput('mobileAdKey', 'test-adsterra-mobile-300');
+      component.renderAdsterraBanner();
+      fixture.detectChanges();
+
+      const iframe = fixture.nativeElement.querySelector('iframe');
+      expect(iframe).toBeTruthy();
+      expect(iframe.getAttribute('data-ad-key')).toBe('test-adsterra-mobile-300');
+      expect(iframe.getAttribute('width')).toBe('300');
+      expect(iframe.getAttribute('height')).toBe('250');
     });
 
     it('Cenário BDD 5: deve renderizar fallback de bloqueador de anúncios quando isAdBlocked for verdadeiro', () => {
@@ -96,20 +110,10 @@ describe('AdBannerComponent (Google AdSense Top Banner)', () => {
       expect(clicked).toBe(true);
     });
 
-    it('Cenário BDD 6: deve chamar pushAd() sem lançar erros e atualizar fila do window.adsbygoogle', () => {
+    it('Cenário BDD 6: deve chamar pushAd() retrocompatível sem erros', () => {
       (window as any).adsbygoogle = [];
       component.pushAd();
       expect((window as any).adsbygoogle.length).toBeGreaterThan(0);
-    });
-
-    it('Cenário BDD 7: deve resolver ensureAdSenseScript se script já existir no DOM', async () => {
-      const dummyScript = document.createElement('script');
-      dummyScript.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-test';
-      document.head.appendChild(dummyScript);
-
-      await expect(component.ensureAdSenseScript('ca-pub-test')).resolves.toBeUndefined();
-
-      dummyScript.remove();
     });
   });
 });

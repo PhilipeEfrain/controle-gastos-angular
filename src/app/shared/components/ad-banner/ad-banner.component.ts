@@ -7,6 +7,9 @@ import {
   computed,
   signal,
   AfterViewInit,
+  OnDestroy,
+  ElementRef,
+  viewChild,
   PLATFORM_ID
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
@@ -21,14 +24,20 @@ import { environment } from '../../../../environments/environment';
   styleUrl: './ad-banner.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AdBannerComponent implements AfterViewInit {
+export class AdBannerComponent implements AfterViewInit, OnDestroy {
   private readonly authStore = inject(AuthStore);
   private readonly platformId = inject(PLATFORM_ID);
 
-  readonly slotId = input<string>(environment.adsense?.topDashboardSlot || '6818458661');
-  readonly adClient = input<string>(environment.adsense?.client || 'ca-pub-8227454086945331');
+  readonly adContainer = viewChild<ElementRef<HTMLDivElement>>('adContainer');
+
+  readonly adKey = input<string>(environment.adsterra?.banner728x90Key || 'f44c3704756583467ecc61b994d6f80f');
+  readonly mobileAdKey = input<string>(environment.adsterra?.banner300x250Key || 'dae845012d1ed3de4df9b34f05215bda');
   readonly showUpgradePrompt = input<boolean>(true);
   readonly cssClass = input<string>('');
+
+  // Propriedades retrocompatíveis para evitar quebras
+  readonly slotId = input<string>('');
+  readonly adClient = input<string>('');
 
   readonly upgradeClick = output<void>();
 
@@ -36,14 +45,38 @@ export class AdBannerComponent implements AfterViewInit {
   readonly isFreeUser = computed(() => !this.authStore.isProOrDuo());
 
   readonly isAdBlocked = signal<boolean>(false);
-  readonly isScriptLoaded = signal<boolean>(false);
+  readonly isMobile = signal<boolean>(false);
+
+  private resizeListener: (() => void) | null = null;
 
   ngAfterViewInit(): void {
     if (!isPlatformBrowser(this.platformId) || !this.isFreeUser()) {
       return;
     }
 
-    this.initAdSense();
+    this.checkViewport();
+    this.renderAdsterraBanner();
+
+    this.resizeListener = () => {
+      const wasMobile = this.isMobile();
+      this.checkViewport();
+      if (wasMobile !== this.isMobile()) {
+        this.renderAdsterraBanner();
+      }
+    };
+    window.addEventListener('resize', this.resizeListener);
+  }
+
+  ngOnDestroy(): void {
+    if (this.resizeListener && typeof window !== 'undefined') {
+      window.removeEventListener('resize', this.resizeListener);
+    }
+  }
+
+  private checkViewport(): void {
+    if (typeof window !== 'undefined') {
+      this.isMobile.set(window.innerWidth < 768);
+    }
   }
 
   onUpgrade(): void {
@@ -51,53 +84,74 @@ export class AdBannerComponent implements AfterViewInit {
   }
 
   /**
-   * Injeta o script oficial do Google AdSense assincronamente e aciona o anúncio (CARD-054)
+   * Renderiza o banner da Adsterra dentro de um iframe isolado
+   * Evita poluição de escopo global no SPA e conflitos entre anúncios simultâneos
    */
-  initAdSense(): void {
-    const client = this.adClient();
-    if (!client) return;
+  renderAdsterraBanner(): void {
+    const container = this.adContainer()?.nativeElement;
+    if (!container) return;
 
-    this.ensureAdSenseScript(client)
-      .then(() => {
-        this.isScriptLoaded.set(true);
-        this.pushAd();
-      })
-      .catch(() => {
+    // Remove iframes prévios para evitar duplicação em redimensionamentos
+    const existingIframe = container.querySelector('iframe');
+    if (existingIframe) {
+      existingIframe.remove();
+    }
+
+    const mobile = this.isMobile();
+    const key = mobile ? this.mobileAdKey() : this.adKey();
+    const width = mobile ? 300 : 728;
+    const height = mobile ? 250 : 90;
+
+    if (!key) return;
+
+    try {
+      const iframe = document.createElement('iframe');
+      iframe.width = String(width);
+      iframe.height = String(height);
+      iframe.style.border = 'none';
+      iframe.style.overflow = 'hidden';
+      iframe.style.margin = '0 auto';
+      iframe.style.display = 'block';
+      iframe.scrolling = 'no';
+      iframe.title = 'Publicidade Quinzena';
+      iframe.setAttribute('data-ad-key', key);
+
+      const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base target="_blank">
+  <style>
+    body { margin: 0; padding: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; background: transparent; }
+  </style>
+</head>
+<body>
+  <script type="text/javascript">
+    atOptions = {
+      'key' : '${key}',
+      'format' : 'iframe',
+      'height' : ${height},
+      'width' : ${width},
+      'params' : {}
+    };
+  <\/script>
+  <script type="text/javascript" src="https://www.highrevenueformat.com/${key}/invoke.js"><\/script>
+</body>
+</html>`;
+
+      iframe.srcdoc = htmlContent;
+
+      iframe.onerror = () => {
         this.isAdBlocked.set(true);
-      });
+      };
+
+      container.appendChild(iframe);
+    } catch {
+      this.isAdBlocked.set(true);
+    }
   }
 
-  /**
-   * Garante que o script oficial do AdSense seja incluído apenas uma vez no DOM
-   */
-  ensureAdSenseScript(client: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (typeof document === 'undefined') {
-        resolve();
-        return;
-      }
-
-      const existingScript = document.querySelector('script[src*="adsbygoogle.js"]');
-      if (existingScript) {
-        resolve();
-        return;
-      }
-
-      const script = document.createElement('script');
-      script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${client}`;
-      script.async = true;
-      script.crossOrigin = 'anonymous';
-
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error('Falha ao carregar script do Google AdSense (possível bloqueador)'));
-
-      document.head.appendChild(script);
-    });
-  }
-
-  /**
-   * Executa push para a fila global do AdSense com tratamento de exceções
-   */
+  // Método stub retrocompatível para testes legados
   pushAd(): void {
     try {
       if (typeof window !== 'undefined') {
