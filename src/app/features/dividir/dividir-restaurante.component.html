@@ -255,10 +255,12 @@
     }
   </app-card>
 
-  <!-- Anúncio entre Passo 2 (Comanda) e Passo 3 (Taxas) -->
-  <div class="dividir-ad-row">
-    <app-ad-banner format="auto" [alwaysShow]="true" [showUpgradePrompt]="false" />
-  </div>
+  @if (showAds()) {
+    <!-- Anúncio entre Passo 2 (Comanda) e Passo 3 (Taxas) -->
+    <div class="dividir-ad-row">
+      <app-ad-banner format="auto" [alwaysShow]="showAds()" [showUpgradePrompt]="false" />
+    </div>
+  }
 
   <!-- Passo 3: Taxas, Couvert e Pagamento -->
   <app-card class="section-card">
@@ -392,10 +394,12 @@
     </div>
   </app-card>
 
-  <!-- Anúncio entre Passo 3 (Taxas) e Passo 4 (Fechamento) -->
-  <div class="dividir-ad-row">
-    <app-ad-banner format="auto" [alwaysShow]="true" [showUpgradePrompt]="false" />
-  </div>
+  @if (showAds()) {
+    <!-- Anúncio entre Passo 3 (Taxas) e Passo 4 (Fechamento) -->
+    <div class="dividir-ad-row">
+      <app-ad-banner format="auto" [alwaysShow]="showAds()" [showUpgradePrompt]="false" />
+    </div>
+  }
 
   <!-- Passo 4: Fechamento da Conta & WhatsApp -->
   <app-card class="section-card result-card">

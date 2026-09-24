@@ -50,6 +50,8 @@ export class DividirGroupComponent implements OnInit, OnDestroy {
 
   readonly currentUser = this.authStore.currentUser;
   readonly isAuthenticated = this.authStore.isAuthenticated;
+  readonly isProOrDuo = this.authStore.isProOrDuo;
+  readonly showAds = computed(() => !this.authStore.isProOrDuo());
 
   readonly groupId = signal<string>('');
   readonly group = signal<SplitGroup | null>(null);

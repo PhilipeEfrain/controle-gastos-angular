@@ -1,12 +1,14 @@
 <div class="group-page">
   <div class="dividir-responsive-layout">
-    <!-- Coluna Lateral Esquerda (ativa em telas amplas ≥ 1400px) -->
-    <aside class="dividir-side-ad-col dividir-side-ad-col--left" aria-label="Publicidade lateral esquerda">
-      <div class="sticky-ad-box">
-        <app-ad-banner format="rectangle" [alwaysShow]="true" [showUpgradePrompt]="false" />
-        <app-ad-banner format="skyscraper" [alwaysShow]="true" [showUpgradePrompt]="false" />
-      </div>
-    </aside>
+    @if (showAds()) {
+      <!-- Coluna Lateral Esquerda (ativa em telas amplas ≥ 1400px) -->
+      <aside class="dividir-side-ad-col dividir-side-ad-col--left" aria-label="Publicidade lateral esquerda">
+        <div class="sticky-ad-box">
+          <app-ad-banner format="rectangle" [alwaysShow]="showAds()" [showUpgradePrompt]="false" />
+          <app-ad-banner format="skyscraper" [alwaysShow]="showAds()" [showUpgradePrompt]="false" />
+        </div>
+      </aside>
+    }
 
     <div class="group-container">
       @if (isLoading()) {
@@ -63,10 +65,12 @@
           </div>
         </header>
 
-        <!-- Anúncio em Linha no Topo (visível em todas as telas entre o cabeçalho e os participantes) -->
-        <div class="dividir-ad-row dividir-ad-row--top">
-          <app-ad-banner format="auto" [alwaysShow]="true" [showUpgradePrompt]="false" />
-        </div>
+        @if (showAds()) {
+          <!-- Anúncio em Linha no Topo (visível em todas as telas entre o cabeçalho e os participantes) -->
+          <div class="dividir-ad-row dividir-ad-row--top">
+            <app-ad-banner format="auto" [alwaysShow]="showAds()" [showUpgradePrompt]="false" />
+          </div>
+        }
 
       <!-- Seletor de Participante (Visão Personalizada) -->
       <section class="identity-bar">
@@ -245,10 +249,12 @@
         }
       </section>
 
-      <!-- Anúncio entre Acerto de Contas e Despesas Registradas -->
-      <div class="dividir-ad-row">
-        <app-ad-banner format="auto" [alwaysShow]="true" [showUpgradePrompt]="false" />
-      </div>
+      @if (showAds()) {
+        <!-- Anúncio entre Acerto de Contas e Despesas Registradas -->
+        <div class="dividir-ad-row">
+          <app-ad-banner format="auto" [alwaysShow]="showAds()" [showUpgradePrompt]="false" />
+        </div>
+      }
 
       <!-- Seção: Lista de Despesas Lançadas -->
       <section class="expenses-section">
@@ -318,19 +324,23 @@
       }
     }
 
-    <!-- Anúncio em Linha no Rodapé (Fechamento) -->
-    <div class="dividir-ad-row dividir-ad-row--bottom">
-      <app-ad-banner format="auto" [alwaysShow]="true" [showUpgradePrompt]="false" />
-    </div>
+    @if (showAds()) {
+      <!-- Anúncio em Linha no Rodapé (Fechamento) -->
+      <div class="dividir-ad-row dividir-ad-row--bottom">
+        <app-ad-banner format="auto" [alwaysShow]="showAds()" [showUpgradePrompt]="false" />
+      </div>
+    }
   </div>
 
-  <!-- Coluna Lateral Direita (ativa em telas amplas ≥ 1400px) -->
-  <aside class="dividir-side-ad-col dividir-side-ad-col--right" aria-label="Publicidade lateral direita">
-    <div class="sticky-ad-box">
-      <app-ad-banner format="skyscraper" [alwaysShow]="true" [showUpgradePrompt]="false" />
-      <app-ad-banner format="rectangle" [alwaysShow]="true" [showUpgradePrompt]="false" />
-    </div>
-  </aside>
+  @if (showAds()) {
+    <!-- Coluna Lateral Direita (ativa em telas amplas ≥ 1400px) -->
+    <aside class="dividir-side-ad-col dividir-side-ad-col--right" aria-label="Publicidade lateral direita">
+      <div class="sticky-ad-box">
+        <app-ad-banner format="skyscraper" [alwaysShow]="showAds()" [showUpgradePrompt]="false" />
+        <app-ad-banner format="rectangle" [alwaysShow]="showAds()" [showUpgradePrompt]="false" />
+      </div>
+    </aside>
+  }
 </div>
 </div>
 

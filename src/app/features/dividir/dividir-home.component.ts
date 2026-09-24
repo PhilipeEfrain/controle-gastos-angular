@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -39,6 +39,8 @@ export class DividirHomeComponent implements OnInit {
 
   readonly currentUser = this.authStore.currentUser;
   readonly isAuthenticated = this.authStore.isAuthenticated;
+  readonly isProOrDuo = this.authStore.isProOrDuo;
+  readonly showAds = computed(() => !this.authStore.isProOrDuo());
 
   readonly groups = signal<SplitGroup[]>([]);
   readonly isLoading = signal<boolean>(true);

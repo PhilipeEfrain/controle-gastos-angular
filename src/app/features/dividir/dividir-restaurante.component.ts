@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { AppCardComponent } from '../../shared/components/app-card/app-card.component';
 import { AdBannerComponent } from '../../shared/components/ad-banner/ad-banner.component';
 import { NotificationService } from '../../core/services/notification.service';
+import { AuthStore } from '../../core/state/auth.store';
 import { formatBRL } from '../../core/utils/formatters';
 import {
   calculateRestaurantBill,
@@ -24,6 +25,10 @@ import {
 })
 export class DividirRestauranteComponent {
   private notificationService = inject(NotificationService);
+  private authStore = inject(AuthStore);
+
+  readonly isProOrDuo = this.authStore.isProOrDuo;
+  readonly showAds = computed(() => !this.authStore.isProOrDuo());
 
   // Participantes
   readonly participants = signal<RestaurantParticipant[]>([

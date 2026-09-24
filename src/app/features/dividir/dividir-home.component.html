@@ -1,12 +1,14 @@
 <div class="dividir-page">
   <div class="dividir-responsive-layout">
-    <!-- Coluna Lateral Esquerda (ativa em telas amplas ≥ 1400px) -->
-    <aside class="dividir-side-ad-col dividir-side-ad-col--left" aria-label="Publicidade lateral esquerda">
-      <div class="sticky-ad-box">
-        <app-ad-banner format="rectangle" [alwaysShow]="true" [showUpgradePrompt]="false" />
-        <app-ad-banner format="skyscraper" [alwaysShow]="true" [showUpgradePrompt]="false" />
-      </div>
-    </aside>
+    @if (showAds()) {
+      <!-- Coluna Lateral Esquerda (ativa em telas amplas ≥ 1400px) -->
+      <aside class="dividir-side-ad-col dividir-side-ad-col--left" aria-label="Publicidade lateral esquerda">
+        <div class="sticky-ad-box">
+          <app-ad-banner format="rectangle" [alwaysShow]="showAds()" [showUpgradePrompt]="false" />
+          <app-ad-banner format="skyscraper" [alwaysShow]="showAds()" [showUpgradePrompt]="false" />
+        </div>
+      </aside>
+    }
 
     <div class="dividir-container">
       <!-- Header -->
@@ -64,10 +66,12 @@
         </button>
       </nav>
 
-      <!-- Anúncio em Linha no Topo (visível em todas as telas entre a navegação e o conteúdo) -->
-      <div class="dividir-ad-row dividir-ad-row--top">
-        <app-ad-banner format="auto" [alwaysShow]="true" [showUpgradePrompt]="false" />
-      </div>
+      @if (showAds()) {
+        <!-- Anúncio em Linha no Topo (visível em todas as telas entre a navegação e o conteúdo) -->
+        <div class="dividir-ad-row dividir-ad-row--top">
+          <app-ad-banner format="auto" [alwaysShow]="showAds()" [showUpgradePrompt]="false" />
+        </div>
+      }
 
     @if (activeTab() === 'role') {
       @if (!isAuthenticated()) {
@@ -139,19 +143,23 @@
       <app-dividir-restaurante></app-dividir-restaurante>
     }
 
-    <!-- Anúncio em Linha no Rodapé (Fechamento) -->
-    <div class="dividir-ad-row dividir-ad-row--bottom">
-      <app-ad-banner format="auto" [alwaysShow]="true" [showUpgradePrompt]="false" />
-    </div>
+    @if (showAds()) {
+      <!-- Anúncio em Linha no Rodapé (Fechamento) -->
+      <div class="dividir-ad-row dividir-ad-row--bottom">
+        <app-ad-banner format="auto" [alwaysShow]="showAds()" [showUpgradePrompt]="false" />
+      </div>
+    }
   </div>
 
-  <!-- Coluna Lateral Direita (ativa em telas amplas ≥ 1400px) -->
-  <aside class="dividir-side-ad-col dividir-side-ad-col--right" aria-label="Publicidade lateral direita">
-    <div class="sticky-ad-box">
-      <app-ad-banner format="skyscraper" [alwaysShow]="true" [showUpgradePrompt]="false" />
-      <app-ad-banner format="rectangle" [alwaysShow]="true" [showUpgradePrompt]="false" />
-    </div>
-  </aside>
+  @if (showAds()) {
+    <!-- Coluna Lateral Direita (ativa em telas amplas ≥ 1400px) -->
+    <aside class="dividir-side-ad-col dividir-side-ad-col--right" aria-label="Publicidade lateral direita">
+      <div class="sticky-ad-box">
+        <app-ad-banner format="skyscraper" [alwaysShow]="showAds()" [showUpgradePrompt]="false" />
+        <app-ad-banner format="rectangle" [alwaysShow]="showAds()" [showUpgradePrompt]="false" />
+      </div>
+    </aside>
+  }
 </div>
 </div>
 
