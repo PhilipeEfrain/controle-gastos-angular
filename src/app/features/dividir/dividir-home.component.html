@@ -1,62 +1,73 @@
 <div class="dividir-page">
-  <div class="dividir-container">
-    <!-- Header -->
-    <header class="page-header">
-      <div class="header-content">
-        <div class="brand-row">
-          <app-brand-logo></app-brand-logo>
-          <span class="badge-tag">Dividir</span>
-        </div>
-        @if (activeTab() === 'role') {
-          <h1 class="page-title">Divida despesas em grupo sem complicação</h1>
-          <p class="page-subtitle">
-            Ideal para viagens, eventos e contas compartilhadas. Seus amigos acessam pelo link, veem o saldo e pagam direto via PIX — sem precisar instalar nada.
-          </p>
-        } @else {
-          <h1 class="page-title">Divida a conta do restaurante ou bar</h1>
-          <p class="page-subtitle">
-            Fechamento de mesa descomplicado: calcule consumo individual, taxa de serviço, couvert e envie o resumo pronto direto no WhatsApp.
-          </p>
-        }
+  <div class="dividir-responsive-layout">
+    <!-- Coluna Lateral Esquerda (ativa em telas amplas ≥ 1400px) -->
+    <aside class="dividir-side-ad-col dividir-side-ad-col--left" aria-label="Publicidade lateral esquerda">
+      <div class="sticky-ad-box">
+        <app-ad-banner format="rectangle" [alwaysShow]="true" [showUpgradePrompt]="false" />
+        <app-ad-banner format="skyscraper" [alwaysShow]="true" [showUpgradePrompt]="false" />
       </div>
+    </aside>
 
-      @if (activeTab() === 'role') {
-        <div class="header-actions">
-          <button type="button" class="btn-primary" (click)="openCreateModal()">
-            <svg viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-            </svg>
-            <span>Criar novo grupo</span>
-          </button>
+    <div class="dividir-container">
+      <!-- Header -->
+      <header class="page-header">
+        <div class="header-content">
+          <div class="brand-row">
+            <app-brand-logo></app-brand-logo>
+            <span class="badge-tag">Dividir</span>
+          </div>
+          @if (activeTab() === 'role') {
+            <h1 class="page-title">Divida despesas em grupo sem complicação</h1>
+            <p class="page-subtitle">
+              Ideal para viagens, eventos e contas compartilhadas. Seus amigos acessam pelo link, veem o saldo e pagam direto via PIX — sem precisar instalar nada.
+            </p>
+          } @else {
+            <h1 class="page-title">Divida a conta do restaurante ou bar</h1>
+            <p class="page-subtitle">
+              Fechamento de mesa descomplicado: calcule consumo individual, taxa de serviço, couvert e envie o resumo pronto direto no WhatsApp.
+            </p>
+          }
         </div>
-      }
-    </header>
 
-    <!-- Barra de Navegação em Abas -->
-    <nav class="dividir-nav-tabs" aria-label="Abas de divisão">
-      <button
-        type="button"
-        class="tab-btn"
-        [class.active]="activeTab() === 'role'"
-        (click)="activeTab.set('role')"
-      >
-        <span class="tab-icon">🎉</span>
-        <span class="tab-label">Dividir Rolê</span>
-      </button>
+        @if (activeTab() === 'role') {
+          <div class="header-actions">
+            <button type="button" class="btn-primary" (click)="openCreateModal()">
+              <svg viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+              </svg>
+              <span>Criar novo grupo</span>
+            </button>
+          </div>
+        }
+      </header>
 
-      <button
-        type="button"
-        class="tab-btn"
-        [class.active]="activeTab() === 'restaurante'"
-        (click)="activeTab.set('restaurante')"
-      >
-        <span class="tab-icon">🍽️</span>
-        <span class="tab-label">Dividir Restaurante</span>
-      </button>
-    </nav>
+      <!-- Barra de Navegação em Abas -->
+      <nav class="dividir-nav-tabs" aria-label="Abas de divisão">
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="activeTab() === 'role'"
+          (click)="activeTab.set('role')"
+        >
+          <span class="tab-icon">🎉</span>
+          <span class="tab-label">Dividir Rolê</span>
+        </button>
 
-    <!-- Banner de Anúncios Obrigatório no Módulo Dividir (Recurso 100% Gratuito) -->
-    <app-ad-banner [alwaysShow]="true" [showUpgradePrompt]="false" />
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="activeTab() === 'restaurante'"
+          (click)="activeTab.set('restaurante')"
+        >
+          <span class="tab-icon">🍽️</span>
+          <span class="tab-label">Dividir Restaurante</span>
+        </button>
+      </nav>
+
+      <!-- Anúncio em Linha no Topo (visível quando as colunas laterais NÃO couberem, < 1400px) -->
+      <div class="dividir-ad-row dividir-ad-row--top">
+        <app-ad-banner format="auto" [alwaysShow]="true" [showUpgradePrompt]="false" />
+      </div>
 
     @if (activeTab() === 'role') {
       @if (!isAuthenticated()) {
@@ -127,7 +138,21 @@
       <!-- Aba: Dividir Restaurante -->
       <app-dividir-restaurante></app-dividir-restaurante>
     }
+
+    <!-- Anúncio em Linha no Rodapé (Fechamento) -->
+    <div class="dividir-ad-row dividir-ad-row--bottom">
+      <app-ad-banner format="auto" [alwaysShow]="true" [showUpgradePrompt]="false" />
+    </div>
   </div>
+
+  <!-- Coluna Lateral Direita (ativa em telas amplas ≥ 1400px) -->
+  <aside class="dividir-side-ad-col dividir-side-ad-col--right" aria-label="Publicidade lateral direita">
+    <div class="sticky-ad-box">
+      <app-ad-banner format="skyscraper" [alwaysShow]="true" [showUpgradePrompt]="false" />
+      <app-ad-banner format="rectangle" [alwaysShow]="true" [showUpgradePrompt]="false" />
+    </div>
+  </aside>
+</div>
 </div>
 
 <!-- Modal: Criar Novo Grupo -->

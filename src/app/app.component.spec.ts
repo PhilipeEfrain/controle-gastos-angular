@@ -161,7 +161,7 @@ describe('App', () => {
   });
 
   describe('Anúncios Laterais (AdSidebar)', () => {
-    it('deve exibir anúncios laterais na rota /dividir mesmo para usuário não autenticado', async () => {
+    it('deve identificar rota /dividir e desativar AdSidebar fixo do app shell pois o Dividir gerencia seus próprios anúncios responsivos', async () => {
       isAuthenticatedSignal.set(false);
       await router.navigate(['/dividir']);
 
@@ -169,10 +169,10 @@ describe('App', () => {
       const app = fixture.componentInstance;
 
       expect(app.isDividirPage()).toBe(true);
-      expect(app.showAdSidebar()).toBe(true);
+      expect(app.showAdSidebar()).toBe(false);
     });
 
-    it('deve exibir anúncios laterais na rota /dividir/:id mesmo para assinantes PRO', async () => {
+    it('deve identificar rota /dividir/:id e desativar AdSidebar fixo do app shell', async () => {
       isAuthenticatedSignal.set(true);
       (mockAuthStore.isProOrDuo as WritableSignal<boolean>).set(true);
       await router.navigate(['/dividir/grupo-123']);
@@ -181,7 +181,7 @@ describe('App', () => {
       const app = fixture.componentInstance;
 
       expect(app.isDividirPage()).toBe(true);
-      expect(app.showAdSidebar()).toBe(true);
+      expect(app.showAdSidebar()).toBe(false);
     });
 
     it('deve exibir anúncios laterais no /dashboard para usuários Free autenticados', async () => {

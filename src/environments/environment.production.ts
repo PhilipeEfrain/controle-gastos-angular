@@ -18,6 +18,7 @@ export const environment = {
     enabled: true,
     banner728x90Key: 'f44c3704756583467ecc61b994d6f80f',
     banner300x250Key: 'dae845012d1ed3de4df9b34f05215bda',
+    skyscraper160x300Key: '3c670e0edde6c164bd9cc6e60437bb25',
     nativePlacementId: '31396525',
     nativeContainerId: 'container-89feb5cfbf99143b86478f30d020af9a'
   }

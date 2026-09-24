@@ -1,5 +1,13 @@
 @if (shouldRender()) {
-  <aside class="ad-banner-wrapper" [class]="cssClass()" role="complementary" aria-label="Espaço publicitário">
+  <aside
+    class="ad-banner-wrapper"
+    [class]="cssClass()"
+    [class.is-leaderboard]="activeFormat() === 'leaderboard'"
+    [class.is-rectangle]="activeFormat() === 'rectangle'"
+    [class.is-skyscraper]="activeFormat() === 'skyscraper'"
+    role="complementary"
+    aria-label="Espaço publicitário"
+  >
     <div class="ad-banner-card">
       <div class="ad-banner-meta">
         <span class="ad-tag">Publicidade</span>
@@ -16,7 +24,12 @@
         }
       </div>
 
-      <div class="ad-banner-content" [class.is-mobile]="isMobile()">
+      <div
+        class="ad-banner-content"
+        [class.format-leaderboard]="activeFormat() === 'leaderboard'"
+        [class.format-rectangle]="activeFormat() === 'rectangle'"
+        [class.format-skyscraper]="activeFormat() === 'skyscraper'"
+      >
         <div #adContainer class="ad-slot-frame">
           @if (isAdBlocked()) {
             <div class="ad-blocked-fallback">

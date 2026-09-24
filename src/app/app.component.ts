@@ -66,9 +66,9 @@ export class App {
       return false;
     }
 
-    // No módulo Dividir, anúncios laterais sempre são exibidos (recurso 100% free)
+    // No módulo Dividir, os anúncios são integrados no layout da página (variando entre colunas e linhas)
     if (this.isDividirPage()) {
-      return true;
+      return false;
     }
 
     // No restante do app autenticado, exibe para usuários Free

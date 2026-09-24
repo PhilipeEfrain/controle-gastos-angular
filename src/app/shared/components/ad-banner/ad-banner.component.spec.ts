@@ -90,9 +90,10 @@ describe('AdBannerComponent (Google AdSense Top Banner)', () => {
       expect(iframe.getAttribute('title')).toBe('Publicidade Quinzena');
     });
 
-    it('Cenário BDD 4b: deve renderizar banner mobile 300x250 em telas menores que 768px', () => {
-      component.isMobile.set(true);
+    it('Cenário BDD 4b: deve renderizar banner mobile 300x250 em telas menores que 768px ou formato rectangle', () => {
+      fixture.componentRef.setInput('format', 'rectangle');
       fixture.componentRef.setInput('mobileAdKey', 'test-adsterra-mobile-300');
+      component.activeFormat.set('rectangle');
       component.renderAdsterraBanner();
       fixture.detectChanges();
 
@@ -101,6 +102,20 @@ describe('AdBannerComponent (Google AdSense Top Banner)', () => {
       expect(iframe.getAttribute('data-ad-key')).toBe('test-adsterra-mobile-300');
       expect(iframe.getAttribute('width')).toBe('300');
       expect(iframe.getAttribute('height')).toBe('250');
+    });
+
+    it('Cenário BDD 4c: deve renderizar banner skyscraper 160x300 quando formato for skyscraper', () => {
+      fixture.componentRef.setInput('format', 'skyscraper');
+      fixture.componentRef.setInput('skyscraperAdKey', 'test-adsterra-skyscraper-160');
+      component.activeFormat.set('skyscraper');
+      component.renderAdsterraBanner();
+      fixture.detectChanges();
+
+      const iframe = fixture.nativeElement.querySelector('iframe');
+      expect(iframe).toBeTruthy();
+      expect(iframe.getAttribute('data-ad-key')).toBe('test-adsterra-skyscraper-160');
+      expect(iframe.getAttribute('width')).toBe('160');
+      expect(iframe.getAttribute('height')).toBe('300');
     });
 
     it('Cenário BDD 5: deve renderizar fallback de bloqueador de anúncios quando isAdBlocked for verdadeiro', () => {
