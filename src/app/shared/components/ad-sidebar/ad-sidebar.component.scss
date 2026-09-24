@@ -1,6 +1,6 @@
 @use '../../../../styles/abstracts' as *;
 
-// Sidebar de Anúncios - visível apenas em telas amplas (≥ 1536px)
+// Sidebar de Anúncios - visível em telas amplas (≥ 1440px)
 .ad-sidebar {
   position: fixed;
   top: 50%;
@@ -9,7 +9,7 @@
   width: 316px;
   display: none; // hidden by default
 
-  @include respond-to('2xl') {
+  @media (min-width: 1440px) {
     display: block;
   }
 

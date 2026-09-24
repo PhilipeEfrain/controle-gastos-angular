@@ -48,4 +48,30 @@ export class App {
     const isLegalPage = cleanUrl === '/termos' || cleanUrl === '/privacidade';
     return this.authStore.isAuthenticated() && !isAuthPage && !isLandingPage && !isLegalPage;
   });
+
+  readonly isDividirPage = computed(() => {
+    const rawUrl = this.currentUrl() || this.router.url || (typeof window !== 'undefined' ? window.location.pathname + window.location.hash : '');
+    const cleanUrl = rawUrl.split('?')[0].split('#')[0];
+    return cleanUrl.startsWith('/dividir');
+  });
+
+  readonly showAdSidebar = computed(() => {
+    const rawUrl = this.currentUrl() || this.router.url || (typeof window !== 'undefined' ? window.location.pathname + window.location.hash : '');
+    const cleanUrl = rawUrl.split('?')[0].split('#')[0];
+    const isAuthPage = cleanUrl.startsWith('/auth');
+    const isLandingPage = cleanUrl === '/' || cleanUrl === '';
+    const isLegalPage = cleanUrl === '/termos' || cleanUrl === '/privacidade';
+
+    if (isAuthPage || isLandingPage || isLegalPage) {
+      return false;
+    }
+
+    // No módulo Dividir, anúncios laterais sempre são exibidos (recurso 100% free)
+    if (this.isDividirPage()) {
+      return true;
+    }
+
+    // No restante do app autenticado, exibe para usuários Free
+    return this.authStore.isAuthenticated() && !this.authStore.isProOrDuo();
+  });
 }

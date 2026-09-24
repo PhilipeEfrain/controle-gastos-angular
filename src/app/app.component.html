@@ -9,10 +9,10 @@
     <router-outlet />
   </main>
 
-  <!-- Anúncios Laterais - Apenas telas xl (≥1280px) e usuários Free -->
-  @if (showNavbar()) {
-    <app-ad-sidebar position="left" />
-    <app-ad-sidebar position="right" />
+  <!-- Anúncios Laterais - Módulo Dividir (sempre) ou App Autenticado (Plano Free) -->
+  @if (showAdSidebar()) {
+    <app-ad-sidebar position="left" [alwaysShow]="isDividirPage()" />
+    <app-ad-sidebar position="right" [alwaysShow]="isDividirPage()" />
   }
 
   <app-toast-container />

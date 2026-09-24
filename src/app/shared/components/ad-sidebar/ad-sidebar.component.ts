@@ -5,6 +5,7 @@ import {
   inject,
   computed,
   signal,
+  effect,
   AfterViewInit,
   PLATFORM_ID,
   OnDestroy,
@@ -36,12 +37,14 @@ export class AdSidebarComponent implements AfterViewInit, OnDestroy {
 
   readonly position = input<'left' | 'right'>('left');
   readonly adKey = input<string>(environment.adsterra?.banner300x250Key || 'dae845012d1ed3de4df9b34f05215bda');
+  readonly alwaysShow = input<boolean>(false);
 
   // Propriedades retrocompatíveis
   readonly slotId = input<string>('');
   readonly adClient = input<string>('');
 
   readonly isFreeUser = computed(() => !this.authStore.isProOrDuo());
+  readonly shouldRender = computed(() => this.alwaysShow() || this.isFreeUser());
 
   readonly isAdBlocked = signal<boolean>(false);
   readonly isVisible = signal<boolean>(false);
@@ -49,26 +52,29 @@ export class AdSidebarComponent implements AfterViewInit, OnDestroy {
   private mediaQuery: MediaQueryList | null = null;
   private mediaListener: ((e: MediaQueryListEvent) => void) | null = null;
 
+  constructor() {
+    effect(() => {
+      const render = this.shouldRender();
+      const visible = this.isVisible();
+      if (render && visible && isPlatformBrowser(this.platformId)) {
+        setTimeout(() => this.renderAdsterraBanner(), 50);
+      }
+    });
+  }
+
   ngAfterViewInit(): void {
-    if (!isPlatformBrowser(this.platformId) || !this.isFreeUser()) {
+    if (!isPlatformBrowser(this.platformId)) {
       return;
     }
 
-    // Visível em telas amplas (≥ 1536px para acomodar barras de 300px nas laterais sem sobrepor conteúdo)
-    this.mediaQuery = window.matchMedia('(min-width: 1536px)');
+    // Visível em telas amplas (≥ 1440px para acomodar barras de 300px nas laterais sem sobrepor conteúdo)
+    this.mediaQuery = window.matchMedia('(min-width: 1440px)');
     this.isVisible.set(this.mediaQuery.matches);
 
     this.mediaListener = (e: MediaQueryListEvent) => {
       this.isVisible.set(e.matches);
-      if (e.matches) {
-        setTimeout(() => this.renderAdsterraBanner(), 50);
-      }
     };
     this.mediaQuery.addEventListener('change', this.mediaListener);
-
-    if (this.mediaQuery.matches) {
-      this.renderAdsterraBanner();
-    }
   }
 
   ngOnDestroy(): void {

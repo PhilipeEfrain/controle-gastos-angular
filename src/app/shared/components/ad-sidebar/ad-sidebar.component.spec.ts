@@ -60,12 +60,22 @@ describe('AdSidebarComponent (Google AdSense Sidebar)', () => {
     expect(component.isFreeUser()).toBe(true);
   });
 
-  it('NÃO deve renderizar sidebar para usuários PRO ou DUO', () => {
+  it('NÃO deve renderizar sidebar para usuários PRO ou DUO quando alwaysShow for false', () => {
     mockIsProOrDuo.set(true);
     forceVisible();
 
     const sidebar = fixture.nativeElement.querySelector('.ad-sidebar');
     expect(sidebar).toBeNull();
+  });
+
+  it('DEVE renderizar sidebar para usuários PRO ou DUO quando alwaysShow for true (módulo Dividir 100% free)', () => {
+    mockIsProOrDuo.set(true);
+    fixture.componentRef.setInput('alwaysShow', true);
+    forceVisible();
+
+    const sidebar = fixture.nativeElement.querySelector('.ad-sidebar');
+    expect(sidebar).toBeTruthy();
+    expect(sidebar.textContent).toContain('Publicidade');
   });
 
   it('deve renderizar iframe do anúncio Adsterra com a chave configurada no sidebar', () => {

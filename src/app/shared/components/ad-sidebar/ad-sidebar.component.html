@@ -1,4 +1,4 @@
-@if (isFreeUser() && isVisible()) {
+@if (shouldRender() && isVisible()) {
   <aside
     class="ad-sidebar"
     [class.ad-sidebar--left]="position() === 'left'"

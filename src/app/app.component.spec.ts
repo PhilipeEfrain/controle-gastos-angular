@@ -41,6 +41,7 @@ describe('App', () => {
     mockAuthStore = {
       currentUser: signal(null),
       isAuthenticated: isAuthenticatedSignal,
+      isProOrDuo: signal(false),
       logout: vi.fn().mockResolvedValue(undefined)
     };
 
@@ -72,7 +73,9 @@ describe('App', () => {
           { path: 'auth', children: [] },
           { path: 'dashboard', children: [] },
           { path: 'termos', children: [] },
-          { path: 'privacidade', children: [] }
+          { path: 'privacidade', children: [] },
+          { path: 'dividir', children: [] },
+          { path: 'dividir/:id', children: [] }
         ]),
         { provide: AuthStore, useValue: mockAuthStore },
         { provide: AuthService, useValue: mockAuthService },
@@ -155,5 +158,67 @@ describe('App', () => {
 
     await router.navigate(['/privacidade']);
     expect(app.showNavbar()).toBe(false);
+  });
+
+  describe('Anúncios Laterais (AdSidebar)', () => {
+    it('deve exibir anúncios laterais na rota /dividir mesmo para usuário não autenticado', async () => {
+      isAuthenticatedSignal.set(false);
+      await router.navigate(['/dividir']);
+
+      const fixture = TestBed.createComponent(App);
+      const app = fixture.componentInstance;
+
+      expect(app.isDividirPage()).toBe(true);
+      expect(app.showAdSidebar()).toBe(true);
+    });
+
+    it('deve exibir anúncios laterais na rota /dividir/:id mesmo para assinantes PRO', async () => {
+      isAuthenticatedSignal.set(true);
+      (mockAuthStore.isProOrDuo as WritableSignal<boolean>).set(true);
+      await router.navigate(['/dividir/grupo-123']);
+
+      const fixture = TestBed.createComponent(App);
+      const app = fixture.componentInstance;
+
+      expect(app.isDividirPage()).toBe(true);
+      expect(app.showAdSidebar()).toBe(true);
+    });
+
+    it('deve exibir anúncios laterais no /dashboard para usuários Free autenticados', async () => {
+      isAuthenticatedSignal.set(true);
+      (mockAuthStore.isProOrDuo as WritableSignal<boolean>).set(false);
+      await router.navigate(['/dashboard']);
+
+      const fixture = TestBed.createComponent(App);
+      const app = fixture.componentInstance;
+
+      expect(app.isDividirPage()).toBe(false);
+      expect(app.showAdSidebar()).toBe(true);
+    });
+
+    it('NÃO deve exibir anúncios laterais no /dashboard para assinantes PRO', async () => {
+      isAuthenticatedSignal.set(true);
+      (mockAuthStore.isProOrDuo as WritableSignal<boolean>).set(true);
+      await router.navigate(['/dashboard']);
+
+      const fixture = TestBed.createComponent(App);
+      const app = fixture.componentInstance;
+
+      expect(app.isDividirPage()).toBe(false);
+      expect(app.showAdSidebar()).toBe(false);
+    });
+
+    it('NÃO deve exibir anúncios laterais na landing page / ou na autenticação /auth', async () => {
+      isAuthenticatedSignal.set(false);
+      await router.navigate(['/']);
+
+      const fixture = TestBed.createComponent(App);
+      const app = fixture.componentInstance;
+
+      expect(app.showAdSidebar()).toBe(false);
+
+      await router.navigate(['/auth']);
+      expect(app.showAdSidebar()).toBe(false);
+    });
   });
 });
