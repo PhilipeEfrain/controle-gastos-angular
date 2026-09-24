@@ -57,17 +57,16 @@
   width: 100%;
   display: flex;
   justify-content: center;
+  margin: 1.5rem 0;
 
   &--top {
+    margin-top: 0;
     margin-bottom: 1.5rem;
-
-    @media (min-width: 1400px) {
-      display: none;
-    }
   }
 
   &--bottom {
     margin-top: 2rem;
+    margin-bottom: 0;
   }
 }
 

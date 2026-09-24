@@ -63,7 +63,7 @@
           </div>
         </header>
 
-        <!-- Anúncio em Linha no Topo (visível quando as colunas laterais NÃO couberem, < 1400px) -->
+        <!-- Anúncio em Linha no Topo (visível em todas as telas entre o cabeçalho e os participantes) -->
         <div class="dividir-ad-row dividir-ad-row--top">
           <app-ad-banner format="auto" [alwaysShow]="true" [showUpgradePrompt]="false" />
         </div>
@@ -244,6 +244,11 @@
           </div>
         }
       </section>
+
+      <!-- Anúncio entre Acerto de Contas e Despesas Registradas -->
+      <div class="dividir-ad-row">
+        <app-ad-banner format="auto" [alwaysShow]="true" [showUpgradePrompt]="false" />
+      </div>
 
       <!-- Seção: Lista de Despesas Lançadas -->
       <section class="expenses-section">
