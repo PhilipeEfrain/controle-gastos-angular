@@ -115,12 +115,23 @@ export async function handleAsaasWebhook(
   const { db } = deps;
 
   // 1. Autenticação Obrigatória Fail-Closed (CWE-306 / CARD-085)
-  const rawReceivedToken = (headers['asaas-access-token'] || headers['Asaas-Access-Token']) as string | undefined;
-  const receivedToken = rawReceivedToken ? String(rawReceivedToken).trim() : undefined;
+  let rawReceivedToken = (
+    headers['asaas-access-token'] ||
+    headers['Asaas-Access-Token'] ||
+    headers['x-asaas-access-token'] ||
+    headers['access_token'] ||
+    headers['access-token']
+  ) as string | undefined;
+
+  if (!rawReceivedToken && typeof headers['authorization'] === 'string') {
+    rawReceivedToken = headers['authorization'].replace(/^Bearer\s+/i, '').trim();
+  }
+
+  const receivedToken = rawReceivedToken ? String(rawReceivedToken).trim().replace(/^['"]|['"]$/g, '') : undefined;
   const rawExpectedSecret = deps.getWebhookSecret
     ? await deps.getWebhookSecret()
     : await resolveWebhookSecret(db);
-  const expectedSecret = rawExpectedSecret ? String(rawExpectedSecret).trim() : undefined;
+  const expectedSecret = rawExpectedSecret ? String(rawExpectedSecret).trim().replace(/^['"]|['"]$/g, '') : undefined;
 
   if (!expectedSecret) {
     console.warn('[Asaas Webhook] 401 Unauthorized: Nenhum segredo configurado no sistema (system_config/asaas.webhookSecret). Configure o token no Admin e no Asaas para ativar o webhook.');
@@ -132,7 +143,7 @@ export async function handleAsaasWebhook(
   }
 
   if (!receivedToken) {
-    console.warn('[Asaas Webhook] 401 Unauthorized: Cabeçalho asaas-access-token não enviado na requisição do Asaas.');
+    console.warn('[Asaas Webhook] 401 Unauthorized: Cabeçalho asaas-access-token não enviado na requisição do Asaas. Verifique se o campo "Token de autenticação" está preenchido no cadastro do webhook no Asaas.');
     return {
       success: false,
       statusCode: 401,
@@ -141,7 +152,11 @@ export async function handleAsaasWebhook(
   }
 
   if (receivedToken !== expectedSecret) {
-    console.warn('[Asaas Webhook] 401 Unauthorized: Token recebido no cabeçalho não confere com o segredo esperado.');
+    const rLen = receivedToken.length;
+    const eLen = expectedSecret.length;
+    const rPre = receivedToken.substring(0, 3) + '...';
+    const ePre = expectedSecret.substring(0, 3) + '...';
+    console.warn(`[Asaas Webhook] 401 Unauthorized: Token recebido (tam: ${rLen}, início: ${rPre}) não confere com o segredo esperado (tam: ${eLen}, início: ${ePre}).`);
     return {
       success: false,
       statusCode: 401,
