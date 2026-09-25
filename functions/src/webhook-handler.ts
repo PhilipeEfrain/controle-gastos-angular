@@ -7,21 +7,27 @@ export interface WebhookHandlerDependencies {
 }
 
 /**
- * Recupera o segredo do Webhook do Asaas (via Secret Manager / env ou Firestore)
+ * Recupera o segredo do Webhook do Asaas.
+ * Prioriza o segredo salvo dinamicamente no Firestore (/system_config/asaas),
+ * permitindo que alterações no Painel Admin tenham efeito imediato sem necessidade de redeploy.
+ * Como fallback, utiliza a variável de ambiente ASAAS_WEBHOOK_SECRET se configurada.
  */
 export async function resolveWebhookSecret(db: Firestore): Promise<string | undefined> {
-  if (process.env.ASAAS_WEBHOOK_SECRET) {
-    return process.env.ASAAS_WEBHOOK_SECRET;
-  }
-
   try {
     const configSnap = await db.collection('system_config').doc('asaas').get();
     if (configSnap.exists) {
       const data = configSnap.data();
-      return data?.webhookSecret;
+      const firestoreSecret = data?.webhookSecret;
+      if (typeof firestoreSecret === 'string' && firestoreSecret.trim().length > 0) {
+        return firestoreSecret.trim();
+      }
     }
   } catch (err) {
     console.error('Erro ao buscar webhookSecret em system_config/asaas:', err);
+  }
+
+  if (process.env.ASAAS_WEBHOOK_SECRET) {
+    return process.env.ASAAS_WEBHOOK_SECRET.trim();
   }
 
   return undefined;
@@ -132,9 +138,10 @@ export async function handleAsaasWebhook(
     ? await deps.getWebhookSecret()
     : await resolveWebhookSecret(db);
   const expectedSecret = rawExpectedSecret ? String(rawExpectedSecret).trim().replace(/^['"]|['"]$/g, '') : undefined;
+  const envSecret = process.env.ASAAS_WEBHOOK_SECRET ? String(process.env.ASAAS_WEBHOOK_SECRET).trim().replace(/^['"]|['"]$/g, '') : undefined;
 
-  if (!expectedSecret) {
-    console.warn('[Asaas Webhook] 401 Unauthorized: Nenhum segredo configurado no sistema (system_config/asaas.webhookSecret). Configure o token no Admin e no Asaas para ativar o webhook.');
+  if (!expectedSecret && !envSecret) {
+    console.warn('[Asaas Webhook] 401 Unauthorized: Nenhum segredo configurado no sistema (system_config/asaas.webhookSecret nem env). Configure o token no Admin e no Asaas para ativar o webhook.');
     return {
       success: false,
       statusCode: 401,
@@ -151,12 +158,14 @@ export async function handleAsaasWebhook(
     };
   }
 
-  if (receivedToken !== expectedSecret) {
+  const isMatched = (expectedSecret && receivedToken === expectedSecret) || (envSecret && receivedToken === envSecret);
+
+  if (!isMatched) {
     const rLen = receivedToken.length;
-    const eLen = expectedSecret.length;
-    const rPre = receivedToken.substring(0, 3) + '...';
-    const ePre = expectedSecret.substring(0, 3) + '...';
-    console.warn(`[Asaas Webhook] 401 Unauthorized: Token recebido (tam: ${rLen}, início: ${rPre}) não confere com o segredo esperado (tam: ${eLen}, início: ${ePre}).`);
+    const eLen = (expectedSecret || envSecret || '').length;
+    const rMasked = receivedToken.length > 8 ? `${receivedToken.slice(0, 6)}...${receivedToken.slice(-4)}` : '***';
+    const eMasked = (expectedSecret || envSecret || '').length > 8 ? `${(expectedSecret || envSecret || '').slice(0, 6)}...${(expectedSecret || envSecret || '').slice(-4)}` : '***';
+    console.warn(`[Asaas Webhook] 401 Unauthorized: Token recebido (tam: ${rLen}, ${rMasked}) não confere com o segredo esperado (tam: ${eLen}, ${eMasked}).`);
     return {
       success: false,
       statusCode: 401,
