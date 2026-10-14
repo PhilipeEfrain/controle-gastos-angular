@@ -772,6 +772,11 @@
   justify-content: center;
   z-index: 1000;
   padding: 16px;
+  overflow-y: auto;
+
+  @media (max-width: 580px) {
+    padding: 12px 8px;
+  }
 }
 
 .modal-card {
@@ -780,7 +785,19 @@
   border-radius: 16px;
   width: 100%;
   max-width: 480px;
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
+  display: flex;
+  flex-direction: column;
   box-shadow: var(--shadow-lg, 0 20px 40px rgba(0, 0, 0, 0.4));
+  overflow: hidden;
+  margin: auto;
+  animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+  @media (max-width: 580px) {
+    max-height: calc(100dvh - 16px);
+    border-radius: 14px;
+  }
 
   .modal-header {
     display: flex;
@@ -788,15 +805,37 @@
     align-items: center;
     padding: 16px 20px;
     border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
 
-    h3 { font-size: 16px; font-weight: 700; color: var(--color-text-primary); }
+    @media (max-width: 580px) {
+      padding: 14px 16px;
+    }
+
+    h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin: 0;
+    }
+
     .btn-close {
       background: none;
       border: none;
       color: var(--color-text-secondary);
       font-size: 22px;
       cursor: pointer;
-      &:hover { color: var(--color-text-primary); }
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: background-color 0.15s, color 0.15s;
+
+      &:hover {
+        color: var(--color-text-primary);
+        background: var(--color-surface-hover);
+      }
     }
   }
 
@@ -805,6 +844,15 @@
     display: flex;
     flex-direction: column;
     gap: 14px;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+
+    @media (max-width: 580px) {
+      padding: 16px;
+      gap: 12px;
+    }
   }
 }
 
@@ -824,6 +872,16 @@
   display: flex;
   gap: 12px;
   .flex-1 { flex: 1; }
+
+  @media (max-width: 580px) {
+    flex-direction: column;
+    gap: 12px;
+
+    .flex-1 {
+      width: 100%;
+      flex: none;
+    }
+  }
 }
 
 .input-field {
@@ -834,11 +892,20 @@
   color: var(--color-text-primary);
   font-size: 14px;
   outline: none;
+  width: 100%;
+  box-sizing: border-box;
   transition: border-color 0.2s, box-shadow 0.2s;
+  min-height: 40px;
 
   &:focus {
     border-color: var(--color-primary);
     box-shadow: 0 0 0 3px var(--color-primary-bg, rgba(37, 99, 235, 0.15));
+  }
+
+  @media (max-width: 580px) {
+    font-size: 15px;
+    padding: 10px 12px;
+    min-height: 44px;
   }
 }
 
@@ -856,6 +923,11 @@
   gap: 16px;
   margin-top: 6px;
 
+  @media (max-width: 580px) {
+    flex-direction: column;
+    gap: 10px;
+  }
+
   .radio-label {
     display: flex;
     align-items: center;
@@ -871,4 +943,32 @@
   justify-content: flex-end;
   gap: 10px;
   margin-top: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border);
+  flex-shrink: 0;
+
+  @media (max-width: 580px) {
+    flex-direction: column-reverse;
+    gap: 8px;
+    margin-top: 6px;
+    padding-top: 12px;
+
+    button {
+      width: 100%;
+      justify-content: center;
+      padding: 12px 16px;
+      font-size: 14px;
+    }
+  }
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }

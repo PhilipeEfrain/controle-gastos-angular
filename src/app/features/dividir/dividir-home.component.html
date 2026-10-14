@@ -241,8 +241,12 @@
               class="input-field"
               (keydown.enter)="$event.preventDefault(); addParticipantToForm()"
             />
-            <button type="button" class="btn-secondary" (click)="addParticipantToForm()">
-              + Adicionar
+            <button type="button" class="btn-secondary btn-add-participant" (click)="addParticipantToForm()">
+              <svg viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+              </svg>
+              <span class="btn-text-desktop">Adicionar</span>
+              <span class="btn-text-mobile">Adicionar participante</span>
             </button>
           </div>
 
