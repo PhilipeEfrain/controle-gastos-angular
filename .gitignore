@@ -57,3 +57,5 @@ firestore-debug.log
 .firebase/
 emulator-data/
 
+# Marketing & local ad assets
+marketing/
