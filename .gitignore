@@ -44,6 +44,7 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+.fuse_hidden*
 
 # Environment variables & secrets
 .env

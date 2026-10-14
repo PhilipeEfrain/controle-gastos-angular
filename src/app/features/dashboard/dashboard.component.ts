@@ -209,6 +209,9 @@ export class DashboardComponent implements OnInit {
     if (exp.isShared || exp.id?.startsWith('shared_')) {
       return `Deseja realmente excluir a despesa do casal "${exp.descricao}"? Ela será removida das listas de ambos os parceiros.`;
     }
+    if (exp.recorrente) {
+      return `Deseja realmente excluir a despesa recorrente "${exp.descricao}"? Ao excluir, ela também deixará de se repetir nos meses futuros.`;
+    }
     return `Deseja realmente excluir a despesa "${exp.descricao}"?`;
   });
 
@@ -714,11 +717,22 @@ export class DashboardComponent implements OnInit {
     }
 
     try {
-      await this.expenseService.deleteExpense(
-        user.uid,
-        this.financeStore.selectedMonth(),
-        expense.id
-      );
+      if (expense.recorrente) {
+        await this.expenseService.deleteRecurringExpenseAndFutureInstances(
+          user.uid,
+          this.financeStore.selectedMonth(),
+          expense.recorrente_id,
+          expense.descricao,
+          expense.quinzena
+        );
+      } else {
+        await this.expenseService.deleteExpense(
+          user.uid,
+          this.financeStore.selectedMonth(),
+          expense.id
+        );
+      }
+
       this.financeStore.invalidateRecurrenceCache();
       this.notificationService.success(`Despesa "${expense.descricao}" excluída com sucesso.`);
     } catch (err: any) {

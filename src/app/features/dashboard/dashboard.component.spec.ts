@@ -103,6 +103,7 @@ describe('DashboardComponent', () => {
     mockExpenseService = {
       togglePaymentStatus: vi.fn().mockResolvedValue(undefined),
       deleteExpense: vi.fn().mockResolvedValue(undefined),
+      deleteRecurringExpenseAndFutureInstances: vi.fn().mockResolvedValue(undefined),
       addExpense: vi.fn().mockResolvedValue('exp-new'),
       updateExpense: vi.fn().mockResolvedValue(undefined),
       updateReceiptCode: vi.fn().mockResolvedValue(undefined),
@@ -624,6 +625,34 @@ describe('DashboardComponent', () => {
         'user-777',
         '2025-03',
         'exp-123'
+      );
+      expect(component.isDeleteExpenseModalOpen()).toBe(false);
+    });
+
+    it('deve chamar deleteRecurringExpenseAndFutureInstances ao confirmar exclusão de despesa recorrente', async () => {
+      const recExp: Expense = {
+        id: 'exp-rec-1',
+        descricao: 'Internet Fibra',
+        valor: 120,
+        categoria: 'Serviços & Assinaturas',
+        quinzena: 1,
+        recorrente: true,
+        recorrente_id: 'rec-master-1',
+        status_pagamento: false
+      };
+
+      component.onDeleteExpense(recExp);
+      expect(component.isDeleteExpenseModalOpen()).toBe(true);
+      expect(component.deleteModalMessage()).toContain('deixará de se repetir nos meses futuros');
+
+      await component.confirmDeleteExpense();
+
+      expect(mockExpenseService.deleteRecurringExpenseAndFutureInstances).toHaveBeenCalledWith(
+        'user-777',
+        '2025-03',
+        'rec-master-1',
+        'Internet Fibra',
+        1
       );
       expect(component.isDeleteExpenseModalOpen()).toBe(false);
     });

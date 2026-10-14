@@ -254,6 +254,7 @@ export class ExpenseFormModalComponent {
               quinzena: Number(formVal.quinzena) as FortnightNumber,
               categoria: formVal.categoria,
               data_vencimento: formVal.data_vencimento?.trim() || '',
+              mes_inicio: this.mesAno(),
               ativo: true
             });
           } else {
@@ -268,8 +269,14 @@ export class ExpenseFormModalComponent {
             });
           }
         } else if (recorrenteId) {
-          // Caso 3: Era recorrente e o usuário desmarcou a caixinha -> remove o mestre para parar nos meses seguintes
-          await this.expenseService.deleteRecurringExpense(user.uid, recorrenteId);
+          // Caso 3: Era recorrente e o usuário desmarcou a caixinha -> remove o mestre e ocorrências nos meses seguintes
+          await this.expenseService.deleteRecurringExpenseAndFutureInstances(
+            user.uid,
+            addMonthsToYearMonth(this.mesAno(), 1),
+            recorrenteId,
+            toEdit.descricao,
+            toEdit.quinzena
+          );
           recorrenteId = undefined;
         }
 
@@ -380,7 +387,8 @@ export class ExpenseFormModalComponent {
           valor: installmentAmount,
           quinzena: Number(formVal.quinzena) as FortnightNumber,
           categoria: formVal.categoria,
-          status_pagamento: false
+          status_pagamento: false,
+          recorrente: false
         };
         if (formVal.data_vencimento?.trim()) {
           baseExpense.data_vencimento = formVal.data_vencimento.trim();
@@ -423,6 +431,7 @@ export class ExpenseFormModalComponent {
             quinzena: Number(formVal.quinzena) as FortnightNumber,
             categoria: formVal.categoria,
             data_vencimento: formVal.data_vencimento?.trim() || '',
+            mes_inicio: this.mesAno(),
             ativo: true
           });
         }
@@ -435,7 +444,8 @@ export class ExpenseFormModalComponent {
           categoria: formVal.categoria,
           status_pagamento: false,
           recorrente: isRecorrente,
-          recorrente_id: recorrenteId
+          recorrente_id: recorrenteId,
+          mes_inicio: isRecorrente ? this.mesAno() : undefined
         };
         if (formVal.data_vencimento?.trim()) {
           newExpense.data_vencimento = formVal.data_vencimento.trim();

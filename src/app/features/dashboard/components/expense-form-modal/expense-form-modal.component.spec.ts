@@ -35,6 +35,7 @@ describe('ExpenseFormModalComponent', () => {
       updateExpense: vi.fn().mockResolvedValue(undefined),
       updateRecurringExpense: vi.fn().mockResolvedValue(undefined),
       deleteRecurringExpense: vi.fn().mockResolvedValue(undefined),
+      deleteRecurringExpenseAndFutureInstances: vi.fn().mockResolvedValue(undefined),
       createInstallments: vi.fn().mockResolvedValue('group-id-1'),
       getRecurringExpensesStream: vi.fn().mockReturnValue(of([]))
     };
@@ -356,9 +357,12 @@ describe('ExpenseFormModalComponent', () => {
 
     await component.onSubmit();
 
-    expect(mockExpenseService.deleteRecurringExpense).toHaveBeenCalledWith(
+    expect(mockExpenseService.deleteRecurringExpenseAndFutureInstances).toHaveBeenCalledWith(
       'user-123',
-      'rec-master-1'
+      '2025-04',
+      'rec-master-1',
+      'Streaming Antigo',
+      1
     );
 
     expect(mockExpenseService.updateExpense).toHaveBeenCalledWith(

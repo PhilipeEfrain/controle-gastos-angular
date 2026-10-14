@@ -19,6 +19,7 @@ export interface Expense {
   sharedExpenseId?: string;
   sharedTotal?: number;
   pagoPorNome?: string;
+  mes_inicio?: string;
   createdAt?: string;
 }
 
@@ -30,6 +31,7 @@ export interface RecurringExpense {
   categoria: string;
   data_vencimento?: string;
   ativo: boolean;
+  mes_inicio?: string;
   createdAt?: string;
   updatedAt?: string;
 }

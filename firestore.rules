@@ -87,13 +87,15 @@ service cloud.firestore {
         'status_pagamento', 'tipo', 'codigo_comprovante', 'data_vencimento',
         'recorrente', 'recorrente_id', 'parcela_atual', 'total_parcelas', 'grupo_parcela_id',
         'isParcelado', 'grupoParcelamentoId', 'numeroParcela', 'totalParcelas',
-        'observacao', 'observacoes', 'createdAt', 'updatedAt'
+        'isShared', 'sharedExpenseId', 'sharedTotal', 'pagoPorNome',
+        'mes_inicio', 'observacao', 'observacoes', 'createdAt', 'updatedAt'
       ])
         && isValidPositiveNumber(data.valor)
         && isValidString(data.descricao, 1, 100)
         && (!('categoria' in data) || (data.categoria is string && data.categoria.size() <= 50))
         && (!('quinzena' in data) || isValidFortnight(data.quinzena))
         && (!('mesAno' in data) || isValidYearMonth(data.mesAno))
+        && (!('mes_inicio' in data) || isValidYearMonth(data.mes_inicio)) // Suporte ao mês de início de recorrência/referência (YYYY-MM)
         && (!('status_pagamento' in data) || data.status_pagamento is bool)
         && (!('tipo' in data) || data.tipo in ['despesa', 'renda_extra'])
         && (!('codigo_comprovante' in data) || data.codigo_comprovante == null || (data.codigo_comprovante is string && data.codigo_comprovante.size() <= 100));
@@ -103,13 +105,14 @@ service cloud.firestore {
     function isValidRecurringExpense(data) {
       return data.keys().hasOnly([
         'id', 'descricao', 'valor', 'categoria', 'quinzena',
-        'data_vencimento', 'ativo', 'observacao', 'observacoes',
+        'data_vencimento', 'ativo', 'mes_inicio', 'observacao', 'observacoes',
         'createdAt', 'updatedAt'
       ])
         && isValidPositiveNumber(data.valor)
         && isValidString(data.descricao, 1, 100)
         && (!('categoria' in data) || (data.categoria is string && data.categoria.size() <= 50))
         && (!('quinzena' in data) || isValidFortnight(data.quinzena))
+        && (!('mes_inicio' in data) || isValidYearMonth(data.mes_inicio)) // Suporte ao mês de início da despesa fixa mestre (YYYY-MM)
         && (!('ativo' in data) || data.ativo is bool);
     }
 

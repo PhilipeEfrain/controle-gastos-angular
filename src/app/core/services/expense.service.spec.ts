@@ -49,6 +49,12 @@ describe('ExpenseService', () => {
     ).resolves.toBeUndefined();
   });
 
+  it('deve executar deleteRecurringExpenseAndFutureInstances sem erros para usuário e2e', async () => {
+    await expect(
+      service.deleteRecurringExpenseAndFutureInstances('e2e-user', '2026-10', 'rec_123', 'Internet', 1)
+    ).resolves.toBeUndefined();
+  });
+
   it('deve executar syncRecurringExpensesForMonth sem erros para usuário e2e', async () => {
     await expect(
       service.syncRecurringExpensesForMonth('e2e-user', '2025-04', [])

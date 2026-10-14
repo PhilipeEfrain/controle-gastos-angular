@@ -11,7 +11,7 @@ import {
 } from 'firebase/firestore';
 import { Observable, BehaviorSubject, of } from 'rxjs';
 import { FirebaseService } from './firebase.service';
-import { Expense, RecurringExpense } from '../models/finance.model';
+import { Expense, RecurringExpense, FortnightNumber } from '../models/finance.model';
 import { roundBRL, addMonthsToYearMonth } from '../utils/calculations';
 
 @Injectable({
@@ -132,7 +132,7 @@ export class ExpenseService {
   }
 
   /**
-   * Cadastra uma despesa recorrente mestre
+   * Cadastra uma despesa recorrente mestre (evita duplicatas se já existir mestre com mesma descrição e quinzena)
    */
   async addRecurringExpense(userId: string, recurring: RecurringExpense): Promise<string> {
     if (userId.startsWith('e2e-')) {
@@ -144,10 +144,35 @@ export class ExpenseService {
       `users/${userId}/despesas_recorrentes`
     );
 
+    // Evita duplicidade de mestres: se já existir mestre ativo com a mesma descrição e quinzena, reutiliza e atualiza
+    const targetDesc = recurring.descricao?.trim().toLowerCase();
+    if (targetDesc) {
+      try {
+        const existingList = await this.getRecurringExpenses(userId);
+        const existingMaster = existingList.find(
+          r => r.ativo !== false && r.descricao?.trim().toLowerCase() === targetDesc && r.quinzena === recurring.quinzena
+        );
+
+        if (existingMaster && existingMaster.id) {
+          await this.updateRecurringExpense(userId, existingMaster.id, {
+            valor: roundBRL(recurring.valor),
+            categoria: recurring.categoria || existingMaster.categoria,
+            data_vencimento: recurring.data_vencimento || existingMaster.data_vencimento,
+            mes_inicio: recurring.mes_inicio || existingMaster.mes_inicio,
+            ativo: true
+          });
+          return existingMaster.id;
+        }
+      } catch (err) {
+        console.warn('[ExpenseService] Falha não impeditiva ao checar mestres existentes:', err);
+      }
+    }
+
     const recurringData = this.sanitizeData({
       ...recurring,
       valor: roundBRL(recurring.valor),
       ativo: recurring.ativo ?? true,
+      mes_inicio: recurring.mes_inicio || new Date().toISOString().substring(0, 7),
       createdAt: recurring.createdAt || new Date().toISOString()
     });
 
@@ -212,8 +237,104 @@ export class ExpenseService {
   }
 
   /**
+   * Exclui uma despesa recorrente mestre e todas as suas ocorrências já salvas
+   * a partir do mês especificado (startMesAno) em diante.
+   * Meses anteriores (< startMesAno) são estritamente preservados como histórico financeiro.
+   */
+  async deleteRecurringExpenseAndFutureInstances(
+    userId: string,
+    startMesAno: string,
+    recurringId?: string,
+    targetDescription?: string,
+    targetQuinzena?: FortnightNumber
+  ): Promise<void> {
+    if (userId.startsWith('e2e-')) {
+      return;
+    }
+
+    // 1. Remove o registro mestre de despesas_recorrentes
+    if (recurringId) {
+      await this.deleteRecurringExpense(userId, recurringId).catch(() => {});
+    }
+    if (targetDescription && targetQuinzena) {
+      const normalizedDesc = targetDescription.trim().toLowerCase();
+      try {
+        const masters = await this.getRecurringExpenses(userId);
+        const matches = masters.filter(
+          m => m.id && m.descricao?.trim().toLowerCase() === normalizedDesc && m.quinzena === targetQuinzena
+        );
+        for (const m of matches) {
+          if (m.id && m.id !== recurringId) {
+            await this.deleteRecurringExpense(userId, m.id).catch(() => {});
+          }
+        }
+      } catch (err) {
+        console.warn('[ExpenseService] Falha ao verificar mestres para exclusão:', err);
+      }
+    }
+
+    // 2. Mapeia todos os ciclos mensais salvos >= startMesAno
+    const futureMonths = new Set<string>();
+    try {
+      const ciclosColRef = collection(this.firestore, `users/${userId}/ciclos_mensais`);
+      const snap = await getDocs(ciclosColRef);
+      snap.docs.forEach(d => {
+        if (d.id >= startMesAno) {
+          futureMonths.add(d.id);
+        }
+      });
+    } catch (err) {
+      console.warn('[ExpenseService] Falha ao listar ciclos para exclusão recorrente:', err);
+    }
+
+    // Garante cobertura para o mês de exclusão e até 12 meses futuros
+    for (let i = 0; i <= 12; i++) {
+      futureMonths.add(addMonthsToYearMonth(startMesAno, i));
+    }
+
+    const normalizedDesc = targetDescription?.trim().toLowerCase();
+
+    // 3. Deleta as despesas correspondentes em lote nos meses futuros
+    for (const month of futureMonths) {
+      try {
+        const expensesColRef = collection(
+          this.firestore,
+          `users/${userId}/ciclos_mensais/${month}/despesas`
+        );
+        const expSnap = await getDocs(expensesColRef);
+        if (expSnap.empty) continue;
+
+        const toDelete = expSnap.docs.filter(d => {
+          const data = d.data() as Expense;
+          if (recurringId && data.recorrente_id === recurringId) {
+            return true;
+          }
+          if (
+            normalizedDesc &&
+            targetQuinzena &&
+            data.recorrente &&
+            data.descricao?.trim().toLowerCase() === normalizedDesc &&
+            data.quinzena === targetQuinzena
+          ) {
+            return true;
+          }
+          return false;
+        });
+
+        if (toDelete.length > 0) {
+          const batch = writeBatch(this.firestore);
+          toDelete.forEach(docSnap => batch.delete(docSnap.ref));
+          await batch.commit();
+        }
+      } catch (err) {
+        console.warn(`[ExpenseService] Falha ao deletar despesa recorrente no mês ${month}:`, err);
+      }
+    }
+  }
+
+  /**
    * Sincroniza despesas recorrentes ativas para um mês específico se ainda não existirem.
-   * Inclui auto-cura para despesas marcadas como recorrentes que não possuam registro mestre.
+   * Inclui auto-cura protegida para despesas normais, prevenção contra cache vazio e deduplicação estrita.
    */
   async syncRecurringExpensesForMonth(
     userId: string,
@@ -224,58 +345,63 @@ export class ExpenseService {
       return;
     }
 
-    let recurringList = await this.getRecurringExpenses(userId);
+    let actualExpenses = [...existingExpenses];
 
-    // Auto-cura: identificar despesas existentes neste ciclo que foram marcadas como recorrentes,
-    // mas que não possuem documento mestre em `despesas_recorrentes` (ex: marcação retroativa na edição)
-    for (const exp of existingExpenses) {
-      if (exp.recorrente && exp.id && exp.descricao?.trim()) {
-        const hasMaster = recurringList.some(r =>
-          (exp.recorrente_id && r.id === exp.recorrente_id) ||
-          (r.descricao?.trim().toLowerCase() === exp.descricao?.trim().toLowerCase() && r.quinzena === exp.quinzena)
+    // Proteção contra cache vazio / primeira emissão rápida do onSnapshot:
+    // Se o array recebido estiver vazio, faz uma leitura pontual autoritativa do Firestore
+    // para confirmar se o mês realmente não possui despesas cadastradas antes de gerar o lote.
+    if (actualExpenses.length === 0) {
+      try {
+        const expensesColRef = collection(
+          this.firestore,
+          `users/${userId}/ciclos_mensais/${mesAno}/despesas`
         );
-
-        if (!hasMaster) {
-          const newRecId = await this.addRecurringExpense(userId, {
-            descricao: exp.descricao.trim(),
-            valor: roundBRL(exp.valor),
-            quinzena: exp.quinzena,
-            categoria: exp.categoria || 'Outros',
-            data_vencimento: exp.data_vencimento || '',
-            ativo: true
-          });
-
-          if (exp.recorrente_id !== newRecId) {
-            await this.updateExpense(userId, mesAno, exp.id, {
-              recorrente_id: newRecId
-            });
-            exp.recorrente_id = newRecId;
-          }
-
-          recurringList.push({
-            id: newRecId,
-            descricao: exp.descricao.trim(),
-            valor: roundBRL(exp.valor),
-            quinzena: exp.quinzena,
-            categoria: exp.categoria || 'Outros',
-            data_vencimento: exp.data_vencimento || '',
-            ativo: true
-          });
+        const snap = await getDocs(expensesColRef);
+        if (!snap.empty) {
+          actualExpenses = snap.docs.map(d => ({ id: d.id, ...d.data() } as Expense));
         }
+      } catch (err) {
+        console.warn('[ExpenseService] Falha ao verificar despesas existentes no mês:', err);
       }
     }
 
+    const recurringList = await this.getRecurringExpenses(userId);
     const activeRecurring = recurringList.filter(r => r.ativo !== false);
 
     if (activeRecurring.length === 0) {
       return;
     }
 
-    const missingRecurring = activeRecurring.filter(rec => {
-      return !existingExpenses.some(exp =>
-        (exp.recorrente_id && exp.recorrente_id === rec.id) ||
-        (exp.recorrente && exp.descricao?.trim().toLowerCase() === rec.descricao?.trim().toLowerCase() && exp.quinzena === rec.quinzena)
-      );
+    // Deduplica mestres ativos por (descrição normalizada + quinzena) para prevenir que mestres duplicados
+    // gerem múltiplos lançamentos no mesmo mês
+    const uniqueMasters = new Map<string, RecurringExpense>();
+    for (const rec of activeRecurring) {
+      const key = `${(rec.descricao || '').trim().toLowerCase()}_Q${rec.quinzena}`;
+      if (!uniqueMasters.has(key)) {
+        uniqueMasters.set(key, rec);
+      }
+    }
+
+    const missingRecurring = Array.from(uniqueMasters.values()).filter(rec => {
+      // Regra fundamental: despesas recorrentes só existem a partir do seu mês de início (mes_inicio <= mesAno).
+      // Meses passados (< startMonth) são estritamente protegidos.
+      const startMonth = rec.mes_inicio || (rec.createdAt ? rec.createdAt.substring(0, 7) : '');
+      if (startMonth && mesAno < startMonth) {
+        return false;
+      }
+
+      const recDesc = (rec.descricao || '').trim().toLowerCase();
+      return !actualExpenses.some(exp => {
+        if (exp.recorrente_id && exp.recorrente_id === rec.id) {
+          return true;
+        }
+        const expDesc = (exp.descricao || '').trim().toLowerCase();
+        // Se já existe qualquer despesa (mesmo nome e quinzena)
+        if (expDesc === recDesc && exp.quinzena === rec.quinzena) {
+          return true;
+        }
+        return false;
+      });
     });
 
     if (missingRecurring.length === 0) {
@@ -294,6 +420,7 @@ export class ExpenseService {
         categoria: rec.categoria,
         recorrente: true,
         recorrente_id: rec.id,
+        mes_inicio: rec.mes_inicio,
         status_pagamento: false,
         data_vencimento: rec.data_vencimento || '',
         createdAt: new Date().toISOString()
@@ -430,6 +557,8 @@ export class ExpenseService {
         parcela_atual: i + 1,
         total_parcelas: installmentsCount,
         grupo_parcela_id: grupoParcelaId,
+        recorrente: false,
+        recorrente_id: undefined,
         status_pagamento: false,
         createdAt: new Date().toISOString()
       });
